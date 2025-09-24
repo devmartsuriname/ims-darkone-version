@@ -76,6 +76,11 @@ const initialRoutes: RoutesProps[] = [
     name: 'root',
     element: <Navigate to="/dashboards" />,
   },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    element: <Navigate to="/dashboards" />,
+  },
 ]
 
 const generalRoutes: RoutesProps[] = [

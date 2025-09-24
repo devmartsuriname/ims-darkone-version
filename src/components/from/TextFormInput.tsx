@@ -16,7 +16,8 @@ const TextFormInput = <TFieldValues extends FieldValues = FieldValues, TName ext
   ...other
 }: FormInputProps<TFieldValues> & FormControlProps & InputHTMLAttributes<HTMLInputElement>) => {
   return (
-    <Controller<TFieldValues, TName>
+    <Controller
+      {...({} as any)} // TypeScript generics workaround for componentTagger
       name={name as TName}
       defaultValue={'' as PathValue<TFieldValues, TName>}
       control={control}
