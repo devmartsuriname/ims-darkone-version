@@ -65,3 +65,35 @@
 
 // UI Enhancement Components
 @import "components/ui-enhancements";
+
+// Application List Enhancements
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease-in-out;
+  
+  &:hover {
+    background-color: rgba(var(--primary-rgb), 0.05);
+  }
+  
+  i {
+    margin-left: 0.25rem;
+    font-size: 0.75rem;
+  }
+}
+
+.table-responsive {
+  .btn-group {
+    white-space: nowrap;
+  }
+}
+
+.application-status-badge {
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.application-priority-badge {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+}
