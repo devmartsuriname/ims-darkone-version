@@ -9,63 +9,64 @@ export const MENU_ITEMS: MenuItemType[] = [
   {
     key: 'dashboards',
     label: 'Dashboard',
-    icon: 'mingcute:home-3-line',
+    isTitle: false,
+    icon: 'Solar:widget-4-bold',
     url: '/dashboards',
   },
-  
-  // ==================== IMS CORE ===============
+
+  // ==================== APPLICATIONS ===============
   {
-    key: 'ims',
-    label: 'IMS CORE',
+    key: 'applications',
+    label: 'APPLICATIONS',
     isTitle: true,
   },
   {
-    key: 'applications',
-    label: 'Applications',
-    icon: 'mingcute:folder-2-line',
+    key: 'application-management',
+    label: 'Application Management',
+    icon: 'mingcute:file-line',
     children: [
       {
         key: 'application-intake',
-        label: 'New Application',
+        label: 'Application Intake',
         url: '/applications/intake',
-        parentKey: 'applications',
+        parentKey: 'application-management',
       },
       {
         key: 'application-list',
-        label: 'All Applications',
+        label: 'Application List',
         url: '/applications/list',
-        parentKey: 'applications',
-      },
-      {
-        key: 'my-applications',
-        label: 'My Applications',
-        url: '/applications/my-applications',
-        parentKey: 'applications',
+        parentKey: 'application-management',
       },
     ],
   },
   {
-    key: 'control',
+    key: 'control-department',
     label: 'Control Department',
-    icon: 'mingcute:clipboard-line',
+    icon: 'mingcute:search-line',
     children: [
       {
         key: 'control-queue',
         label: 'Control Queue',
         url: '/control/queue',
-        parentKey: 'control',
+        parentKey: 'control-department',
       },
       {
-        key: 'scheduled-visits',
-        label: 'Scheduled Visits',
+        key: 'control-schedule',
+        label: 'Schedule Visits',
+        url: '/control/schedule',
+        parentKey: 'control-department',
+      },
+      {
+        key: 'control-visit',
+        label: 'Control Visit',
+        url: '/control/visit',
+        parentKey: 'control-department',
+      },
+      {
+        key: 'control-visits',
+        label: 'Visit History',
         url: '/control/visits',
-        parentKey: 'control',
-      },
-      {
-        key: 'control-reports',
-        label: 'Control Reports',
-        url: '/control/reports',
-        parentKey: 'control',
+        parentKey: 'control-department',
       },
     ],
   },
@@ -93,9 +94,15 @@ export const MENU_ITEMS: MenuItemType[] = [
         parentKey: 'reviews',
       },
       {
-        key: 'minister-decision',
+        key: 'minister-review',
         label: 'Minister Decision',
         url: '/reviews/minister',
+        parentKey: 'reviews',
+      },
+      {
+        key: 'review-archive',
+        label: 'Review Archive',
+        url: '/reviews/archive',
         parentKey: 'reviews',
       },
     ],
@@ -119,16 +126,12 @@ export const MENU_ITEMS: MenuItemType[] = [
         parentKey: 'user-management',
       },
       {
-        key: 'roles',
-        label: 'Roles & Permissions',
-        url: '/admin/roles',
+        key: 'notification-preferences',
+        label: 'Notification Preferences',
+        url: '/admin/notification-preferences',
         parentKey: 'user-management',
       },
-      {
-        key: 'auth-setup',
-        label: 'Authentication Setup',
-        url: '/admin/auth-setup',
-        parentKey: 'user-management',
+    ],
   },
   {
     key: 'workflow',
@@ -157,373 +160,496 @@ export const MENU_ITEMS: MenuItemType[] = [
       },
     ],
   },
+
+  // ==================== QUALITY ASSURANCE ===============
   {
-    key: 'reference-data',
-    label: 'Reference Data',
-    icon: 'mingcute:settings-3-line',
-    children: [
-      {
-        key: 'document-types',
-        label: 'Document Types',
-        url: '/admin/document-types',
-        parentKey: 'reference-data',
-      },
-      {
-        key: 'sla-config',
-        label: 'SLA Configuration',
-        url: '/admin/sla-config',
-        parentKey: 'reference-data',
-      },
-      {
-        key: 'workflow-config',
-        label: 'Workflow Config',
-        url: '/admin/workflow-config',
-        parentKey: 'reference-data',
-      },
-    ],
+    key: 'quality-assurance',
+    label: 'QUALITY ASSURANCE',
+    isTitle: true,
   },
   {
-    key: 'reports',
-    label: 'Reports & Analytics',
-    icon: 'mingcute:chart-bar-line',
+    key: 'testing',
+    label: 'Testing & QA',
+    icon: 'mingcute:bug-line',
     children: [
       {
-        key: 'performance-reports',
-        label: 'Performance Reports',
-        url: '/reports/performance',
-        parentKey: 'reports',
+        key: 'integration-testing',
+        label: 'Integration Testing',
+        url: '/testing/integration',
+        parentKey: 'testing',
       },
       {
-        key: 'audit-logs',
-        label: 'Audit Logs',
-        url: '/reports/audit',
-        parentKey: 'reports',
+        key: 'end-to-end-testing',
+        label: 'End-to-End Testing',
+        url: '/testing/end-to-end',
+        parentKey: 'testing',
       },
       {
-        key: 'statistics',
-        label: 'Statistics',
-        url: '/reports/statistics',
-        parentKey: 'reports',
-      },
-    ],
-  },
-  {
-    key: "testing",
-    label: "Testing",
-    isTitle: false,
-    icon: "bx bx-test-tube",
-    children: [
-      {
-        key: "testing-integration",
-        label: "Integration Tests",
-        url: "/admin/testing/integration",
-        parentKey: "testing",
-      },
-      {
-        key: "testing-end-to-end",
-        label: "End-to-End Tests",
-        url: "/admin/testing/end-to-end",
-        parentKey: "testing",
-      },
-    ],
-  },
-  {
-    key: "notifications",
-    label: "Notifications",
-    isTitle: false,
-    icon: "solar:bell-bing-outline",
-    children: [
-      {
-        key: "admin-notifications",
-        label: "All Notifications",
-        url: "/admin/notifications",
-        parentKey: "notifications",
-      },
-      {
-        key: "admin-notification-preferences",
-        label: "Notification Preferences",
-        url: "/admin/notification-preferences",
-        parentKey: "notifications",
-      },
-    ],
-  },
-  {
-    key: "deployment",
-    label: "Deployment",
-    isTitle: false,
-    icon: "bx bx-rocket",
-    children: [
-      {
-        key: "deployment-readiness",
-        label: "Production Readiness",
-        url: "/deployment/readiness",
-        parentKey: "deployment",
-      },
-      {
-        key: "deployment-guide",
-        label: "Deployment Guide",
-        url: "/deployment/guide",
-        parentKey: "deployment",
+        key: 'qa-dashboard',
+        label: 'QA Dashboard',
+        url: '/qa/dashboard',
+        parentKey: 'testing',
       },
     ],
   },
 
-  // ====================Authentication===============
+  // ==================== SECURITY ===============
   {
-    key: 'system',
-    label: 'SYSTEM',
+    key: 'security',
+    label: 'SECURITY',
     isTitle: true,
   },
   {
-    key: 'auth',
-    label: 'Authentication',
-    icon: 'mingcute:user-3-line',
+    key: 'security-tools',
+    label: 'Security Tools',
+    icon: 'mingcute:shield-line',
     children: [
       {
-        key: 'sign-in',
-        label: 'Sign In',
-        url: '/auth/sign-in',
-        parentKey: 'auth',
+        key: 'security-scanning',
+        label: 'Security Scanning',
+        url: '/security/scanning',
+        parentKey: 'security-tools',
       },
       {
-        key: 'sign-up',
-        label: 'Sign Up',
-        url: '/auth/sign-up',
-        parentKey: 'auth',
+        key: 'security-monitoring',
+        label: 'Security Monitoring',
+        url: '/security/monitoring',
+        parentKey: 'security-tools',
       },
       {
-        key: 'reset-password',
-        label: 'Reset Password',
-        url: '/auth/reset-password',
-        parentKey: 'auth',
+        key: 'security-hardening',
+        label: 'Security Hardening',
+        url: '/security/hardening',
+        parentKey: 'security-tools',
       },
       {
-        key: 'lock-screen',
-        label: 'Lock Screen',
-        url: '/auth/lock-screen',
-        parentKey: 'auth',
+        key: 'penetration-testing',
+        label: 'Penetration Testing',
+        url: '/security/penetration',
+        parentKey: 'security-tools',
       },
     ],
   },
+
+  // ==================== DEPLOYMENT ===============
   {
-    key: 'error-pages',
-    label: 'Error Pages',
-    icon: 'mingcute:bug-line',
-    children: [
-      {
-        key: '404-error',
-        label: '404 Error',
-        url: '/error-pages/pages-404',
-        parentKey: 'error',
-      },
-      {
-        key: '404-error(alt)',
-        label: '404 Error (alt)',
-        url: '/pages-404-alt',
-        parentKey: 'error',
-      },
-    ],
-  },
-  
-  // ==================== DEVELOPMENT ===============
-  {
-    key: 'development',
-    label: 'DEVELOPMENT',
+    key: 'deployment',
+    label: 'DEPLOYMENT',
     isTitle: true,
   },
   {
-    key: 'base-ui',
-    label: 'UI Components',
-    icon: 'mingcute:leaf-line',
+    key: 'deployment-tools',
+    label: 'Deployment Tools',
+    icon: 'mingcute:rocket-line',
     children: [
       {
-        key: 'accordion',
-        label: 'Accordion',
-        url: '/base-ui/accordion',
-        parentKey: 'base-ui',
+        key: 'deployment-guide',
+        label: 'Deployment Guide',
+        url: '/deployment/guide',
+        parentKey: 'deployment-tools',
       },
       {
-        key: 'alerts',
-        label: 'Alerts',
-        url: '/base-ui/alerts',
-        parentKey: 'base-ui',
+        key: 'production-readiness',
+        label: 'Production Readiness',
+        url: '/deployment/readiness',
+        parentKey: 'deployment-tools',
       },
-      {
-        key: 'buttons',
-        label: 'Buttons',
-        url: '/base-ui/buttons',
-        parentKey: 'base-ui',
-      },
-      {
-        key: 'cards',
-        label: 'Cards',
-        url: '/base-ui/cards',
-        parentKey: 'base-ui',
-      },
-      {
-        key: 'modals',
-        label: 'Modals',
-        url: '/base-ui/modals',
-        parentKey: 'base-ui',
-      },
-      {
-        key: 'tabs',
-        label: 'Tabs',
-        url: '/base-ui/tabs',
-        parentKey: 'base-ui',
-      },
-      {
-        key: 'forms',
-        label: 'Forms',
-        url: '/forms/basic',
-        parentKey: 'base-ui',
+    ],
   },
+
+  // ==================== DOCUMENTATION ===============
   {
     key: 'documentation',
-    label: 'Documentation',
-    isTitle: false,
-    icon: 'solar:document-bold',
-    children: [
-      {
-        key: 'documentation-user-guide',
-        label: 'User Guide',
-        url: '/documentation/user-guide',
-        parentKey: 'documentation',
-      },
-      {
-        key: 'documentation-technical',
-        label: 'Technical Docs',
-        url: '/documentation/technical',
-        parentKey: 'documentation',
-      },
-    ],
-  },
-      {
-        key: 'tables',
-        label: 'Tables',
-        url: '/tables/gridjs',
-        parentKey: 'base-ui',
-      },
-    ],
+    label: 'DOCUMENTATION',
+    isTitle: true,
   },
   {
-    key: 'layouts',
-    label: 'Theme Layouts',
-    icon: 'mingcute:layout-line',
+    key: 'documentation-tools',
+    label: 'Documentation',
+    icon: 'mingcute:book-line',
     children: [
+      {
+        key: 'technical-documentation',
+        label: 'Technical Documentation',
+        url: '/documentation/technical',
+        parentKey: 'documentation-tools',
+      },
+      {
+        key: 'user-guide-documentation',
+        label: 'User Guide',
+        url: '/documentation/user-guide',
+        parentKey: 'documentation-tools',
+      },
+    ],
+  },
+
+  // ==================== LAYOUTS ===============
+  {
+    key: 'layouts',
+    label: 'LAYOUTS',
+    isTitle: true,
+  },
+  {
+    key: 'layout-options',
+    label: 'Layout Options',
+    icon: 'mingcute:layout-4-line',
+    children: [
+      {
+        key: 'dark-mode',
+        label: 'Dark Mode',
+        url: '/dark-mode',
+        parentKey: 'layout-options',
+      },
       {
         key: 'dark-sidenav',
         label: 'Dark Sidenav',
         url: '/dark-sidenav',
-        parentKey: 'layouts',
+        parentKey: 'layout-options',
       },
       {
         key: 'dark-topnav',
         label: 'Dark Topnav',
         url: '/dark-topnav',
-        parentKey: 'layouts',
+        parentKey: 'layout-options',
       },
       {
         key: 'small-sidenav',
         label: 'Small Sidenav',
         url: '/small-sidenav',
-        parentKey: 'layouts',
+        parentKey: 'layout-options',
       },
       {
         key: 'hidden-sidenav',
         label: 'Hidden Sidenav',
         url: '/hidden-sidenav',
-        parentKey: 'layouts',
+        parentKey: 'layout-options',
+      },
+    ],
+  },
+
+  // ==================== UI ELEMENTS ===============
+  {
+    key: 'base-ui',
+    label: 'BASE UI',
+    isTitle: true,
+  },
+  {
+    key: 'base-ui-components',
+    label: 'Base UI Components',
+    icon: 'mingcute:grid-line',
+    children: [
+      {
+        key: 'accordion',
+        label: 'Accordion',
+        url: '/base-ui/accordion',
+        parentKey: 'base-ui-components',
       },
       {
-        key: 'dark-mode',
-        label: 'Dark Mode',
-        url: '/dark-mode',
-        parentKey: 'layouts',
-        badge: {
-          text: 'Hot',
-          variant: 'badge badge-soft-danger ',
-        },
-       },
-     ],
-   },
-   {
-     key: 'deployment',
-     label: 'Deployment',
-     isTitle: false,
-     icon: 'solar:rocket-bold',
-     children: [
-       {
-         key: 'deployment-guide',
-         label: 'Deployment Guide',
-         url: '/deployment/guide',
-         icon: 'solar:rocket-bold'
-       },
-       {
-         key: 'production-readiness',
-         label: 'Production Readiness',
-         url: '/deployment/readiness',
-         icon: 'solar:shield-check-bold'
-       },
-     ],
-   },
-   {
-     key: 'security',
-     label: 'Security',
-     isTitle: false,
-     icon: 'solar:shield-bold',
-     children: [
-       {
-         key: 'security-scanning',
-         label: 'Security Scanning',
-         url: '/security/scanning',
-         icon: 'solar:shield-search-bold'
-       },
-       {
-         key: 'security-monitoring',
-         label: 'Security Monitoring',
-         url: '/security/monitoring',
-         icon: 'solar:shield-warning-bold'
-       },
-       {
-         key: 'security-hardening',
-         label: 'Security Hardening',
-         url: '/security/hardening',
-         icon: 'solar:shield-plus-bold'
-       },
-       {
-         key: 'penetration-testing',
-         label: 'Penetration Testing',
-         url: '/security/penetration',
-         icon: 'solar:bug-bold'
-       },
-     ],
-    },
-    {
-      key: 'workflow',
-      label: 'Workflow Management',
-      isTitle: false,
-      icon: 'Solar:chart-bold',
-      url: '#',
-      children: [
-        {
-          key: 'workflow-validation',
-          label: 'Workflow Validation',
-          url: '/workflow/validation',
-          parentKey: 'workflow',
-        },
-        {
-          key: 'workflow-testing',
-          label: 'Workflow Testing',
-          url: '/workflow/testing',
-          parentKey: 'workflow',
-        },
-        {
-          key: 'workflow-monitoring',
-          label: 'Workflow Monitoring',
-          url: '/workflow/monitoring',
-          parentKey: 'workflow',
-        },
-      ],
-    },
-  ]
+        key: 'alerts',
+        label: 'Alerts',
+        url: '/base-ui/alerts',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'avatar',
+        label: 'Avatar',
+        url: '/base-ui/avatar',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'badge',
+        label: 'Badge',
+        url: '/base-ui/badge',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'breadcrumb',
+        label: 'Breadcrumb',
+        url: '/base-ui/breadcrumb',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'buttons',
+        label: 'Buttons',
+        url: '/base-ui/buttons',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'cards',
+        label: 'Cards',
+        url: '/base-ui/cards',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'carousel',
+        label: 'Carousel',
+        url: '/base-ui/carousel',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'collapse',
+        label: 'Collapse',
+        url: '/base-ui/collapse',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'dropdown',
+        label: 'Dropdown',
+        url: '/base-ui/dropdown',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'list-group',
+        label: 'List Group',
+        url: '/base-ui/list-group',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'modals',
+        label: 'Modals',
+        url: '/base-ui/modals',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'offcanvas',
+        label: 'Offcanvas',
+        url: '/base-ui/offcanvas',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'pagination',
+        label: 'Pagination',
+        url: '/base-ui/pagination',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'placeholders',
+        label: 'Placeholders',
+        url: '/base-ui/placeholders',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'popovers',
+        label: 'Popovers',
+        url: '/base-ui/popovers',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'progress',
+        label: 'Progress',
+        url: '/base-ui/progress',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'spinners',
+        label: 'Spinners',
+        url: '/base-ui/spinners',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'tabs',
+        label: 'Tabs',
+        url: '/base-ui/tabs',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'toasts',
+        label: 'Toasts',
+        url: '/base-ui/toasts',
+        parentKey: 'base-ui-components',
+      },
+      {
+        key: 'tooltips',
+        label: 'Tooltips',
+        url: '/base-ui/tooltips',
+        parentKey: 'base-ui-components',
+      },
+    ],
+  },
+
+  // ==================== FORMS ===============
+  {
+    key: 'forms',
+    label: 'FORMS',
+    isTitle: true,
+  },
+  {
+    key: 'form-components',
+    label: 'Form Components',
+    icon: 'mingcute:edit-line',
+    children: [
+      {
+        key: 'basic-forms',
+        label: 'Basic Forms',
+        url: '/forms/basic',
+        parentKey: 'form-components',
+      },
+      {
+        key: 'form-validation',
+        label: 'Form Validation',
+        url: '/forms/validation',
+        parentKey: 'form-components',
+      },
+      {
+        key: 'form-editors',
+        label: 'Form Editors',
+        url: '/forms/editors',
+        parentKey: 'form-components',
+      },
+      {
+        key: 'file-uploads',
+        label: 'File Uploads',
+        url: '/forms/file-uploads',
+        parentKey: 'form-components',
+      },
+      {
+        key: 'flat-picker',
+        label: 'Flat Picker',
+        url: '/forms/flat-picker',
+        parentKey: 'form-components',
+      },
+    ],
+  },
+
+  // ==================== TABLES ===============
+  {
+    key: 'tables',
+    label: 'TABLES',
+    isTitle: true,
+  },
+  {
+    key: 'table-components',
+    label: 'Table Components',
+    icon: 'mingcute:table-line',
+    children: [
+      {
+        key: 'basic-tables',
+        label: 'Basic Tables',
+        url: '/tables/basic',
+        parentKey: 'table-components',
+      },
+      {
+        key: 'gridjs-tables',
+        label: 'GridJS Tables',
+        url: '/tables/gridjs',
+        parentKey: 'table-components',
+      },
+    ],
+  },
+
+  // ==================== CHARTS & MAPS ===============
+  {
+    key: 'charts-maps',
+    label: 'CHARTS & MAPS',
+    isTitle: true,
+  },
+  {
+    key: 'apex-charts',
+    label: 'Apex Charts',
+    icon: 'mingcute:chart-line',
+    url: '/apex-chart',
+  },
+  {
+    key: 'maps',
+    label: 'Maps',
+    icon: 'mingcute:location-line',
+    children: [
+      {
+        key: 'google-maps',
+        label: 'Google Maps',
+        url: '/maps/google',
+        parentKey: 'maps',
+      },
+      {
+        key: 'vector-maps',
+        label: 'Vector Maps',
+        url: '/maps/vector',
+        parentKey: 'maps',
+      },
+    ],
+  },
+
+  // ==================== ICONS ===============
+  {
+    key: 'icons',
+    label: 'ICONS',
+    isTitle: true,
+  },
+  {
+    key: 'icon-libraries',
+    label: 'Icon Libraries',
+    icon: 'mingcute:star-line',
+    children: [
+      {
+        key: 'boxicons',
+        label: 'Boxicons',
+        url: '/icons/boxicons',
+        parentKey: 'icon-libraries',
+      },
+      {
+        key: 'solaricons',
+        label: 'Solar Icons',
+        url: '/icons/solaricons',
+        parentKey: 'icon-libraries',
+      },
+    ],
+  },
+
+  // ==================== PAGES ===============
+  {
+    key: 'pages',
+    label: 'PAGES',
+    isTitle: true,
+  },
+  {
+    key: 'extra-pages',
+    label: 'Extra Pages',
+    icon: 'mingcute:file-line',
+    children: [
+      {
+        key: 'pages-404-alt',
+        label: '404 Error (Alt)',
+        url: '/pages-404-alt',
+        parentKey: 'extra-pages',
+      },
+    ],
+  },
+
+  // ==================== AUTHENTICATION ===============
+  {
+    key: 'authentication',
+    label: 'AUTHENTICATION',
+    isTitle: true,
+  },
+  {
+    key: 'auth-pages',
+    label: 'Authentication',
+    icon: 'mingcute:user-line',
+    children: [
+      {
+        key: 'sign-in',
+        label: 'Sign In',
+        url: '/auth/sign-in',
+        parentKey: 'auth-pages',
+      },
+      {
+        key: 'sign-up',
+        label: 'Sign Up',
+        url: '/auth/sign-up',
+        parentKey: 'auth-pages',
+      },
+      {
+        key: 'reset-password',
+        label: 'Reset Password',
+        url: '/auth/reset-password',
+        parentKey: 'auth-pages',
+      },
+      {
+        key: 'lock-screen',
+        label: 'Lock Screen',
+        url: '/auth/lock-screen',
+        parentKey: 'auth-pages',
+      },
+    ],
+  },
+]

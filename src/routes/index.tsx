@@ -22,8 +22,12 @@ const MinisterDecisionPage = lazy(() => import('@/app/(admin)/reviews/minister/p
 const UserManagementPage = lazy(() => import('@/app/(admin)/admin/users/page'))
 
 // IMS Deployment Pages
-const DeploymentGuidePage = lazy(() => import('@/app/(admin)/deployment/guide/page'))
 const ProductionReadinessPage = lazy(() => import('@/app/(admin)/deployment/readiness/page'))
+
+// IMS Workflow Management Pages
+const WorkflowValidationPage = lazy(() => import('@/app/(admin)/workflow/validation/page'))
+const WorkflowTestingPage = lazy(() => import('@/app/(admin)/workflow/testing/page'))
+const WorkflowMonitoringPage = lazy(() => import('@/app/(admin)/workflow/monitoring/page'))
 
 // IMS Security Pages
 const SecurityScanningPage = lazy(() => import('@/app/(admin)/security/scanning/page'))
@@ -88,7 +92,7 @@ const EndToEndTestPage = lazy(() => import('@/app/(admin)/testing/end-to-end/pag
 
 // Notification Pages
 const NotificationsPage = lazy(() => import('@/app/(admin)/notifications/page'))
-const NotificationPreferencesPage = lazy(() => import('@/app/(admin)/admin/notification-preferences/page'))
+
 const AuthenticationSetupPage = lazy(() => import('@/app/(admin)/admin/auth-setup/page'))
 const AuthenticationGuidePage = lazy(() => import('@/app/(admin)/admin/auth-guide/page'))
 
