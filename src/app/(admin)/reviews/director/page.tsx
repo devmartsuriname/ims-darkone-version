@@ -1,4 +1,5 @@
 import { DirectorGuard } from '@/components/auth/RoleGuards';
+import DirectorReviewDashboard from './components/DirectorReviewDashboard';
 
 const DirectorReviewPage = () => {
   return (
@@ -19,19 +20,7 @@ const DirectorReviewPage = () => {
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">DVH Director Review</h5>
-                <p className="card-text">Applications awaiting director review and recommendation.</p>
-                <div className="alert alert-warning">
-                  <strong>Director Access Only:</strong> This section is restricted to DVH Directors.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DirectorReviewDashboard />
       </div>
     </DirectorGuard>
   );
