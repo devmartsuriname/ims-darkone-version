@@ -182,7 +182,7 @@ export const EndToEndTestDashboard: React.FC = () => {
           ? {
               ...s,
               tests: s.tests.map(t => 
-                t.id === test.id ? { ...t, status: finalStatus as const } : t
+                t.id === test.id ? { ...t, status: finalStatus } : t
               )
             }
           : s
