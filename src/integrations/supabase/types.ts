@@ -1068,9 +1068,22 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      generate_file_path: {
+        Args: {
+          application_id: string
+          bucket_name: string
+          file_extension: string
+          subfolder?: string
+        }
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_file_signed_url: {
+        Args: { bucket_name: string; expires_in?: number; file_path: string }
+        Returns: string
       }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
@@ -1078,6 +1091,15 @@ export type Database = {
       }
       is_admin_or_it: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      validate_file_upload: {
+        Args: {
+          bucket_name: string
+          file_name: string
+          file_size: number
+          mime_type: string
+        }
         Returns: boolean
       }
     }
