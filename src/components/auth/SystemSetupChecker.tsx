@@ -14,11 +14,20 @@ const SystemSetupChecker: React.FC<SystemSetupCheckerProps> = ({ children }) => 
   const location = useLocation();
 
   useEffect(() => {
+    console.log('SystemSetupChecker state:', {
+      loading,
+      showInitialSetup,
+      isFirstTimeSetup,
+      isAuthenticated,
+      pathname: location.pathname
+    });
+
     // Don't redirect if already on setup page or loading
     if (loading || location.pathname === '/setup') return;
 
     // If system needs initial setup and user is not authenticated, redirect to setup
     if (showInitialSetup && isFirstTimeSetup && !isAuthenticated) {
+      console.log('Redirecting to setup page');
       navigate('/setup', { replace: true });
     }
   }, [showInitialSetup, isFirstTimeSetup, isAuthenticated, loading, navigate, location.pathname]);

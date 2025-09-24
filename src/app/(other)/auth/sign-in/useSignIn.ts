@@ -45,6 +45,7 @@ const useSignIn = () => {
       const { error } = await signIn(values.email.trim(), values.password)
       
       if (error) {
+        console.error('Sign in error details:', error);
         if (error.message === 'Invalid login credentials') {
           showNotification({ 
             message: 'Invalid email or password. Please check your credentials and try again.', 

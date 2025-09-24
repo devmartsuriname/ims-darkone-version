@@ -44,34 +44,52 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  // Check if this is the initial admin creation (no admin users exist)
+  const { data: adminCount, error: countError } = await supabase
+    .from('user_roles')
+    .select('id')
+    .eq('role', 'admin')
+    .eq('is_active', true);
+
+  const isInitialSetup = !countError && (!adminCount || adminCount.length === 0);
+
+  let user = null;
+
+  // For initial setup, we don't require authentication
+  if (!isInitialSetup) {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (authError || !authUser) {
+      return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    user = authUser;
   }
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser(
-    authHeader.replace('Bearer ', '')
-  );
+  // For non-initial setup, check if user has admin/IT role
+  if (!isInitialSetup) {
+    const { data: hasPermission, error: permError } = await supabase
+      .rpc('is_admin_or_it');
 
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Check if user has admin/IT role
-  const { data: hasPermission, error: permError } = await supabase
-    .rpc('is_admin_or_it');
-
-  if (permError || !hasPermission) {
-    return new Response(JSON.stringify({ error: 'Insufficient permissions' }), {
-      status: 403,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    if (permError || !hasPermission) {
+      return new Response(JSON.stringify({ error: 'Insufficient permissions' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
   }
 
   try {
@@ -80,9 +98,16 @@ serve(async (req) => {
 
     switch (req.method) {
       case 'POST':
-        if (path === 'create') {
-          return await createUser(req, user.id);
+        // Handle direct user creation for initial setup (without URL path)
+        if (!path || path === 'user-management' || path === 'create') {
+          return await createUser(req, user?.id || null);
         } else if (path === 'assign-role') {
+          if (!user) {
+            return new Response(JSON.stringify({ error: 'Authentication required' }), {
+              status: 401,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
           return await assignRole(req, user.id);
         }
         break;
@@ -95,11 +120,23 @@ serve(async (req) => {
         break;
       case 'PUT':
         if (path && path !== 'user-management') {
+          if (!user) {
+            return new Response(JSON.stringify({ error: 'Authentication required' }), {
+              status: 401,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
           return await updateUser(req, path, user.id);
         }
         break;
       case 'DELETE':
         if (path && path !== 'user-management') {
+          if (!user) {
+            return new Response(JSON.stringify({ error: 'Authentication required' }), {
+              status: 401,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
           return await deactivateUser(path, user.id);
         }
         break;
@@ -118,7 +155,7 @@ serve(async (req) => {
   }
 });
 
-async function createUser(req: Request, adminId: string): Promise<Response> {
+async function createUser(req: Request, adminId: string | null): Promise<Response> {
   const userData: CreateUserRequest = await req.json();
 
   // Create auth user
@@ -167,7 +204,7 @@ async function createUser(req: Request, adminId: string): Promise<Response> {
     .insert([{
       user_id: authUser.user.id,
       role: userData.role,
-      assigned_by: adminId,
+      assigned_by: adminId || authUser.user.id, // Self-assigned for initial admin
     }]);
 
   if (roleError) {

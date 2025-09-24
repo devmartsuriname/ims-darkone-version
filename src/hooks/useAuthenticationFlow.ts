@@ -33,11 +33,22 @@ export const useAuthenticationFlow = () => {
 
       if (error) {
         console.error('Error checking admin users:', error);
+        setAuthFlow({
+          showInitialSetup: true,
+          isFirstTimeSetup: true,
+          loading: false
+        });
         return;
       }
 
       const hasAdminUsers = adminUsers && adminUsers.length > 0;
       const localSetupComplete = localStorage.getItem('ims_initial_setup_complete') === 'true';
+
+      console.log('System setup check:', {
+        hasAdminUsers,
+        localSetupComplete,
+        adminCount: adminUsers?.length || 0
+      });
 
       // Show initial setup if no admin users exist and setup hasn't been completed locally
       if (!hasAdminUsers && !localSetupComplete) {
@@ -79,13 +90,12 @@ export const useAuthenticationFlow = () => {
     position?: string;
   }) => {
     try {
-      const { error } = await supabase.functions.invoke('user-management', {
+      const { data, error } = await supabase.functions.invoke('user-management', {
         body: {
-          action: 'create',
           email: adminData.email,
           password: adminData.password,
-          firstName: adminData.firstName,
-          lastName: adminData.lastName,
+          first_name: adminData.firstName,
+          last_name: adminData.lastName,
           phone: adminData.phone,
           department: adminData.department || 'Administration',
           position: adminData.position || 'System Administrator',
@@ -94,10 +104,12 @@ export const useAuthenticationFlow = () => {
       });
 
       if (error) {
-        throw error;
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to invoke user management function');
       }
 
-      return { success: true };
+      console.log('Admin creation response:', data);
+      return { success: true, data };
     } catch (error: any) {
       console.error('Error creating initial admin:', error);
       return { 

@@ -1,1 +1,28 @@
 project_id = "shwfzxpypygdxoqxutae"
+
+[functions.user-management]
+verify_jwt = false
+
+[functions.application-service]
+verify_jwt = true
+
+[functions.workflow-service]
+verify_jwt = true
+
+[functions.notification-service]
+verify_jwt = true
+
+[functions.document-service]
+verify_jwt = true
+
+[functions.reference-data]
+verify_jwt = false
+
+[functions.reporting-service]
+verify_jwt = true
+
+[functions.email-service]
+verify_jwt = true
+
+[functions.health-check]
+verify_jwt = false
