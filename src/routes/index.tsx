@@ -18,6 +18,10 @@ const MinisterDecisionPage = lazy(() => import('@/app/(admin)/reviews/minister/p
 // IMS Admin Pages
 const UserManagementPage = lazy(() => import('@/app/(admin)/admin/users/page'))
 
+// IMS Deployment Pages
+const DeploymentGuidePage = lazy(() => import('@/app/(admin)/deployment/guide/page'))
+const ProductionReadinessPage = lazy(() => import('@/app/(admin)/deployment/readiness/page'))
+
 // Base UI Routes
 const Accordions = lazy(() => import('@/app/(admin)/base-ui/accordion/page'))
 const Alerts = lazy(() => import('@/app/(admin)/base-ui/alerts/page'))
@@ -194,11 +198,15 @@ const imsRoutes: RoutesProps[] = [
   // Deployment
   {
     path: '/deployment/guide',
-    element: lazy(() => import('@/app/(admin)/deployment/guide/page'))
+    name: 'Deployment Guide',
+    element: <DeploymentGuidePage />,
+    exact: true,
   },
   {
     path: '/deployment/readiness',
-    element: lazy(() => import('@/app/(admin)/deployment/readiness/page'))
+    name: 'Production Readiness',
+    element: <ProductionReadinessPage />,
+    exact: true,
   },
  ]
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner, ProgressBar } from '@/components/ui/LoadingStates';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
@@ -105,12 +105,12 @@ export const ProductionReadinessChecker: React.FC = () => {
     return { category, checks };
   };
 
-  const checkTableExists = async (tableName: string, displayName: string) => {
+  const checkTableExists = async (tableName: 'applications' | 'applicants' | 'user_roles' | 'notifications' | 'audit_logs', displayName: string): Promise<CheckResult['checks'][0]> => {
     try {
       const { error } = await supabase.from(tableName).select('*').limit(1);
       return {
         name: displayName,
-        status: error ? 'fail' : 'pass' as const,
+        status: error ? 'fail' as const : 'pass' as const,
         message: error ? `Table not accessible: ${error.message}` : 'Table exists and accessible'
       };
     } catch (error) {
@@ -123,7 +123,7 @@ export const ProductionReadinessChecker: React.FC = () => {
     }
   };
 
-  const checkAuthConfiguration = async () => {
+  const checkAuthConfiguration = async (): Promise<CheckResult['checks'][0]> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       return {
@@ -140,12 +140,12 @@ export const ProductionReadinessChecker: React.FC = () => {
     }
   };
 
-  const checkUserRoleFunctions = async () => {
+  const checkUserRoleFunctions = async (): Promise<CheckResult['checks'][0]> => {
     try {
-      const { data, error } = await supabase.rpc('get_current_user_role');
+      const { error } = await supabase.rpc('get_current_user_role');
       return {
         name: 'User Role Functions',
-        status: error ? 'fail' : 'pass' as const,
+        status: error ? 'fail' as const : 'pass' as const,
         message: error ? 'Role functions not working' : 'Role functions operational'
       };
     } catch (error) {
@@ -157,10 +157,10 @@ export const ProductionReadinessChecker: React.FC = () => {
     }
   };
 
-  const checkRLSPolicies = async (tableName: string) => {
+  const checkRLSPolicies = async (tableName: 'applications' | 'user_roles' | 'notifications'): Promise<CheckResult['checks'][0]> => {
     try {
       // Try to access the table - RLS will enforce policies
-      const { error } = await supabase.from(tableName).select('*').limit(1);
+      await supabase.from(tableName).select('*').limit(1);
       return {
         name: `${tableName} RLS Policies`,
         status: 'pass' as const,
@@ -175,15 +175,15 @@ export const ProductionReadinessChecker: React.FC = () => {
     }
   };
 
-  const checkEdgeFunction = async (functionName: string) => {
+  const checkEdgeFunction = async (functionName: string): Promise<CheckResult['checks'][0]> => {
     try {
-      const { data, error } = await supabase.functions.invoke(functionName, {
+      const { error } = await supabase.functions.invoke(functionName, {
         body: { action: 'health-check' }
       });
       
       return {
         name: `${functionName} Function`,
-        status: error ? 'fail' : 'pass' as const,
+        status: error ? 'fail' as const : 'pass' as const,
         message: error ? `Function error: ${error.message}` : 'Function operational'
       };
     } catch (error) {
@@ -195,12 +195,12 @@ export const ProductionReadinessChecker: React.FC = () => {
     }
   };
 
-  const checkStorageBucket = async (bucketName: string) => {
+  const checkStorageBucket = async (bucketName: string): Promise<CheckResult['checks'][0]> => {
     try {
-      const { data, error } = await supabase.storage.from(bucketName).list('', { limit: 1 });
+      const { error } = await supabase.storage.from(bucketName).list('', { limit: 1 });
       return {
         name: `${bucketName} Storage Bucket`,
-        status: error ? 'fail' : 'pass' as const,
+        status: error ? 'fail' as const : 'pass' as const,
         message: error ? `Bucket error: ${error.message}` : 'Bucket accessible'
       };
     } catch (error) {
@@ -212,7 +212,7 @@ export const ProductionReadinessChecker: React.FC = () => {
     }
   };
 
-  const checkDatabasePerformance = async () => {
+  const checkDatabasePerformance = async (): Promise<CheckResult['checks'][0]> => {
     try {
       const startTime = Date.now();
       await supabase.from('applications').select('id').limit(1);
@@ -220,7 +220,7 @@ export const ProductionReadinessChecker: React.FC = () => {
       
       return {
         name: 'Database Response Time',
-        status: responseTime < 1000 ? 'pass' : responseTime < 2000 ? 'warning' : 'fail' as const,
+        status: responseTime < 1000 ? 'pass' as const : responseTime < 2000 ? 'warning' as const : 'fail' as const,
         message: `Response time: ${responseTime}ms`,
         details: responseTime > 1000 ? 'Consider optimizing queries or adding indexes' : undefined
       };
@@ -233,7 +233,7 @@ export const ProductionReadinessChecker: React.FC = () => {
     }
   };
 
-  const checkIndexes = async () => {
+  const checkIndexes = async (): Promise<CheckResult['checks'][0]> => {
     // This would need to be implemented with proper database queries
     return {
       name: 'Database Indexes',
@@ -243,7 +243,7 @@ export const ProductionReadinessChecker: React.FC = () => {
     };
   };
 
-  const checkForeignKeyConstraints = async () => {
+  const checkForeignKeyConstraints = async (): Promise<CheckResult['checks'][0]> => {
     try {
       // Test foreign key constraints by checking related data
       const { error } = await supabase
@@ -253,7 +253,7 @@ export const ProductionReadinessChecker: React.FC = () => {
       
       return {
         name: 'Foreign Key Constraints',
-        status: error ? 'warning' : 'pass' as const,
+        status: error ? 'warning' as const : 'pass' as const,
         message: error ? 'Some constraints may be missing' : 'Constraints verified'
       };
     } catch (error) {
@@ -265,7 +265,7 @@ export const ProductionReadinessChecker: React.FC = () => {
     }
   };
 
-  const checkRequiredData = async () => {
+  const checkRequiredData = async (): Promise<CheckResult['checks'][0]> => {
     try {
       const { data: adminUsers, error } = await supabase
         .from('user_roles')
@@ -275,7 +275,7 @@ export const ProductionReadinessChecker: React.FC = () => {
       
       return {
         name: 'Required Reference Data',
-        status: (!error && adminUsers && adminUsers.length > 0) ? 'pass' : 'warning' as const,
+        status: (!error && adminUsers && adminUsers.length > 0) ? 'pass' as const : 'warning' as const,
         message: (!error && adminUsers && adminUsers.length > 0) 
           ? 'Admin users configured' 
           : 'No active admin users found'

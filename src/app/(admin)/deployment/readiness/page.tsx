@@ -5,7 +5,7 @@ import { ProductionReadinessChecker } from './components/ProductionReadinessChec
 const ProductionReadinessPage: React.FC = () => {
   return (
     <>
-      <PageTitle title="Production Readiness" subTitle="System validation and deployment preparation" />
+      <PageTitle title="Production Readiness" subName="System validation and deployment preparation" />
       
       <div className="row">
         <div className="col-12">

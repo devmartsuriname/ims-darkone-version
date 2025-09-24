@@ -8,6 +8,7 @@ import IMSCards from './components/IMSCards'
 import WorkflowChart from './components/WorkflowChart'
 import RecentActivities from './components/RecentActivities'
 import QuickActions from './components/QuickActions'
+import { SystemMetricsDashboard } from './components/SystemMetricsDashboard'
 import RoleCheck from '@/components/auth/RoleCheck'
 import IntegrationTestRunner from '@/components/testing/IntegrationTestRunner'
 
@@ -28,6 +29,13 @@ const page = () => {
         <>
           {/* KPI Cards */}
           <IMSCards />
+          
+          {/* System Metrics Dashboard */}
+          <Row className="mt-4">
+            <Col xl={12}>
+              <SystemMetricsDashboard />
+            </Col>
+          </Row>
           
           {/* Main Content Row */}
           <Row className="mt-4">
