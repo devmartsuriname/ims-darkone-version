@@ -191,6 +191,13 @@ export const MENU_ITEMS: MenuItemType[] = [
     ],
   },
   {
+    key: "notifications",
+    label: "Notifications",
+    isTitle: false,
+    icon: "solar:bell-bing-outline",
+    url: "/admin/notifications",
+  },
+  {
     key: "deployment",
     label: "Deployment",
     isTitle: false,

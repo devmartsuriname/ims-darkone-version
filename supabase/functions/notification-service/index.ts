@@ -65,6 +65,10 @@ serve(async (req) => {
       case 'POST':
         if (path === 'send') {
           return await sendNotification(req, user.id);
+        } else if (path === 'send_to_role') {
+          return await sendNotificationToRole(req, user.id);
+        } else if (path === 'send_to_role') {
+          return await sendNotificationToRole(req, user.id);
         } else if (path === 'task-notification') {
           return await createTaskNotification(req, user.id);
         } else if (path === 'application-notification') {
@@ -124,7 +128,7 @@ async function sendNotification(req: Request, userId: string): Promise<Response>
       results.push({ recipient, success: true, result });
     } catch (error) {
       console.error(`Failed to send notification to ${recipient}:`, error);
-      results.push({ recipient, success: false, error: error.message });
+      results.push({ recipient, success: false, error: (error as Error).message });
     }
   }
 
@@ -324,44 +328,67 @@ async function listNotifications(req: Request, userId: string): Promise<Response
 }
 
 async function getUserNotifications(req: Request, userId: string): Promise<Response> {
-  // Get user's tasks and applications for notification-like updates
-  const { data: tasks, error: tasksError } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('assigned_to', userId)
-    .eq('status', 'PENDING')
-    .order('created_at', { ascending: false })
-    .limit(10);
+  try {
+    // Get user's notifications from the notifications table
+    const { data: notifications, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('recipient_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20);
 
-  if (tasksError) {
-    console.error('Failed to fetch user tasks:', tasksError);
+    if (error) {
+      console.error('Failed to fetch user notifications:', error);
+      throw error;
+    }
+
+    return new Response(JSON.stringify({
+      notifications: notifications || [],
+      unread_count: notifications?.filter(n => !n.read_at).length || 0
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
-
-  return new Response(JSON.stringify({
-    notifications: tasks?.map(task => ({
-      id: task.id,
-      type: 'task',
-      title: task.title,
-      message: task.description,
-      created_at: task.created_at,
-      priority: task.priority,
-      data: { task_id: task.id, application_id: task.application_id }
-    })) || []
-  }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
 }
 
 async function markNotificationsAsRead(req: Request, userId: string): Promise<Response> {
-  const { notification_ids } = await req.json();
+  try {
+    const { notification_ids } = await req.json();
 
-  // Placeholder - would update read status in notifications table
-  return new Response(JSON.stringify({
-    message: 'Notifications marked as read',
-    updated_count: notification_ids?.length || 0
-  }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
+    if (!notification_ids || !Array.isArray(notification_ids)) {
+      return new Response(JSON.stringify({ error: 'Invalid notification_ids' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read_at: new Date().toISOString() })
+      .in('id', notification_ids)
+      .eq('recipient_id', userId);
+
+    if (error) {
+      throw error;
+    }
+
+    return new Response(JSON.stringify({
+      message: 'Notifications marked as read',
+      updated_count: notification_ids.length
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 }
 
 // Helper functions for different notification types
@@ -377,8 +404,89 @@ async function sendSMSNotification(phone: string, data: SendNotificationRequest)
   return { type: 'sms', sent: true, provider: 'placeholder' };
 }
 
+async function sendNotificationToRole(req: Request, userId: string): Promise<Response> {
+  const { role, title, message, type, category, application_id, metadata } = await req.json();
+
+  try {
+    // Get all users with the specified role
+    const { data: userRoles, error: roleError } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', role)
+      .eq('is_active', true);
+
+    if (roleError) {
+      throw new Error(`Failed to fetch users with role ${role}: ${roleError.message}`);
+    }
+
+    if (!userRoles || userRoles.length === 0) {
+      return new Response(JSON.stringify({
+        message: `No active users found with role: ${role}`,
+        recipients_count: 0
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Create notifications for all users with the role
+    const notifications = userRoles.map(userRole => ({
+      recipient_id: userRole.user_id,
+      title,
+      message,
+      type: type || 'INFO',
+      category: category || 'APPLICATION',
+      application_id: application_id || null,
+      metadata: metadata || {}
+    }));
+
+    const { error: insertError } = await supabase
+      .from('notifications')
+      .insert(notifications);
+
+    if (insertError) {
+      throw new Error(`Failed to create notifications: ${insertError.message}`);
+    }
+
+    return new Response(JSON.stringify({
+      message: `Notifications sent to ${userRoles.length} users with role: ${role}`,
+      recipients_count: userRoles.length
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error: any) {
+    console.error('Error in sendNotificationToRole:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+}
+
 async function sendInAppNotification(userId: string, data: SendNotificationRequest): Promise<any> {
-  // This would store the notification in a database table for in-app display
-  console.log(`Would create in-app notification for user ${userId}: ${data.message}`);
-  return { type: 'in_app', sent: true, user_id: userId };
+  try {
+    // Store the notification in the database
+    const { error } = await supabase
+      .from('notifications')
+      .insert({
+        recipient_id: userId,
+        title: data.subject || 'Notification',
+        message: data.message,
+        type: data.priority === 'high' ? 'WARNING' : 'INFO',
+        category: data.data?.type === 'task_notification' ? 'REMINDER' : 'APPLICATION',
+        application_id: data.data?.application_id || null,
+        metadata: data.data || {}
+      });
+
+    if (error) {
+      console.error('Failed to create in-app notification:', error);
+      throw error;
+    }
+
+    console.log(`Created in-app notification for user ${userId}: ${data.message}`);
+    return { type: 'in_app', sent: true, user_id: userId };
+  } catch (error) {
+    console.error('Error creating in-app notification:', error);
+    throw error;
+  }
 }

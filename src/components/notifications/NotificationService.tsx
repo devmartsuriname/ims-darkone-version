@@ -266,22 +266,56 @@ export const useNotifications = () => {
   const [notifications, setNotifications] = React.useState<any[]>([]);
   const [unreadCount, setUnreadCount] = React.useState(0);
 
+  const fetchNotifications = React.useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('notification-service', {
+        body: { action: 'user-notifications' }
+      });
+
+      if (error) throw error;
+
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unread_count || 0);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    }
+  }, []);
+
   React.useEffect(() => {
+    fetchNotifications();
+
     // Subscribe to real-time notifications
-    // Note: This would require a notifications table to be created
     const channel = supabase
-      .channel('app_notifications')
+      .channel('notifications_realtime')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'notifications',
+          filter: `recipient_id=eq.${supabase.auth.getUser().then(u => u.data.user?.id)}`
+        }, 
+        (payload) => {
+          console.log('Real-time notification update:', payload);
+          fetchNotifications(); // Refetch notifications on change
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchNotifications]);
 
   const markAsRead = async (notificationId: string) => {
     try {
-      // Note: This would require a notifications table to be created
-      console.log('Mark notification as read:', notificationId);
+      const { error } = await supabase.functions.invoke('notification-service', {
+        body: { 
+          action: 'mark-read',
+          notification_ids: [notificationId]
+        }
+      });
+
+      if (error) throw error;
       
       setNotifications(prev => 
         prev.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)
@@ -292,10 +326,37 @@ export const useNotifications = () => {
     }
   };
 
+  const markAllAsRead = async () => {
+    try {
+      const unreadNotifications = notifications.filter(n => !n.read_at);
+      const notificationIds = unreadNotifications.map(n => n.id);
+
+      if (notificationIds.length === 0) return;
+
+      const { error } = await supabase.functions.invoke('notification-service', {
+        body: { 
+          action: 'mark-read',
+          notification_ids: notificationIds
+        }
+      });
+
+      if (error) throw error;
+
+      setNotifications(prev => 
+        prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() }))
+      );
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
+  };
+
   return {
     notifications,
     unreadCount,
-    markAsRead
+    markAsRead,
+    markAllAsRead,
+    refreshNotifications: fetchNotifications
   };
 };
 

@@ -241,7 +241,7 @@ async function updateApplicationState(req: Request, userId: string): Promise<Res
       step_name: new_state,
       started_at: new Date().toISOString(),
       assigned_to,
-      sla_hours,
+      sla_hours: slaHours,
     }]);
 
   if (newStepError) {

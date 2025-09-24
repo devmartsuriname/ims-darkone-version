@@ -150,11 +150,11 @@ async function getApplicationsStats(req: Request): Promise<Response> {
     console.error('Failed to fetch processing times:', timesError);
   }
 
-  const avgProcessingTime = processingTimes?.reduce((sum, app) => {
+  const avgProcessingTime = processingTimes ? processingTimes.reduce((sum: number, app: any) => {
     const created = new Date(app.created_at);
     const completed = new Date(app.completed_at);
     return sum + (completed.getTime() - created.getTime());
-  }, 0) / (processingTimes?.length || 1);
+  }, 0) / (processingTimes.length || 1) : 0;
 
   const avgDays = Math.round(avgProcessingTime / (1000 * 60 * 60 * 24));
 

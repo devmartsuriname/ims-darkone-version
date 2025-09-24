@@ -72,7 +72,7 @@ async function checkSystemHealth(): Promise<Response> {
     status: overallStatus,
     timestamp: new Date().toISOString(),
     services: results,
-    uptime: process.uptime?.() || 'unknown'
+    uptime: 'unknown' // Deno doesn't have process.uptime
   }), {
     status: overallStatus === 'healthy' ? 200 : 503,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -223,7 +223,7 @@ async function transitionState(req: Request, userId: string): Promise<Response> 
       step_name: target_state,
       started_at: new Date().toISOString(),
       assigned_to: assigned_to,
-      sla_hours,
+      sla_hours: slaHours,
     }]);
 
   if (newStepError) {
@@ -307,7 +307,7 @@ async function getAvailableTransitions(req: Request, userId: string): Promise<Re
   }
 
   const currentState = application.current_state;
-  const availableStates = WORKFLOW_STATES[currentState]?.next || [];
+  const availableStates = (WORKFLOW_STATES as any)[currentState]?.next || [];
   
   const validTransitions = [];
   for (const state of availableStates) {
@@ -353,7 +353,7 @@ async function getWorkflowStatus(req: Request, userId: string): Promise<Response
 
   // Calculate progress
   const totalSteps = Object.keys(WORKFLOW_STATES).length - 2; // Exclude REJECTED and ON_HOLD
-  const completedSteps = application.application_steps.filter(step => step.completed_at).length;
+  const completedSteps = application.application_steps.filter((step: any) => step.completed_at).length;
   const progress = Math.round((completedSteps / totalSteps) * 100);
 
   return new Response(JSON.stringify({
@@ -362,7 +362,7 @@ async function getWorkflowStatus(req: Request, userId: string): Promise<Response
     progress,
     completed_steps: completedSteps,
     total_steps: totalSteps,
-    workflow_history: application.application_steps.sort((a, b) => 
+    workflow_history: application.application_steps.sort((a: any, b: any) => 
       new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
     )
   }), {
@@ -433,12 +433,23 @@ async function getTasks(req: Request, userId: string): Promise<Response> {
 async function completeTask(req: Request, userId: string): Promise<Response> {
   const { task_id, notes } = await req.json();
 
+  // First get the task to update its description
+  const { data: existingTask, error: fetchError } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('id', task_id)
+    .single();
+
+  if (fetchError || !existingTask) {
+    throw new Error(`Task not found: ${fetchError?.message}`);
+  }
+
   const { data: task, error: updateError } = await supabase
     .from('tasks')
     .update({
       status: 'COMPLETED',
       completed_at: new Date().toISOString(),
-      description: notes ? `${task.description}\n\nCompletion Notes: ${notes}` : task.description,
+      description: notes ? `${existingTask.description}\n\nCompletion Notes: ${notes}` : existingTask.description,
     })
     .eq('id', task_id)
     .select('*')
@@ -459,7 +470,7 @@ async function completeTask(req: Request, userId: string): Promise<Response> {
 // Helper functions
 async function validateStateTransition(currentState: string, targetState: string, userId: string): Promise<{valid: boolean, reason: string}> {
   // Check if transition is allowed in workflow
-  if (!WORKFLOW_STATES[currentState]?.next.includes(targetState)) {
+  if (!(WORKFLOW_STATES as any)[currentState]?.next.includes(targetState)) {
     return { valid: false, reason: `Transition from ${currentState} to ${targetState} is not allowed` };
   }
 
@@ -471,7 +482,7 @@ async function validateStateTransition(currentState: string, targetState: string
     return { valid: false, reason: 'Unable to determine user role' };
   }
 
-  if (!WORKFLOW_STATES[targetState].roles.includes(userRole)) {
+  if (!(WORKFLOW_STATES as any)[targetState].roles.includes(userRole)) {
     return { valid: false, reason: `User role ${userRole} is not authorized for this transition` };
   }
 

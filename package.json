@@ -27,6 +27,7 @@
     "choices.js": "^11.1.0",
     "clsx": "^2.1.1",
     "cookies-next": "^5.1.0",
+    "date-fns": "^4.1.0",
     "format": "^0.2.2",
     "fullcalendar": "^6.1.15",
     "google-maps-react": "^2.0.6",
