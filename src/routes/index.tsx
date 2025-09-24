@@ -224,6 +224,7 @@ const imsRoutes: RoutesProps[] = [
     element: <WorkflowMonitoringPage />,
     exact: true,
   },
+  {
     path: '/deployment/readiness',
     name: 'Production Readiness',
     element: <ProductionReadinessPage />,
