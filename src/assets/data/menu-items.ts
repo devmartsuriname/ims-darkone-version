@@ -124,6 +124,18 @@ export const MENU_ITEMS: MenuItemType[] = [
         url: '/admin/roles',
         parentKey: 'user-management',
       },
+      {
+        key: 'auth-setup',
+        label: 'Authentication Setup',
+        url: '/admin/auth-setup',
+        parentKey: 'user-management',
+      },
+      {
+        key: 'auth-guide',
+        label: 'Authentication Guide',
+        url: '/admin/auth-guide',
+        parentKey: 'user-management',
+      },
     ],
   },
   {

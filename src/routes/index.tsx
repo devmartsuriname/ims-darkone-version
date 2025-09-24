@@ -75,6 +75,8 @@ const EndToEndTestPage = lazy(() => import('@/app/(admin)/testing/end-to-end/pag
 
 // Notification Pages
 const NotificationsPage = lazy(() => import('@/app/(admin)/notifications/page'))
+const AuthenticationSetupPage = lazy(() => import('@/app/(admin)/admin/auth-setup/page'))
+const AuthenticationGuidePage = lazy(() => import('@/app/(admin)/admin/auth-guide/page'))
 
 // Error Pages
 const Error404 = lazy(() => import('@/app/(other)/error-pages/pages-404/page'))
@@ -150,11 +152,23 @@ const imsRoutes: RoutesProps[] = [
     element: <MinisterDecisionPage />,
     exact: true,
   },
+  {
+    path: '/admin/auth-setup',
+    name: 'Authentication Setup',
+    element: <AuthenticationSetupPage />,
+    exact: true,
+  },
   // Administration
   {
     path: '/admin/users',
     name: 'User Management',
     element: <UserManagementPage />,
+    exact: true,
+  },
+  {
+    path: '/admin/auth-guide',
+    name: 'Authentication Guide',
+    element: <AuthenticationGuidePage />,
     exact: true,
   },
   // Testing
