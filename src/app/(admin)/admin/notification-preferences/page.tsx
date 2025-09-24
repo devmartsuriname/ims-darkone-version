@@ -54,7 +54,7 @@ const NotificationPreferencesPage: React.FC = () => {
       if (profile?.notification_preferences) {
         setPreferences(prev => ({
           ...prev,
-          ...profile.notification_preferences
+          ...(profile.notification_preferences as any)
         }));
       }
     } catch (error) {
@@ -73,7 +73,7 @@ const NotificationPreferencesPage: React.FC = () => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          notification_preferences: preferences,
+          notification_preferences: preferences as any,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -145,7 +145,7 @@ const NotificationPreferencesPage: React.FC = () => {
 
       <Row>
         <Col lg={8}>
-          <ComponentContainerCard title="Notification Settings">
+          <ComponentContainerCard id="notification-settings" title="Notification Settings">
             <Form>
               {/* Delivery Methods */}
               <div className="mb-4">

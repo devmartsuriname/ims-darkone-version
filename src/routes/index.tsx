@@ -88,6 +88,7 @@ const EndToEndTestPage = lazy(() => import('@/app/(admin)/testing/end-to-end/pag
 
 // Notification Pages
 const NotificationsPage = lazy(() => import('@/app/(admin)/notifications/page'))
+const NotificationPreferencesPage = lazy(() => import('@/app/(admin)/admin/notification-preferences/page'))
 const AuthenticationSetupPage = lazy(() => import('@/app/(admin)/admin/auth-setup/page'))
 const AuthenticationGuidePage = lazy(() => import('@/app/(admin)/admin/auth-guide/page'))
 
@@ -202,6 +203,12 @@ const imsRoutes: RoutesProps[] = [
     path: '/admin/notifications',
     name: 'Notifications',
     element: <NotificationsPage />,
+    exact: true,
+  },
+  {
+    path: '/admin/notification-preferences',
+    name: 'Notification Preferences',
+    element: <NotificationPreferencesPage />,
     exact: true,
   },
   // Deployment

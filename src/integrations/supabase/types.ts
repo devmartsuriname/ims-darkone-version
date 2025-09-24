@@ -716,6 +716,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           last_name: string | null
+          notification_preferences: Json | null
           phone: string | null
           position: string | null
           updated_at: string | null
@@ -728,6 +729,7 @@ export type Database = {
           id: string
           is_active?: boolean | null
           last_name?: string | null
+          notification_preferences?: Json | null
           phone?: string | null
           position?: string | null
           updated_at?: string | null
@@ -740,6 +742,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_name?: string | null
+          notification_preferences?: Json | null
           phone?: string | null
           position?: string | null
           updated_at?: string | null

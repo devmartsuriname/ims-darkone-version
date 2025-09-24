@@ -1,13 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+
+// Use built-in fetch instead of Resend for now to avoid package issues
+// const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -83,18 +84,29 @@ async function sendEmail(req: Request): Promise<Response> {
       text = templateContent.text;
     }
 
-    const { data, error } = await resend.emails.send({
-      from: 'IMS - Internal Management System <noreply@resend.dev>',
-      to: emailData.to,
-      subject: emailData.subject,
-      html: html || undefined,
-      text: text || undefined,
+    // Use Resend API directly with fetch for better compatibility
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'IMS - Internal Management System <noreply@resend.dev>',
+        to: emailData.to,
+        subject: emailData.subject,
+        html: html || undefined,
+        text: text || undefined,
+      }),
     });
 
-    if (error) {
-      console.error('Resend error:', error);
-      throw error;
+    if (!resendResponse.ok) {
+      const errorData = await resendResponse.text();
+      console.error('Resend API error:', errorData);
+      throw new Error(`Resend API error: ${resendResponse.status} - ${errorData}`);
     }
+
+    const data = await resendResponse.json();
 
     console.log('Email sent successfully:', data);
 
