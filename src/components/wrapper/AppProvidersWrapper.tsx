@@ -3,6 +3,7 @@ import { LayoutProvider } from '@/context/useLayoutContext'
 import { NotificationProvider } from '@/context/useNotificationContext'
 import { NotificationProvider as ToastNotificationProvider } from '@/components/ui/NotificationToasts'
 import WorkflowNotificationIntegration from '@/components/notifications/WorkflowNotificationIntegration'
+import SystemSetupChecker from '@/components/auth/SystemSetupChecker'
 import { ChildrenType } from '@/types/component-props'
 import { HelmetProvider } from 'react-helmet-async'
 import { ToastContainer } from 'react-toastify'
@@ -17,7 +18,9 @@ const AppProvidersWrapper = ({ children }: ChildrenType) => {
             <NotificationProvider>
               <ToastNotificationProvider>
                 <WorkflowNotificationIntegration />
-                {children}
+                <SystemSetupChecker>
+                  {children}
+                </SystemSetupChecker>
                 <ToastContainer theme="colored" />
               </ToastNotificationProvider>
             </NotificationProvider>
