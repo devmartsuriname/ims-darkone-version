@@ -69,6 +69,13 @@ const AuthSignUp = lazy(() => import('@/app/(other)/auth/sign-up/page'))
 const ResetPassword = lazy(() => import('@/app/(other)/auth/reset-password/page'))
 const LockScreen = lazy(() => import('@/app/(other)/auth/lock-screen/page'))
 
+// Testing Pages
+const IntegrationTestingPage = lazy(() => import('@/app/(admin)/testing/integration/page'))
+const EndToEndTestPage = lazy(() => import('@/app/(admin)/testing/end-to-end/page'))
+
+// Notification Pages
+const NotificationsPage = lazy(() => import('@/app/(admin)/notifications/page'))
+
 // Error Pages
 const Error404 = lazy(() => import('@/app/(other)/error-pages/pages-404/page'))
 const Error404Alt = lazy(() => import('@/app/(admin)/pages-404-alt/page'))
@@ -148,6 +155,26 @@ const imsRoutes: RoutesProps[] = [
     path: '/admin/users',
     name: 'User Management',
     element: <UserManagementPage />,
+    exact: true,
+  },
+  // Testing
+  {
+    path: '/admin/testing/integration',
+    name: 'Integration Testing',
+    element: <IntegrationTestingPage />,
+    exact: true,
+  },
+  {
+    path: '/admin/testing/end-to-end',
+    name: 'End-to-End Testing',
+    element: <EndToEndTestPage />,
+    exact: true,
+  },
+  // Notifications
+  {
+    path: '/admin/notifications',
+    name: 'Notifications',
+    element: <NotificationsPage />,
     exact: true,
   },
 ]

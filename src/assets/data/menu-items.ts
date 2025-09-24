@@ -185,7 +185,13 @@ export const MENU_ITEMS: MenuItemType[] = [
       {
         key: "testing-integration",
         label: "Integration Tests",
-        url: "/testing/integration",
+        url: "/admin/testing/integration",
+        parentKey: "testing",
+      },
+      {
+        key: "testing-end-to-end",
+        label: "End-to-End Tests",
+        url: "/admin/testing/end-to-end",
         parentKey: "testing",
       },
     ],

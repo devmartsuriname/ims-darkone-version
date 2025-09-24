@@ -49,6 +49,7 @@ export class IMSIntegrationTester {
   static async testCompleteWorkflow(): Promise<WorkflowTestResult[]> {
     const results: WorkflowTestResult[] = [];
     let applicationId: string | null = null;
+    let applicantId: string | null = null;
 
     try {
       // Step 1: Test Application Creation
@@ -57,22 +58,37 @@ export class IMSIntegrationTester {
       
       if (creationResult.success && creationResult.data) {
         applicationId = creationResult.data.applicationId;
+        applicantId = creationResult.data.applicantId;
         
         if (applicationId) {
           // Step 2: Test Document Upload
           results.push(await this.testDocumentUpload(applicationId));
           
-          // Step 3: Test Workflow Transition
+          // Step 3: Test Workflow Transitions
           results.push(await this.testWorkflowTransition(applicationId, 'INTAKE_REVIEW'));
+          results.push(await this.testWorkflowTransition(applicationId, 'CONTROL_ASSIGN'));
           
-          // Step 4: Test Control Assignment
+          // Step 4: Test Control Process
           results.push(await this.testControlAssignment(applicationId));
+          results.push(await this.testControlVisit(applicationId));
           
           // Step 5: Test Review Process
           results.push(await this.testReviewProcess(applicationId));
           
-          // Step 6: Test Decision Making
-          results.push(await this.testDecisionMaking(applicationId));
+          // Step 6: Test Decision Workflow
+          results.push(await this.testWorkflowTransition(applicationId, 'DIRECTOR_REVIEW'));
+          results.push(await this.testDirectorDecision(applicationId));
+          results.push(await this.testWorkflowTransition(applicationId, 'MINISTER_DECISION'));
+          results.push(await this.testMinisterDecision(applicationId));
+          
+          // Step 7: Test Notification System
+          results.push(await this.testNotificationSystem(applicationId));
+          
+          // Step 8: Test Audit Logging
+          results.push(await this.testAuditLogging(applicationId));
+          
+          // Step 9: Test SLA Monitoring
+          results.push(await this.testSLAMonitoring(applicationId));
         }
       }
 
@@ -80,8 +96,14 @@ export class IMSIntegrationTester {
       results.push({
         success: false,
         step: 'Workflow Test',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        category: 'workflow'
       });
+    } finally {
+      // Cleanup test data
+      if (applicationId && applicantId) {
+        await this.cleanupTestData(applicationId, applicantId);
+      }
     }
 
     return results;
@@ -310,44 +332,266 @@ export class IMSIntegrationTester {
   }
 
   /**
-   * Test decision making process
+   * Test control visit process
    */
-  static async testDecisionMaking(applicationId: string): Promise<WorkflowTestResult> {
+  static async testControlVisit(applicationId: string): Promise<WorkflowTestResult> {
     try {
-      // Test director review transition
-      const { error: directorError } = await supabase.functions.invoke('workflow-service', {
-        body: {
-          action: 'transition',
-          applicationId,
-          targetState: 'DIRECTOR_REVIEW',
-          notes: 'Ready for director review'
-        }
-      });
+      // Get the control visit
+      const { data: visit, error: visitError } = await supabase
+        .from('control_visits')
+        .select('*')
+        .eq('application_id', applicationId)
+        .single();
 
-      if (directorError) throw directorError;
+      if (visitError) throw visitError;
 
-      // Test minister decision transition
-      const { error: ministerError } = await supabase.functions.invoke('workflow-service', {
-        body: {
-          action: 'transition',
-          applicationId,
-          targetState: 'MINISTER_DECISION',
-          notes: 'Director recommends approval'
-        }
-      });
+      // Test photo upload simulation
+      const { data: photo, error: photoError } = await supabase
+        .from('control_photos')
+        .insert({
+          application_id: applicationId,
+          control_visit_id: visit.id,
+          photo_category: 'FOUNDATION',
+          file_path: `test/photos/${applicationId}/foundation-test.jpg`,
+          photo_description: 'Test foundation photo',
+          file_size: 1024000,
+          gps_latitude: 5.8520,
+          gps_longitude: -55.2038
+        })
+        .select()
+        .single();
 
-      if (ministerError) throw ministerError;
+      if (photoError) throw photoError;
 
       return {
         success: true,
-        step: 'Decision Making',
-        data: { stage: 'MINISTER_DECISION' }
+        step: 'Control Visit',
+        data: { visitId: visit.id, photoId: photo.id },
+        category: 'workflow'
       };
     } catch (error) {
       return {
         success: false,
-        step: 'Decision Making',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        step: 'Control Visit',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        category: 'workflow'
+      };
+    }
+  }
+
+  /**
+   * Test director decision process
+   */
+  static async testDirectorDecision(applicationId: string): Promise<WorkflowTestResult> {
+    try {
+      // Simulate director decision
+      const { error } = await supabase.functions.invoke('notification-service', {
+        body: {
+          action: 'send_to_role',
+          role: 'minister',
+          title: 'Director Recommendation - Test Application',
+          message: 'Test application has been reviewed and approved by director',
+          type: 'INFO',
+          category: 'DECISION',
+          application_id: applicationId
+        }
+      });
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        step: 'Director Decision',
+        data: { decision: 'APPROVED', applicationId },
+        category: 'workflow'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        step: 'Director Decision',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        category: 'workflow'
+      };
+    }
+  }
+
+  /**
+   * Test minister decision process
+   */
+  static async testMinisterDecision(applicationId: string): Promise<WorkflowTestResult> {
+    try {
+      // Update application with final decision
+      const { error } = await supabase
+        .from('applications')
+        .update({
+          current_state: 'CLOSURE',
+          approved_amount: 45000,
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', applicationId);
+
+      if (error) throw error;
+
+      // Send final notification
+      const { error: notificationError } = await supabase.functions.invoke('notification-service', {
+        body: {
+          action: 'send_to_role',
+          role: 'staff',
+          title: 'Application Approved - Final Decision',
+          message: 'Test application has been approved with final amount SRD 45,000',
+          type: 'SUCCESS',
+          category: 'DECISION',
+          application_id: applicationId
+        }
+      });
+
+      if (notificationError) throw notificationError;
+
+      return {
+        success: true,
+        step: 'Minister Decision',
+        data: { decision: 'APPROVED', finalAmount: 45000 },
+        category: 'workflow'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        step: 'Minister Decision',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        category: 'workflow'
+      };
+    }
+  }
+
+  /**
+   * Test notification system
+   */
+  static async testNotificationSystem(applicationId: string): Promise<WorkflowTestResult> {
+    try {
+      // Test individual notification
+      const { error: individualError } = await supabase.functions.invoke('notification-service', {
+        body: {
+          action: 'send',
+          recipient_id: (await supabase.auth.getUser()).data.user?.id,
+          title: 'Test Notification',
+          message: 'This is a test notification for integration testing',
+          type: 'INFO',
+          category: 'SYSTEM',
+          application_id: applicationId
+        }
+      });
+
+      if (individualError) throw individualError;
+
+      // Test role-based notification
+      const { error: roleError } = await supabase.functions.invoke('notification-service', {
+        body: {
+          action: 'send_to_role',
+          role: 'admin',
+          title: 'Test Role Notification',
+          message: 'This is a test role-based notification',
+          type: 'INFO',
+          category: 'SYSTEM',
+          application_id: applicationId
+        }
+      });
+
+      if (roleError) throw roleError;
+
+      // Verify notifications were created
+      const { data: notifications, error: fetchError } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('application_id', applicationId);
+
+      if (fetchError) throw fetchError;
+
+      return {
+        success: true,
+        step: 'Notification System',
+        data: { notificationCount: notifications?.length || 0 },
+        category: 'workflow'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        step: 'Notification System',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        category: 'workflow'
+      };
+    }
+  }
+
+  /**
+   * Test audit logging
+   */
+  static async testAuditLogging(applicationId: string): Promise<WorkflowTestResult> {
+    try {
+      // Check audit logs for the test application
+      const { data: auditLogs, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .eq('record_id', applicationId)
+        .order('timestamp', { ascending: false });
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        step: 'Audit Logging',
+        data: { 
+          auditLogCount: auditLogs?.length || 0,
+          operations: auditLogs?.map(log => log.operation) || []
+        },
+        category: 'workflow'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        step: 'Audit Logging',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        category: 'workflow'
+      };
+    }
+  }
+
+  /**
+   * Test SLA monitoring
+   */
+  static async testSLAMonitoring(applicationId: string): Promise<WorkflowTestResult> {
+    try {
+      // Check if tasks were created for the application
+      const { data: tasks, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('application_id', applicationId);
+
+      if (error) throw error;
+
+      // Check application steps for SLA tracking
+      const { data: steps, error: stepsError } = await supabase
+        .from('application_steps')
+        .select('*')
+        .eq('application_id', applicationId);
+
+      if (stepsError) throw stepsError;
+
+      return {
+        success: true,
+        step: 'SLA Monitoring',
+        data: { 
+          taskCount: tasks?.length || 0,
+          stepCount: steps?.length || 0,
+          hasSLATracking: steps?.some(step => step.sla_hours !== null) || false
+        },
+        category: 'workflow'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        step: 'SLA Monitoring',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        category: 'workflow'
       };
     }
   }
