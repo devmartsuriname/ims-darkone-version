@@ -1,34 +1,34 @@
 import { yupResolver } from '@hookform/resolvers/yup'
-import type { AxiosResponse } from 'axios'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import * as yup from 'yup'
 
 import { useAuthContext } from '@/context/useAuthContext'
 import { useNotificationContext } from '@/context/useNotificationContext'
-import httpClient from '@/helpers/httpClient'
-import type { UserType } from '@/types/auth'
 
 const useSignIn = () => {
-  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-
-  const { saveSession } = useAuthContext()
   const [searchParams] = useSearchParams()
-
+  const { signIn, loading } = useAuthContext()
   const { showNotification } = useNotificationContext()
 
   const loginFormSchema = yup.object({
-    email: yup.string().email('Please enter a valid email').required('Please enter your email'),
-    password: yup.string().required('Please enter your password'),
+    email: yup.string()
+      .email('Please enter a valid email')
+      .required('Please enter your email')
+      .trim()
+      .max(255, 'Email must be less than 255 characters'),
+    password: yup.string()
+      .required('Please enter your password')
+      .min(6, 'Password must be at least 6 characters')
+      .max(128, 'Password must be less than 128 characters'),
   })
 
   const { control, handleSubmit } = useForm({
     resolver: yupResolver(loginFormSchema),
     defaultValues: {
-      email: 'user@demo.com',
-      password: '123456',
+      email: '',
+      password: '',
     },
   })
 
@@ -37,27 +37,43 @@ const useSignIn = () => {
   const redirectUser = () => {
     const redirectLink = searchParams.get('redirectTo')
     if (redirectLink) navigate(redirectLink)
-    else navigate('/')
+    else navigate('/dashboard')
   }
 
   const login = handleSubmit(async (values: LoginFormFields) => {
     try {
-      const res: AxiosResponse<UserType> = await httpClient.post('/login', values)
-      if (res.data.token) {
-        saveSession({
-          ...(res.data ?? {}),
-          token: res.data.token,
+      const { error } = await signIn(values.email.trim(), values.password)
+      
+      if (error) {
+        if (error.message === 'Invalid login credentials') {
+          showNotification({ 
+            message: 'Invalid email or password. Please check your credentials and try again.', 
+            variant: 'danger' 
+          })
+        } else if (error.message === 'Email not confirmed') {
+          showNotification({ 
+            message: 'Please check your email and click the confirmation link before signing in.', 
+            variant: 'warning' 
+          })
+        } else {
+          showNotification({ 
+            message: error.message || 'An error occurred during sign in. Please try again.', 
+            variant: 'danger' 
+          })
+        }
+      } else {
+        showNotification({ 
+          message: 'Successfully signed in. Welcome back!', 
+          variant: 'success' 
         })
         redirectUser()
-        showNotification({ message: 'Successfully logged in. Redirecting....', variant: 'success' })
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      if (e.response?.data?.error) {
-        showNotification({ message: e.response?.data?.error, variant: 'danger' })
-      }
-    } finally {
-      setLoading(false)
+    } catch (error) {
+      console.error('Sign in error:', error)
+      showNotification({ 
+        message: 'An unexpected error occurred. Please try again.', 
+        variant: 'danger' 
+      })
     }
   })
 

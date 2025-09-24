@@ -2,34 +2,41 @@ import { Navigate, Route, Routes, type RouteProps } from 'react-router-dom'
 import AdminLayout from '@/layouts/AdminLayout'
 import AuthLayout from '@/layouts/AuthLayout'
 import { appRoutes, authRoutes } from '@/routes/index'
-import { useAuthContext } from '@/context/useAuthContext'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import PublicRoute from '@/components/auth/PublicRoute'
 
 const AppRouter = (props: RouteProps) => {
-  const { isAuthenticated } = useAuthContext()
   return (
     <Routes>
+      {/* Public authentication routes */}
       {(authRoutes || []).map((route, idx) => (
-        <Route key={idx + route.name} path={route.path} element={<AuthLayout {...props}>{route.element}</AuthLayout>} />
+        <Route 
+          key={idx + route.name} 
+          path={route.path} 
+          element={
+            <PublicRoute>
+              <AuthLayout {...props}>{route.element}</AuthLayout>
+            </PublicRoute>
+          } 
+        />
       ))}
 
+      {/* Protected application routes */}
       {(appRoutes || []).map((route, idx) => (
         <Route
           key={idx + route.name}
           path={route.path}
           element={
-            isAuthenticated ? (
+            <ProtectedRoute>
               <AdminLayout {...props}>{route.element}</AdminLayout>
-            ) : (
-              <Navigate
-                to={{
-                  pathname: '/auth/sign-in',
-                  search: 'redirectTo=' + route.path,
-                }}
-              />
-            )
+            </ProtectedRoute>
           }
         />
       ))}
+
+      {/* Default redirect */}
+      <Route path="/" element={<Navigate to="/dashboards" replace />} />
+      <Route path="*" element={<Navigate to="/dashboards" replace />} />
     </Routes>
   )
 }

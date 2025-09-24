@@ -1,10 +1,10 @@
-import type { UserType } from '@/types/auth'
+// Legacy fake backend - deprecated in favor of Supabase Auth
 import axios from 'axios'
 import MockAdapter from 'axios-mock-adapter'
 
 const mock = new MockAdapter(axios)
 
-export const fakeUsers: UserType[] = [
+export const fakeUsers: any[] = [
   {
     id: '1',
     email: 'user@demo.com',

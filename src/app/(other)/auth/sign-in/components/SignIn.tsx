@@ -34,17 +34,31 @@ const SignIn = () => {
                       </Link>
                     </div>
                     <h4 className="fw-bold text-dark mb-2">Welcome Back!</h4>
-                    <p className="text-muted">Sign in to your account to continue</p>
+                    <p className="text-muted">Sign in to access the Internal Management System</p>
                   </div>
                   <form onSubmit={login} className="mt-4">
                     <div className="mb-3">
-                      <TextFormInput control={control} name="email" placeholder="Enter your email" className="form-control" label="Email Address" />
+                      <TextFormInput 
+                        control={control} 
+                        name="email" 
+                        placeholder="Enter your email address" 
+                        className="form-control" 
+                        label="Email Address" 
+                        type="email"
+                      />
                     </div>
                     <div className="mb-3">
-                      <Link to="/auth/reset-password" className="float-end text-muted  ms-1">
+                      <Link to="/auth/reset-password" className="float-end text-muted ms-1">
                         Forgot password?
                       </Link>
-                      <TextFormInput control={control} name="password" placeholder="Enter your password" className="form-control" label="Password" />
+                      <TextFormInput 
+                        control={control} 
+                        name="password" 
+                        placeholder="Enter your password" 
+                        className="form-control" 
+                        label="Password" 
+                        type="password"
+                      />
                     </div>
 
                     <div className="form-check mb-3">
@@ -55,7 +69,7 @@ const SignIn = () => {
                     </div>
                     <div className="d-grid">
                       <button disabled={loading} className="btn btn-dark btn-lg fw-medium" type="submit">
-                        Sign In
+                        {loading ? 'Signing In...' : 'Sign In'}
                       </button>
                     </div>
                   </form>

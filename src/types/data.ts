@@ -1,5 +1,4 @@
 import { BootstrapVariantType } from './component-props'
-import { UserType } from './auth'
 
 export type IdType = string
 
@@ -7,10 +6,10 @@ export type EmailLabelType = 'Primary' | 'Social' | 'Promotions' | 'Updates' | '
 
 export type EmailType = {
   id: IdType
-  fromId: UserType['id']
-  from?: UserType
-  toId: UserType['id']
-  to?: UserType
+  fromId: string
+  from?: any
+  toId: string
+  to?: any
   subject?: string
   content?: string
   attachments?: FileType[]
