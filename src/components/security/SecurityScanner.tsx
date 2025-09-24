@@ -213,7 +213,7 @@ export const SecurityScanner: React.FC = () => {
   const checkRLSEnabled = async (): Promise<SecurityCheck> => {
     try {
       // Check if RLS is enabled on critical tables
-      const criticalTables = ['applications', 'user_roles', 'documents', 'audit_logs'];
+      
       const hasRLS = true; // This would be a real check in production
       
       return {
@@ -238,7 +238,7 @@ export const SecurityScanner: React.FC = () => {
   const checkRLSPolicies = async (): Promise<SecurityCheck> => {
     try {
       // Test RLS policies by attempting unauthorized access
-      const { error } = await supabase.from('applications').select('*').limit(1);
+      await supabase.from('applications').select('*').limit(1);
       
       return {
         category: 'Row Level Security',

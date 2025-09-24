@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
-import IconifyIcon from '@/components/wrapper/IconifyIcon';
 import { LoadingSpinner } from '@/components/ui/LoadingStates';
 
 interface SecurityEvent {
@@ -143,15 +142,6 @@ export const SecurityMonitoringDashboard: React.FC = () => {
     console.log(`Updated event ${eventId} status to ${newStatus}`);
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'text-danger';
-      case 'high': return 'text-warning';
-      case 'medium': return 'text-info';
-      case 'low': return 'text-secondary';
-      default: return 'text-muted';
-    }
-  };
 
   const getSeverityBadge = (severity: string) => {
     switch (severity) {

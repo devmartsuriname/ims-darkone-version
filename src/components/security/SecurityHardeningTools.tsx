@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
-import IconifyIcon from '@/components/wrapper/IconifyIcon';
 import { LoadingSpinner } from '@/components/ui/LoadingStates';
 
 interface SecurityPolicy {
@@ -199,15 +198,6 @@ export const SecurityHardeningTools: React.FC = () => {
     setIsLoading(false);
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'critical': return 'text-danger';
-      case 'high': return 'text-warning';
-      case 'medium': return 'text-info';
-      case 'low': return 'text-secondary';
-      default: return 'text-muted';
-    }
-  };
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
