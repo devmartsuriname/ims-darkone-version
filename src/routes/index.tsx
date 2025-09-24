@@ -1,62 +1,79 @@
 import { lazy } from 'react'
 import { Navigate, type RouteProps } from 'react-router-dom'
 
-const Dashboards = lazy(() => import('@/app/(admin)/dashboards/page'))
+// Core Pages
+const DashboardPage = lazy(() => import('@/app/(admin)/dashboards/page'))
+
+// IMS Application Pages
+const ApplicationIntakePage = lazy(() => import('@/app/(admin)/applications/intake/page'))
+const ApplicationListPage = lazy(() => import('@/app/(admin)/applications/list/page'))
+
+// IMS Control Pages
+const ControlQueuePage = lazy(() => import('@/app/(admin)/control/queue/page'))
+
+// IMS Review Pages
+const DirectorReviewPage = lazy(() => import('@/app/(admin)/reviews/director/page'))
+const MinisterDecisionPage = lazy(() => import('@/app/(admin)/reviews/minister/page'))
+
+// IMS Admin Pages
+const UserManagementPage = lazy(() => import('@/app/(admin)/admin/users/page'))
 
 // Base UI Routes
 const Accordions = lazy(() => import('@/app/(admin)/base-ui/accordion/page'))
 const Alerts = lazy(() => import('@/app/(admin)/base-ui/alerts/page'))
 const Avatars = lazy(() => import('@/app/(admin)/base-ui/avatar/page'))
 const Badges = lazy(() => import('@/app/(admin)/base-ui/badge/page'))
-const Breadcrumb = lazy(() => import('@/app/(admin)/base-ui/breadcrumb/page'))
+const Breadcrumbs = lazy(() => import('@/app/(admin)/base-ui/breadcrumb/page'))
 const Buttons = lazy(() => import('@/app/(admin)/base-ui/buttons/page'))
 const Cards = lazy(() => import('@/app/(admin)/base-ui/cards/page'))
-const Carousel = lazy(() => import('@/app/(admin)/base-ui/carousel/page'))
+const Carousels = lazy(() => import('@/app/(admin)/base-ui/carousel/page'))
 const Collapse = lazy(() => import('@/app/(admin)/base-ui/collapse/page'))
-const Dropdowns = lazy(() => import('@/app/(admin)/base-ui/dropdown/page'))
-const ListGroup = lazy(() => import('@/app/(admin)/base-ui/list-group/page'))
+const DropDowns = lazy(() => import('@/app/(admin)/base-ui/dropdown/page'))
+const ListGroups = lazy(() => import('@/app/(admin)/base-ui/list-group/page'))
 const Modals = lazy(() => import('@/app/(admin)/base-ui/modals/page'))
-const Tabs = lazy(() => import('@/app/(admin)/base-ui/tabs/page'))
 const Offcanvas = lazy(() => import('@/app/(admin)/base-ui/offcanvas/page'))
 const Pagination = lazy(() => import('@/app/(admin)/base-ui/pagination/page'))
 const Placeholders = lazy(() => import('@/app/(admin)/base-ui/placeholders/page'))
 const Popovers = lazy(() => import('@/app/(admin)/base-ui/popovers/page'))
 const Progress = lazy(() => import('@/app/(admin)/base-ui/progress/page'))
 const Spinners = lazy(() => import('@/app/(admin)/base-ui/spinners/page'))
+const Tabs = lazy(() => import('@/app/(admin)/base-ui/tabs/page'))
 const Toasts = lazy(() => import('@/app/(admin)/base-ui/toasts/page'))
 const Tooltips = lazy(() => import('@/app/(admin)/base-ui/tooltips/page'))
 
-// Charts and Maps Routes
+// Forms Routes
+const BasicForms = lazy(() => import('@/app/(admin)/forms/basic/page'))
+const FormValidation = lazy(() => import('@/app/(admin)/forms/validation/page'))
+const FormFileUpload = lazy(() => import('@/app/(admin)/forms/file-uploads/page'))
+const FormEditors = lazy(() => import('@/app/(admin)/forms/editors/page'))
+const FormFlatPickr = lazy(() => import('@/app/(admin)/forms/flat-picker/page'))
 
-const Apex = lazy(() => import('@/app/(admin)/apex-chart/page'))
+// Tables
+const BasicTables = lazy(() => import('@/app/(admin)/tables/basic/page'))
+const GridJSTables = lazy(() => import('@/app/(admin)/tables/gridjs/page'))
+
+// Charts
+const ApexChart = lazy(() => import('@/app/(admin)/apex-chart/page'))
+
+// Maps
 const GoogleMaps = lazy(() => import('@/app/(admin)/maps/google/page'))
 const VectorMaps = lazy(() => import('@/app/(admin)/maps/vector/page'))
 
-// Forms Routes
-const Basic = lazy(() => import('@/app/(admin)/forms/basic/page'))
-const FlatPicker = lazy(() => import('@/app/(admin)/forms/flat-picker/page'))
-const Validation = lazy(() => import('@/app/(admin)/forms/validation/page'))
-const FileUploads = lazy(() => import('@/app/(admin)/forms/file-uploads/page'))
-const Editors = lazy(() => import('@/app/(admin)/forms/editors/page'))
-
-// Form Routes
-const BasicTable = lazy(() => import('@/app/(admin)/tables/basic/page'))
-const GridjsTable = lazy(() => import('@/app/(admin)/tables/gridjs/page'))
-
-// Icon Routes
+// Icon Pages
 const BoxIcons = lazy(() => import('@/app/(admin)/icons/boxicons/page'))
 const SolarIcons = lazy(() => import('@/app/(admin)/icons/solaricons/page'))
 
-// Auth Routes
+// Auth Pages
 const AuthSignIn = lazy(() => import('@/app/(other)/auth/sign-in/page'))
 const AuthSignUp = lazy(() => import('@/app/(other)/auth/sign-up/page'))
 const ResetPassword = lazy(() => import('@/app/(other)/auth/reset-password/page'))
 const LockScreen = lazy(() => import('@/app/(other)/auth/lock-screen/page'))
+
+// Error Pages
 const Error404 = lazy(() => import('@/app/(other)/error-pages/pages-404/page'))
-const ErrorAlt = lazy(() => import('@/app/(admin)/pages-404-alt/page'))
+const Error404Alt = lazy(() => import('@/app/(admin)/pages-404-alt/page'))
 
-//layoutsRoutes
-
+// Layout Pages
 const DarkSideNav = lazy(() => import('@/app/(admin)/(layouts)/dark-sidenav/page'))
 const DarkTopNav = lazy(() => import('@/app/(admin)/(layouts)/dark-topnav/page'))
 const SmallSideNav = lazy(() => import('@/app/(admin)/(layouts)/small-sidenav/page'))
@@ -87,7 +104,51 @@ const generalRoutes: RoutesProps[] = [
   {
     path: '/dashboards',
     name: 'Dashboards',
-    element: <Dashboards />,
+    element: <DashboardPage />,
+  },
+]
+
+// IMS Core Routes
+const imsRoutes: RoutesProps[] = [
+  // Application Management
+  {
+    path: '/applications/intake',
+    name: 'Application Intake',
+    element: <ApplicationIntakePage />,
+    exact: true,
+  },
+  {
+    path: '/applications/list',
+    name: 'Application List',
+    element: <ApplicationListPage />,
+    exact: true,
+  },
+  // Control Department
+  {
+    path: '/control/queue',
+    name: 'Control Queue',
+    element: <ControlQueuePage />,
+    exact: true,
+  },
+  // Reviews & Decisions
+  {
+    path: '/reviews/director',
+    name: 'Director Review',
+    element: <DirectorReviewPage />,
+    exact: true,
+  },
+  {
+    path: '/reviews/minister',
+    name: 'Minister Decision',
+    element: <MinisterDecisionPage />,
+    exact: true,
+  },
+  // Administration
+  {
+    path: '/admin/users',
+    name: 'User Management',
+    element: <UserManagementPage />,
+    exact: true,
   },
 ]
 
@@ -102,7 +163,6 @@ export const authRoutes: RoutesProps[] = [
     path: '/auth/sign-up',
     element: <AuthSignUp />,
   },
-
   {
     name: 'Reset Password',
     path: '/auth/reset-password',
@@ -122,7 +182,7 @@ export const authRoutes: RoutesProps[] = [
 
 const baseUIRoutes: RoutesProps[] = [
   {
-    name: 'Accordions',
+    name: 'Accordion',
     path: '/base-ui/accordion',
     element: <Accordions />,
   },
@@ -132,19 +192,19 @@ const baseUIRoutes: RoutesProps[] = [
     element: <Alerts />,
   },
   {
-    name: 'Avatars',
+    name: 'Avatar',
     path: '/base-ui/avatar',
     element: <Avatars />,
   },
   {
-    name: 'Badges',
+    name: 'Badge',
     path: '/base-ui/badge',
     element: <Badges />,
   },
   {
     name: 'Breadcrumb',
     path: '/base-ui/breadcrumb',
-    element: <Breadcrumb />,
+    element: <Breadcrumbs />,
   },
   {
     name: 'Buttons',
@@ -159,7 +219,7 @@ const baseUIRoutes: RoutesProps[] = [
   {
     name: 'Carousel',
     path: '/base-ui/carousel',
-    element: <Carousel />,
+    element: <Carousels />,
   },
   {
     name: 'Collapse',
@@ -167,24 +227,19 @@ const baseUIRoutes: RoutesProps[] = [
     element: <Collapse />,
   },
   {
-    name: 'Dropdowns',
+    name: 'Dropdown',
     path: '/base-ui/dropdown',
-    element: <Dropdowns />,
+    element: <DropDowns />,
   },
   {
     name: 'List Group',
     path: '/base-ui/list-group',
-    element: <ListGroup />,
+    element: <ListGroups />,
   },
   {
     name: 'Modals',
     path: '/base-ui/modals',
     element: <Modals />,
-  },
-  {
-    name: 'Tabs',
-    path: '/base-ui/tabs',
-    element: <Tabs />,
   },
   {
     name: 'Offcanvas',
@@ -217,6 +272,11 @@ const baseUIRoutes: RoutesProps[] = [
     element: <Spinners />,
   },
   {
+    name: 'Tabs',
+    path: '/base-ui/tabs',
+    element: <Tabs />,
+  },
+  {
     name: 'Toasts',
     path: '/base-ui/toasts',
     element: <Toasts />,
@@ -227,55 +287,32 @@ const baseUIRoutes: RoutesProps[] = [
     element: <Tooltips />,
   },
 ]
-const chartsMapsRoutes: RoutesProps[] = [
-  {
-    path: '/apex-chart',
-    name: 'Apex charts',
-    element: <Apex />,
-  },
-  {
-    name: 'google',
-    path: '/maps/google',
-    element: <GoogleMaps />,
-  },
-  {
-    name: 'vectore',
-    path: '/maps/vector',
-    element: <VectorMaps />,
-  },
-  {
-    name: '404 Error',
-    path: '/pages-404-alt',
-    element: <ErrorAlt />,
-  },
-]
 
 const formsRoutes: RoutesProps[] = [
   {
-    name: 'Basic Elements',
+    name: 'Basic Forms',
     path: '/forms/basic',
-    element: <Basic />,
+    element: <BasicForms />,
   },
   {
-    name: 'Flat Picker',
-    path: '/forms/flat-picker',
-    element: <FlatPicker />,
-  },
-  {
-    name: 'Validation',
+    name: 'Form Validation',
     path: '/forms/validation',
-    element: <Validation />,
+    element: <FormValidation />,
   },
-
   {
-    name: 'File Uploads',
+    name: 'File Upload',
     path: '/forms/file-uploads',
-    element: <FileUploads />,
+    element: <FormFileUpload />,
   },
   {
-    name: 'Editors',
+    name: 'Form Editors',
     path: '/forms/editors',
-    element: <Editors />,
+    element: <FormEditors />,
+  },
+  {
+    name: 'Flatpickr',
+    path: '/forms/flat-picker',
+    element: <FormFlatPickr />,
   },
 ]
 
@@ -283,12 +320,30 @@ const tableRoutes: RoutesProps[] = [
   {
     name: 'Basic Tables',
     path: '/tables/basic',
-    element: <BasicTable />,
+    element: <BasicTables />,
   },
   {
-    name: 'Grid JS',
+    name: 'Grid Js',
     path: '/tables/gridjs',
-    element: <GridjsTable />,
+    element: <GridJSTables />,
+  },
+]
+
+const chartsMapsRoutes: RoutesProps[] = [
+  {
+    name: 'Apex charts',
+    path: '/apex-chart',
+    element: <ApexChart />,
+  },
+  {
+    name: 'Google Maps',
+    path: '/maps/google',
+    element: <GoogleMaps />,
+  },
+  {
+    name: 'Vector Maps',
+    path: '/maps/vector',
+    element: <VectorMaps />,
   },
 ]
 
@@ -307,40 +362,45 @@ const iconRoutes: RoutesProps[] = [
 
 const layoutsRoutes: RoutesProps[] = [
   {
-    name: 'dark sidenav',
+    name: 'Dark Sidenav',
     path: '/dark-sidenav',
     element: <DarkSideNav />,
   },
   {
-    name: 'dark topnav',
+    name: 'Dark Topnav',
     path: '/dark-topnav',
     element: <DarkTopNav />,
   },
   {
-    name: 'small sidenav',
+    name: 'Small Sidenav',
     path: '/small-sidenav',
     element: <SmallSideNav />,
   },
   {
-    name: 'hidden sidenav',
+    name: 'Hidden Sidenav',
     path: '/hidden-sidenav',
     element: <HiddenSideNav />,
   },
   {
-    name: 'dark mode',
+    name: 'Dark Mode',
     path: '/dark-mode',
     element: <DarkMode />,
+  },
+  {
+    name: '404 Alt',
+    path: '/pages-404-alt',
+    element: <Error404Alt />,
   },
 ]
 
 export const appRoutes = [
   ...initialRoutes,
-  // ...authRoutes,
+  ...generalRoutes,
+  ...imsRoutes,
   ...baseUIRoutes,
   ...formsRoutes,
-  ...generalRoutes,
-  ...chartsMapsRoutes,
-  ...layoutsRoutes,
   ...tableRoutes,
+  ...chartsMapsRoutes,
   ...iconRoutes,
+  ...layoutsRoutes,
 ]
