@@ -392,7 +392,27 @@ export const MENU_ITEMS: MenuItemType[] = [
           text: 'Hot',
           variant: 'badge badge-soft-danger ',
         },
-      },
-    ],
-  },
-]
+       },
+     ],
+   },
+   {
+     key: 'deployment',
+     label: 'Deployment',
+     isTitle: false,
+     icon: 'solar:rocket-bold',
+     children: [
+       {
+         key: 'deployment-guide',
+         label: 'Deployment Guide',
+         url: '/deployment/guide',
+         icon: 'solar:rocket-bold'
+       },
+       {
+         key: 'production-readiness',
+         label: 'Production Readiness',
+         url: '/deployment/readiness',
+         icon: 'solar:shield-check-bold'
+       },
+     ],
+   },
+ ]

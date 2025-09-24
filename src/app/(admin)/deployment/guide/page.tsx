@@ -1,13 +1,13 @@
-import { AdminGuard } from '@/components/auth/RoleGuards';
+import React from 'react';
 import PageTitle from '@/components/PageTitle';
-import DeploymentGuide from './components/DeploymentGuide';
+import { DeploymentGuide } from './components/DeploymentGuide';
 
-const DeploymentGuidePage = () => {
+const DeploymentGuidePage: React.FC = () => {
   return (
-    <AdminGuard>
-      <PageTitle subName="IMS Deployment" title="Deployment Guide" />
+    <>
+      <PageTitle title="Deployment Guide" subTitle="Step-by-step production deployment process" />
       <DeploymentGuide />
-    </AdminGuard>
+    </>
   );
 };
 

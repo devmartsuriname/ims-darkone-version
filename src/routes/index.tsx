@@ -191,7 +191,16 @@ const imsRoutes: RoutesProps[] = [
     element: <NotificationsPage />,
     exact: true,
   },
-]
+  // Deployment
+  {
+    path: '/deployment/guide',
+    element: lazy(() => import('@/app/(admin)/deployment/guide/page'))
+  },
+  {
+    path: '/deployment/readiness',
+    element: lazy(() => import('@/app/(admin)/deployment/readiness/page'))
+  },
+ ]
 
 export const authRoutes: RoutesProps[] = [
   {
