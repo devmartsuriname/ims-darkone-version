@@ -190,6 +190,26 @@ export const MENU_ITEMS: MenuItemType[] = [
       },
     ],
   },
+  {
+    key: "deployment",
+    label: "Deployment",
+    isTitle: false,
+    icon: "bx bx-rocket",
+    children: [
+      {
+        key: "deployment-readiness",
+        label: "Production Readiness",
+        url: "/deployment/readiness",
+        parentKey: "deployment",
+      },
+      {
+        key: "deployment-guide",
+        label: "Deployment Guide",
+        url: "/deployment/guide",
+        parentKey: "deployment",
+      },
+    ],
+  },
 
   // ====================Authentication===============
   {
