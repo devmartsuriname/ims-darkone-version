@@ -415,4 +415,36 @@ export const MENU_ITEMS: MenuItemType[] = [
        },
      ],
    },
+   {
+     key: 'security',
+     label: 'Security',
+     isTitle: false,
+     icon: 'solar:shield-bold',
+     children: [
+       {
+         key: 'security-scanning',
+         label: 'Security Scanning',
+         url: '/security/scanning',
+         icon: 'solar:shield-search-bold'
+       },
+       {
+         key: 'security-monitoring',
+         label: 'Security Monitoring',
+         url: '/security/monitoring',
+         icon: 'solar:shield-warning-bold'
+       },
+       {
+         key: 'security-hardening',
+         label: 'Security Hardening',
+         url: '/security/hardening',
+         icon: 'solar:shield-plus-bold'
+       },
+       {
+         key: 'penetration-testing',
+         label: 'Penetration Testing',
+         url: '/security/penetration',
+         icon: 'solar:bug-bold'
+       },
+     ],
+   },
  ]

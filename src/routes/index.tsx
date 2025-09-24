@@ -22,6 +22,12 @@ const UserManagementPage = lazy(() => import('@/app/(admin)/admin/users/page'))
 const DeploymentGuidePage = lazy(() => import('@/app/(admin)/deployment/guide/page'))
 const ProductionReadinessPage = lazy(() => import('@/app/(admin)/deployment/readiness/page'))
 
+// IMS Security Pages
+const SecurityScanningPage = lazy(() => import('@/app/(admin)/security/scanning/page'))
+const SecurityMonitoringPage = lazy(() => import('@/app/(admin)/security/monitoring/page'))
+const SecurityHardeningPage = lazy(() => import('@/app/(admin)/security/hardening/page'))
+const PenetrationTestingPage = lazy(() => import('@/app/(admin)/security/penetration/page'))
+
 // Base UI Routes
 const Accordions = lazy(() => import('@/app/(admin)/base-ui/accordion/page'))
 const Alerts = lazy(() => import('@/app/(admin)/base-ui/alerts/page'))
@@ -206,6 +212,31 @@ const imsRoutes: RoutesProps[] = [
     path: '/deployment/readiness',
     name: 'Production Readiness',
     element: <ProductionReadinessPage />,
+    exact: true,
+  },
+  // Security
+  {
+    path: '/security/scanning',
+    name: 'Security Scanning',
+    element: <SecurityScanningPage />,
+    exact: true,
+  },
+  {
+    path: '/security/monitoring',
+    name: 'Security Monitoring',
+    element: <SecurityMonitoringPage />,
+    exact: true,
+  },
+  {
+    path: '/security/hardening',
+    name: 'Security Hardening',
+    element: <SecurityHardeningPage />,
+    exact: true,
+  },
+  {
+    path: '/security/penetration',
+    name: 'Penetration Testing',
+    element: <PenetrationTestingPage />,
     exact: true,
   },
  ]
