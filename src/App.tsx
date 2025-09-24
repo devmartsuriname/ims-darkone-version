@@ -6,13 +6,18 @@ import '@/assets/scss/style.scss'
 configureFakeBackend()
 
 function App() {
-  return (
-    <>
-      <AppProvidersWrapper>
-        <AppRouter />
-      </AppProvidersWrapper>
-    </>
-  )
+  try {
+    return (
+      <>
+        <AppProvidersWrapper>
+          <AppRouter />
+        </AppProvidersWrapper>
+      </>
+    )
+  } catch (error) {
+    console.error('App error:', error)
+    return <div>Error loading app: {String(error)}</div>
+  }
 }
 
 export default App
