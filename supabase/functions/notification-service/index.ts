@@ -393,9 +393,44 @@ async function markNotificationsAsRead(req: Request, userId: string): Promise<Re
 
 // Helper functions for different notification types
 async function sendEmailNotification(email: string, data: SendNotificationRequest): Promise<any> {
-  // Placeholder for email integration (e.g., Resend, SendGrid)
-  console.log(`Would send email to ${email}: ${data.subject} - ${data.message}`);
-  return { type: 'email', sent: true, provider: 'placeholder' };
+  try {
+    // Call the email service
+    const { error } = await supabase.functions.invoke('email-service', {
+      body: {
+        to: [email],
+        subject: data.subject || 'IMS Notification',
+        template: getEmailTemplate(data.data),
+        templateData: {
+          recipientName: 'User',
+          message: data.message,
+          systemUrl: Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '') || 'https://app.example.com',
+          ...data.data
+        }
+      }
+    });
+
+    if (error) {
+      console.error('Email service error:', error);
+      throw error;
+    }
+
+    console.log(`Email sent successfully to ${email}: ${data.subject} - ${data.message}`);
+    return { type: 'email', sent: true, provider: 'resend' };
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    throw error;
+  }
+}
+
+function getEmailTemplate(data: any): string {
+  if (data?.type === 'application_notification') {
+    return 'workflow_notification';
+  } else if (data?.type === 'task_notification') {
+    return 'reminder_notification';
+  } else if (data?.decision) {
+    return 'decision_notification';
+  }
+  return 'workflow_notification';
 }
 
 async function sendSMSNotification(phone: string, data: SendNotificationRequest): Promise<any> {
