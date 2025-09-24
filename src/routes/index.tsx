@@ -27,7 +27,12 @@ const ProductionReadinessPage = lazy(() => import('@/app/(admin)/deployment/read
 // IMS Workflow Management Pages
 const WorkflowValidationPage = lazy(() => import('@/app/(admin)/workflow/validation/page'))
 const WorkflowTestingPage = lazy(() => import('@/app/(admin)/workflow/testing/page'))
-const WorkflowMonitoringPage = lazy(() => import('@/app/(admin)/workflow/monitoring/page'))
+
+
+// Polish Pages  
+const PerformanceOptimizationPage = lazy(() => import('@/app/(admin)/polish/performance/page'))
+const UXEnhancementPage = lazy(() => import('@/app/(admin)/polish/ux-enhancement/page'))
+const DocumentationPage = lazy(() => import('@/app/(admin)/polish/documentation/page'))
 
 // IMS Security Pages
 const SecurityScanningPage = lazy(() => import('@/app/(admin)/security/scanning/page'))

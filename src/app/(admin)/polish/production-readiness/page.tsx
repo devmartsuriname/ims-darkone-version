@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Alert, Badge, Button, Table, ProgressBar, Form } from 'react-bootstrap';
+import { Card, Row, Col, Alert, Badge, Button, Table, ProgressBar } from 'react-bootstrap';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-toastify';
 import PageTitle from '@/components/PageTitle';
@@ -44,7 +44,6 @@ const ProductionReadinessPage: React.FC = () => {
   const [securityScans, setSecurityScans] = useState<SecurityScan[]>([]);
   const [loading, setLoading] = useState(true);
   const [runningChecks, setRunningChecks] = useState(false);
-  const [selectedEnvironment, setSelectedEnvironment] = useState('production');
 
   useEffect(() => {
     loadProductionData();
@@ -454,19 +453,19 @@ const ProductionReadinessPage: React.FC = () => {
                           <small>Uptime</small>
                           <small>{env.metrics.uptime}%</small>
                         </div>
-                        <ProgressBar now={env.metrics.uptime} variant="success" size="sm" className="mb-2" />
+                        <ProgressBar now={env.metrics.uptime} variant="success" className="mb-2" style={{ height: '0.5rem' }} />
                         
                         <div className="d-flex justify-content-between mb-1">
                           <small>Performance</small>
                           <small>{env.metrics.performance}%</small>
                         </div>
-                        <ProgressBar now={env.metrics.performance} variant="info" size="sm" className="mb-2" />
+                        <ProgressBar now={env.metrics.performance} variant="info" className="mb-2" style={{ height: '0.5rem' }} />
                         
                         <div className="d-flex justify-content-between mb-1">
                           <small>Error Rate</small>
                           <small>{env.metrics.errors}%</small>
                         </div>
-                        <ProgressBar now={env.metrics.errors} variant="warning" size="sm" />
+                        <ProgressBar now={env.metrics.errors} variant="warning" style={{ height: '0.5rem' }} />
                       </div>
                       <small className="text-muted">
                         Last deployed: {new Date(env.lastDeployed).toLocaleDateString()}
@@ -550,13 +549,13 @@ const ProductionReadinessPage: React.FC = () => {
                   </div>
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <small>Severity:</small>
-                    <Badge bg={getSeverityColor(scan.severity)} size="sm">
-                      {scan.severity.toUpperCase()}
+                    <Badge bg={getSeverityColor(scan.severity)} className="text-uppercase small">
+                      {scan.severity}
                     </Badge>
                   </div>
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <small>Findings:</small>
-                    <Badge bg={scan.findings === 0 ? 'success' : 'warning'} size="sm">
+                    <Badge bg={scan.findings === 0 ? 'success' : 'warning'} className="small">
                       {scan.findings}
                     </Badge>
                   </div>
