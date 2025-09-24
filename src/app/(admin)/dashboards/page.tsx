@@ -9,6 +9,7 @@ import WorkflowChart from './components/WorkflowChart'
 import RecentActivities from './components/RecentActivities'
 import QuickActions from './components/QuickActions'
 import RoleCheck from '@/components/auth/RoleCheck'
+import IntegrationTestRunner from '@/components/testing/IntegrationTestRunner'
 
 // Fallback components for demo purposes
 import Cards from './components/Cards'
@@ -46,6 +47,15 @@ const page = () => {
             <Col xl={6}>
               <RoleCheck allowedRoles={['admin', 'it', 'director', 'minister']}>
                 <Chart />
+              </RoleCheck>
+            </Col>
+          </Row>
+          
+          {/* Integration Testing (Admin/IT Only) */}
+          <Row className="mt-4">
+            <Col xl={12}>
+              <RoleCheck allowedRoles={['admin', 'it']}>
+                <IntegrationTestRunner />
               </RoleCheck>
             </Col>
           </Row>
