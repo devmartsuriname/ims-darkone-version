@@ -5,23 +5,22 @@
 // Core files
 @import "bootstrap/scss/functions";
 @import "bootstrap/scss/variables";
-@import 'gridjs/dist/theme/mermaid.css';
 
-
+// Config
 @import "config/variables";
 @import "config/variables-dark";
 @import "config/theme-mode";
 
 @import "bootstrap/scss/bootstrap";
 
-// Structure
+// Structure (only import existing files)
 @import "structure/general";
 @import "structure/topbar";
 @import "structure/sidebar";
 @import "structure/footer";
 @import "structure/page-title";
 
-// Bootstrap
+// Components (only import existing files)
 @import "components/accordion";
 @import "components/alerts";
 @import "components/avatar";
@@ -47,8 +46,7 @@
 @import "components/tooltip";
 @import "components/widgets";
 
-
-// Plugin
+// Plugins (only import existing files)
 @import "plugins/simplebar";
 @import "plugins/dropzone";
 @import "plugins/editors";
@@ -58,9 +56,9 @@
 @import "plugins/vector-map";
 @import "plugins/flatpicker";
 
-// Pages
+// Pages (only import existing files)
 @import "pages/authentication";
 @import "pages/icon-demo";
-// @import "pages/custom-react";
 
-// @import "../fonts";
+// GridJS CSS
+@import 'gridjs/dist/theme/mermaid.css';
