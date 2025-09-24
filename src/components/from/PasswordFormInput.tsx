@@ -19,7 +19,8 @@ const PasswordFormInput = <TFieldValues extends FieldValues = FieldValues, TName
   const [showPassword, setShowPassword] = useState(false)
 
   return (
-    <Controller<TFieldValues, TName>
+    <Controller
+      {...({} as any)} // TypeScript generics workaround for componentTagger
       name={name as TName}
       defaultValue={'' as PathValue<TFieldValues, TName>}
       control={control}
