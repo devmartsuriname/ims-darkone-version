@@ -1,6 +1,9 @@
 import { lazy } from 'react'
 import { Navigate, type RouteProps } from 'react-router-dom'
 
+// Initial System Setup
+const InitialSystemSetup = lazy(() => import('@/components/auth/InitialSystemSetup'))
+
 // Core Pages
 const DashboardPage = lazy(() => import('@/app/(admin)/dashboards/page'))
 
@@ -242,6 +245,11 @@ const imsRoutes: RoutesProps[] = [
  ]
 
 export const authRoutes: RoutesProps[] = [
+  {
+    name: 'Initial Setup',
+    path: '/setup',
+    element: <InitialSystemSetup />,
+  },
   {
     name: 'Sign In',
     path: '/auth/sign-in',

@@ -94,14 +94,17 @@ const SignUp = () => {
                           label="Confirm Password"
                         />
                       </div>
-                      <div className="mb-3">
-                        <div className="form-check">
-                          <input type="checkbox" className="form-check-input" id="terms-checkbox" />
-                          <label className="form-check-label" htmlFor="terms-checkbox">
-                            I accept the <Link to="/terms" className="text-decoration-none">Terms and Conditions</Link> and <Link to="/privacy" className="text-decoration-none">Privacy Policy</Link>
-                          </label>
-                        </div>
-                      </div>
+                       <div className="mb-3">
+                         <div className="form-check">
+                           <TextFormInput 
+                             control={control} 
+                             name="terms" 
+                             type="checkbox"
+                             label="I accept the Terms and Conditions and Privacy Policy"
+                             className="form-check-input" 
+                           />
+                         </div>
+                       </div>
                       <div className="mb-1 text-center d-grid">
                         <button 
                           disabled={loading} 

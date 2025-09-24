@@ -25,6 +25,31 @@ const UserManagementPage = () => {
     fetchStats();
   }, [refreshKey]);
 
+  useEffect(() => {
+    // Auto-show initial setup if no admin exists
+    const checkAdminExists = async () => {
+      try {
+        const { data: adminRoles, error } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('role', 'admin')
+          .eq('is_active', true)
+          .limit(1);
+
+        if (!error && (!adminRoles || adminRoles.length === 0)) {
+          const setupComplete = localStorage.getItem('ims_initial_setup_complete');
+          if (!setupComplete) {
+            setShowInitialSetup(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking admin existence:', error);
+      }
+    };
+
+    checkAdminExists();
+  }, []);
+
   const checkInitialSetup = async () => {
     const setupComplete = localStorage.getItem('ims_initial_setup_complete');
     if (!setupComplete) {
