@@ -1056,7 +1056,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_control_inspect: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      can_manage_applications: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      can_review_applications: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: boolean
+      }
+      is_admin_or_it: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
