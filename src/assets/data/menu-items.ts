@@ -345,7 +345,27 @@ export const MENU_ITEMS: MenuItemType[] = [
         label: 'Forms',
         url: '/forms/basic',
         parentKey: 'base-ui',
+  },
+  {
+    key: 'documentation',
+    label: 'Documentation',
+    isTitle: false,
+    icon: 'solar:document-bold',
+    children: [
+      {
+        key: 'documentation-user-guide',
+        label: 'User Guide',
+        url: '/documentation/user-guide',
+        parentKey: 'documentation',
       },
+      {
+        key: 'documentation-technical',
+        label: 'Technical Docs',
+        url: '/documentation/technical',
+        parentKey: 'documentation',
+      },
+    ],
+  },
       {
         key: 'tables',
         label: 'Tables',
