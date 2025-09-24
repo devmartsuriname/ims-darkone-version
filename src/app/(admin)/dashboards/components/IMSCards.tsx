@@ -7,7 +7,7 @@ interface IMSCardType {
   title: string
   count: string | number
   icon: string
-  color: string
+  color: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'secondary'
   trend?: number
   trendUp?: boolean
   description?: string
