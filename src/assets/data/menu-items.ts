@@ -129,12 +129,31 @@ export const MENU_ITEMS: MenuItemType[] = [
         label: 'Authentication Setup',
         url: '/admin/auth-setup',
         parentKey: 'user-management',
+  },
+  {
+    key: 'workflow',
+    label: 'Workflow Management',
+    isTitle: false,
+    icon: 'Solar:chart-bold',
+    url: '#',
+    children: [
+      {
+        key: 'workflow-validation',
+        label: 'Workflow Validation',
+        url: '/workflow/validation',
+        parentKey: 'workflow',
       },
       {
-        key: 'auth-guide',
-        label: 'Authentication Guide',
-        url: '/admin/auth-guide',
-        parentKey: 'user-management',
+        key: 'workflow-testing',
+        label: 'Workflow Testing',
+        url: '/workflow/testing',
+        parentKey: 'workflow',
+      },
+      {
+        key: 'workflow-monitoring',
+        label: 'Workflow Monitoring',
+        url: '/workflow/monitoring',
+        parentKey: 'workflow',
       },
     ],
   },
@@ -479,5 +498,33 @@ export const MENU_ITEMS: MenuItemType[] = [
          icon: 'solar:bug-bold'
        },
      ],
-   },
- ]
+    },
+    {
+      key: 'workflow',
+      label: 'Workflow Management',
+      isTitle: false,
+      icon: 'Solar:chart-bold',
+      url: '#',
+      children: [
+        {
+          key: 'workflow-validation',
+          label: 'Workflow Validation',
+          url: '/workflow/validation',
+          parentKey: 'workflow',
+        },
+        {
+          key: 'workflow-testing',
+          label: 'Workflow Testing',
+          url: '/workflow/testing',
+          parentKey: 'workflow',
+        },
+        {
+          key: 'workflow-monitoring',
+          label: 'Workflow Monitoring',
+          url: '/workflow/monitoring',
+          parentKey: 'workflow',
+        },
+      ],
+    },
+  ]
+}

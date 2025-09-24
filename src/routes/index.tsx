@@ -205,20 +205,25 @@ const imsRoutes: RoutesProps[] = [
     element: <NotificationsPage />,
     exact: true,
   },
+  // Workflow Management Routes
   {
-    path: '/admin/notification-preferences',
-    name: 'Notification Preferences',
-    element: <NotificationPreferencesPage />,
-    exact: true,
-  },
-  // Deployment
-  {
-    path: '/deployment/guide',
-    name: 'Deployment Guide',
-    element: <DeploymentGuidePage />,
+    path: '/workflow/validation',
+    name: 'Workflow Validation',
+    element: <WorkflowValidationPage />,
     exact: true,
   },
   {
+    path: '/workflow/testing',
+    name: 'Workflow Testing', 
+    element: <WorkflowTestingPage />,
+    exact: true,
+  },
+  {
+    path: '/workflow/monitoring',
+    name: 'Workflow Monitoring',
+    element: <WorkflowMonitoringPage />,
+    exact: true,
+  },
     path: '/deployment/readiness',
     name: 'Production Readiness',
     element: <ProductionReadinessPage />,
