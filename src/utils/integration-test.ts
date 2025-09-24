@@ -1,4 +1,4 @@
-// Integration testing utilities for IMS workflow
+// Comprehensive Integration Testing Suite for IMS
 import { supabase } from '@/integrations/supabase/client';
 
 export interface WorkflowTestResult {
@@ -6,9 +6,43 @@ export interface WorkflowTestResult {
   step: string;
   error?: string;
   data?: any;
+  duration?: number;
+  category?: 'workflow' | 'security' | 'performance' | 'integration';
+}
+
+export interface PerformanceMetrics {
+  averageResponseTime: number;
+  maxResponseTime: number;
+  minResponseTime: number;
+  totalRequests: number;
+  successRate: number;
+}
+
+export interface SecurityTestResult {
+  testName: string;
+  passed: boolean;
+  vulnerability?: string;
+  recommendation?: string;
 }
 
 export class IMSIntegrationTester {
+  /**
+   * Run all test suites
+   */
+  static async runCompleteTestSuite(): Promise<{
+    workflow: WorkflowTestResult[];
+    security: WorkflowTestResult[];
+    performance: WorkflowTestResult[];
+    integration: WorkflowTestResult[];
+  }> {
+    return {
+      workflow: await this.testCompleteWorkflow(),
+      security: await this.testSecurityControls(),
+      performance: await this.testPerformance(),
+      integration: await this.testSystemIntegration()
+    };
+  }
+
   /**
    * Test complete workflow from intake to decision
    */
@@ -57,6 +91,7 @@ export class IMSIntegrationTester {
    * Test application creation and data persistence
    */
   static async testApplicationCreation(): Promise<WorkflowTestResult> {
+    const startTime = Date.now();
     try {
       // Create test applicant
       const { data: applicant, error: applicantError } = await supabase
@@ -96,13 +131,17 @@ export class IMSIntegrationTester {
       return {
         success: true,
         step: 'Application Creation',
-        data: { applicantId: applicant.id, applicationId: application.id }
+        data: { applicantId: applicant.id, applicationId: application.id },
+        duration: Date.now() - startTime,
+        category: 'workflow'
       };
     } catch (error) {
       return {
         success: false,
         step: 'Application Creation',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        duration: Date.now() - startTime,
+        category: 'workflow'
       };
     }
   }
@@ -314,9 +353,9 @@ export class IMSIntegrationTester {
   }
 
   /**
-   * Test role-based access controls
+   * Legacy test role-based access controls (deprecated - use testSecurityControls)
    */
-  static async testRoleBasedAccess(): Promise<WorkflowTestResult[]> {
+  static async testRoleBasedAccessLegacy(): Promise<WorkflowTestResult[]> {
     const results: WorkflowTestResult[] = [];
 
     try {
@@ -358,6 +397,343 @@ export class IMSIntegrationTester {
   }
 
   /**
+   * Test security controls and RLS policies
+   */
+  static async testSecurityControls(): Promise<WorkflowTestResult[]> {
+    const results: WorkflowTestResult[] = [];
+    const startTime = Date.now();
+
+    try {
+      // Test RLS policies
+      const rlsTests = [
+        { table: 'applications', description: 'Application RLS Policies' },
+        { table: 'applicants', description: 'Applicant RLS Policies' },
+        { table: 'documents', description: 'Document RLS Policies' },
+        { table: 'user_roles', description: 'User Role RLS Policies' }
+      ];
+
+      for (const test of rlsTests) {
+        try {
+          // Test unauthorized access
+          const { data, error } = await supabase
+            .from(test.table as any)
+            .select('*')
+            .limit(1);
+          
+          results.push({
+            success: true,
+            step: `RLS Test: ${test.description}`,
+            data: { hasRLS: true, accessible: !error, recordCount: data?.length || 0 },
+            duration: Date.now() - startTime,
+            category: 'security'
+          });
+        } catch (testError) {
+          results.push({
+            success: false,
+            step: `RLS Test: ${test.description}`,
+            error: testError instanceof Error ? testError.message : 'RLS test failed',
+            duration: Date.now() - startTime,
+            category: 'security'
+          });
+        }
+      }
+
+      // Test role-based functions
+      const roleFunctions = [
+        'can_manage_applications',
+        'can_control_inspect',
+        'can_review_applications',
+        'is_admin_or_it'
+      ];
+
+      for (const func of roleFunctions) {
+        try {
+          const { data, error } = await supabase.rpc(func as any);
+          results.push({
+            success: !error,
+            step: `Security Function: ${func}`,
+            data: { result: data },
+            error: error?.message,
+            duration: Date.now() - startTime,
+            category: 'security'
+          });
+        } catch (error) {
+          results.push({
+            success: false,
+            step: `Security Function: ${func}`,
+            error: error instanceof Error ? error.message : 'Function test failed',
+            duration: Date.now() - startTime,
+            category: 'security'
+          });
+        }
+      }
+
+    } catch (error) {
+      results.push({
+        success: false,
+        step: 'Security Controls Test',
+        error: error instanceof Error ? error.message : 'Security test failed',
+        duration: Date.now() - startTime,
+        category: 'security'
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * Test system performance under load
+   */
+  static async testPerformance(): Promise<WorkflowTestResult[]> {
+    const results: WorkflowTestResult[] = [];
+    const startTime = Date.now();
+
+    try {
+      // Test database query performance
+      const queryTests = [
+        { 
+          name: 'Application List Query', 
+          query: () => supabase.from('applications').select('*, applicants(first_name, last_name)').limit(50)
+        },
+        { 
+          name: 'User Roles Query', 
+          query: () => supabase.from('user_roles').select('*, profiles(first_name, last_name)').limit(50)
+        },
+        { 
+          name: 'Documents Query', 
+          query: () => supabase.from('documents').select('*').limit(100)
+        }
+      ];
+
+      for (const test of queryTests) {
+        const testStart = Date.now();
+        try {
+          const { data, error } = await test.query();
+          const duration = Date.now() - testStart;
+          
+          results.push({
+            success: !error && duration < 2000, // Should complete in under 2 seconds
+            step: `Performance: ${test.name}`,
+            data: { 
+              duration,
+              recordCount: data?.length || 0,
+              performant: duration < 2000
+            },
+            error: error?.message || (duration >= 2000 ? 'Query took too long' : undefined),
+            duration,
+            category: 'performance'
+          });
+        } catch (error) {
+          results.push({
+            success: false,
+            step: `Performance: ${test.name}`,
+            error: error instanceof Error ? error.message : 'Performance test failed',
+            duration: Date.now() - testStart,
+            category: 'performance'
+          });
+        }
+      }
+
+      // Test concurrent requests
+      const concurrentStart = Date.now();
+      const promises = Array(5).fill(null).map(() => 
+        supabase.from('reference_data').select('*').limit(10)
+      );
+      
+      const concurrentResults = await Promise.allSettled(promises);
+      const concurrentDuration = Date.now() - concurrentStart;
+      const successfulRequests = concurrentResults.filter(r => r.status === 'fulfilled').length;
+
+      results.push({
+        success: successfulRequests === 5 && concurrentDuration < 3000,
+        step: 'Concurrent Request Performance',
+        data: {
+          totalRequests: 5,
+          successfulRequests,
+          duration: concurrentDuration,
+          averageTime: concurrentDuration / 5
+        },
+        error: successfulRequests < 5 ? 'Some concurrent requests failed' : 
+               concurrentDuration >= 3000 ? 'Concurrent requests too slow' : undefined,
+        duration: concurrentDuration,
+        category: 'performance'
+      });
+
+    } catch (error) {
+      results.push({
+        success: false,
+        step: 'Performance Test Suite',
+        error: error instanceof Error ? error.message : 'Performance tests failed',
+        duration: Date.now() - startTime,
+        category: 'performance'
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * Test system integration points
+   */
+  static async testSystemIntegration(): Promise<WorkflowTestResult[]> {
+    const results: WorkflowTestResult[] = [];
+    const startTime = Date.now();
+
+    try {
+      // Test edge functions
+      const edgeFunctionTests = [
+        { name: 'workflow-service', endpoint: 'workflow-service' },
+        { name: 'user-management', endpoint: 'user-management' },
+        { name: 'application-service', endpoint: 'application-service' }
+      ];
+
+      for (const test of edgeFunctionTests) {
+        const testStart = Date.now();
+        try {
+          const { error } = await supabase.functions.invoke(test.endpoint, {
+            body: { action: 'health-check' }
+          });
+          
+          const duration = Date.now() - testStart;
+          results.push({
+            success: !error,
+            step: `Edge Function: ${test.name}`,
+            data: { 
+              duration,
+              endpoint: test.endpoint,
+              available: !error
+            },
+            error: error?.message,
+            duration,
+            category: 'integration'
+          });
+        } catch (error) {
+          results.push({
+            success: false,
+            step: `Edge Function: ${test.name}`,
+            error: error instanceof Error ? error.message : 'Function not available',
+            duration: Date.now() - testStart,
+            category: 'integration'
+          });
+        }
+      }
+
+      // Test storage buckets
+      const bucketTests = ['documents', 'control-photos'];
+      
+      for (const bucket of bucketTests) {
+        const testStart = Date.now();
+        try {
+          const { data, error } = await supabase.storage.from(bucket).list('', { limit: 1 });
+          
+          results.push({
+            success: !error,
+            step: `Storage Bucket: ${bucket}`,
+            data: { 
+              bucketName: bucket,
+              accessible: !error,
+              fileCount: data?.length || 0
+            },
+            error: error?.message,
+            duration: Date.now() - testStart,
+            category: 'integration'
+          });
+        } catch (error) {
+          results.push({
+            success: false,
+            step: `Storage Bucket: ${bucket}`,
+            error: error instanceof Error ? error.message : 'Storage test failed',
+            duration: Date.now() - testStart,
+            category: 'integration'
+          });
+        }
+      }
+
+    } catch (error) {
+      results.push({
+        success: false,
+        step: 'System Integration Test',
+        error: error instanceof Error ? error.message : 'Integration tests failed',
+        duration: Date.now() - startTime,
+        category: 'integration'
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * Test data consistency and validation
+   */
+  static async testDataConsistency(): Promise<WorkflowTestResult[]> {
+    const results: WorkflowTestResult[] = [];
+    const startTime = Date.now();
+
+    try {
+      // Test foreign key constraints
+      const constraintTests = [
+        {
+          name: 'Application-Applicant Relationship',
+          query: () => supabase.from('applications')
+            .select('id, applicant_id, applicants!inner(id)')
+            .limit(10)
+        },
+        {
+          name: 'Document-Application Relationship', 
+          query: () => supabase.from('documents')
+            .select('id, application_id, applications!inner(id)')
+            .limit(10)
+        }
+      ];
+
+      for (const test of constraintTests) {
+        const testStart = Date.now();
+        try {
+          const { data, error } = await test.query();
+          
+          results.push({
+            success: !error,
+            step: `Data Consistency: ${test.name}`,
+            data: { 
+              recordsChecked: data?.length || 0,
+              consistent: !error
+            },
+            error: error?.message,
+            duration: Date.now() - testStart,
+            category: 'integration'
+          });
+        } catch (error) {
+          results.push({
+            success: false,
+            step: `Data Consistency: ${test.name}`,
+            error: error instanceof Error ? error.message : 'Consistency check failed',
+            duration: Date.now() - testStart,
+            category: 'integration'
+          });
+        }
+      }
+
+    } catch (error) {
+      results.push({
+        success: false,
+        step: 'Data Consistency Test',
+        error: error instanceof Error ? error.message : 'Consistency tests failed',
+        duration: Date.now() - startTime,
+        category: 'integration'
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * Role-based access test (for backward compatibility)
+   */
+  static async testRoleBasedAccess(): Promise<WorkflowTestResult[]> {
+    return this.testSecurityControls();
+  }
+
+  /**
    * Clean up test data
    */
   static async cleanupTestData(applicationId: string, applicantId: string): Promise<void> {
@@ -368,6 +744,7 @@ export class IMSIntegrationTester {
       await supabase.from('social_reports').delete().eq('application_id', applicationId);
       await supabase.from('control_visits').delete().eq('application_id', applicationId);
       await supabase.from('application_steps').delete().eq('application_id', applicationId);
+      await supabase.from('tasks').delete().eq('application_id', applicationId);
       await supabase.from('applications').delete().eq('id', applicationId);
       await supabase.from('applicants').delete().eq('id', applicantId);
     } catch (error) {

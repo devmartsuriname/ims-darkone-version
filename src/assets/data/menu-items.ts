@@ -176,6 +176,20 @@ export const MENU_ITEMS: MenuItemType[] = [
       },
     ],
   },
+  {
+    key: "testing",
+    label: "Testing",
+    isTitle: false,
+    icon: "bx bx-test-tube",
+    children: [
+      {
+        key: "testing-integration",
+        label: "Integration Tests",
+        url: "/testing/integration",
+        parentKey: "testing",
+      },
+    ],
+  },
 
   // ====================Authentication===============
   {
