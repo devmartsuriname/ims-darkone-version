@@ -1,0 +1,663 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
+
+// Workflow state machine definition
+const WORKFLOW_STATES = {
+  DRAFT: {
+    next: ['INTAKE_REVIEW'],
+    roles: ['admin', 'it', 'staff', 'front_office']
+  },
+  INTAKE_REVIEW: {
+    next: ['CONTROL_ASSIGN', 'REJECTED'],
+    roles: ['admin', 'it', 'staff', 'front_office']
+  },
+  CONTROL_ASSIGN: {
+    next: ['CONTROL_VISIT_SCHEDULED'],
+    roles: ['admin', 'it', 'control']
+  },
+  CONTROL_VISIT_SCHEDULED: {
+    next: ['CONTROL_IN_PROGRESS'],
+    roles: ['admin', 'it', 'control']
+  },
+  CONTROL_IN_PROGRESS: {
+    next: ['TECHNICAL_REVIEW', 'SOCIAL_REVIEW'],
+    roles: ['admin', 'it', 'control']
+  },
+  TECHNICAL_REVIEW: {
+    next: ['DIRECTOR_REVIEW', 'NEEDS_MORE_INFO'],
+    roles: ['admin', 'it', 'staff', 'control']
+  },
+  SOCIAL_REVIEW: {
+    next: ['DIRECTOR_REVIEW', 'NEEDS_MORE_INFO'],
+    roles: ['admin', 'it', 'staff']
+  },
+  DIRECTOR_REVIEW: {
+    next: ['MINISTER_DECISION', 'REJECTED', 'NEEDS_MORE_INFO'],
+    roles: ['admin', 'it', 'director']
+  },
+  MINISTER_DECISION: {
+    next: ['CLOSURE', 'REJECTED'],
+    roles: ['admin', 'it', 'minister']
+  },
+  CLOSURE: {
+    next: [],
+    roles: ['admin', 'it']
+  },
+  REJECTED: {
+    next: [],
+    roles: ['admin', 'it']
+  },
+  ON_HOLD: {
+    next: ['INTAKE_REVIEW', 'CONTROL_ASSIGN', 'TECHNICAL_REVIEW', 'SOCIAL_REVIEW', 'DIRECTOR_REVIEW'],
+    roles: ['admin', 'it', 'director']
+  },
+  NEEDS_MORE_INFO: {
+    next: ['INTAKE_REVIEW'],
+    roles: ['admin', 'it', 'staff', 'front_office']
+  }
+};
+
+interface TransitionRequest {
+  application_id: string;
+  target_state: string;
+  notes?: string;
+  assigned_to?: string;
+}
+
+interface CreateTaskRequest {
+  application_id: string;
+  task_type: string;
+  title: string;
+  description?: string;
+  assigned_to?: string;
+  priority?: number;
+  due_date?: string;
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser(
+    authHeader.replace('Bearer ', '')
+  );
+
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  try {
+    const url = new URL(req.url);
+    const path = url.pathname.split('/').pop();
+
+    switch (req.method) {
+      case 'POST':
+        if (path === 'transition') {
+          return await transitionState(req, user.id);
+        } else if (path === 'create-task') {
+          return await createTask(req, user.id);
+        } else if (path === 'validate-transition') {
+          return await validateTransition(req, user.id);
+        }
+        break;
+      case 'GET':
+        if (path === 'available-transitions') {
+          return await getAvailableTransitions(req, user.id);
+        } else if (path === 'workflow-status') {
+          return await getWorkflowStatus(req, user.id);
+        } else if (path === 'tasks') {
+          return await getTasks(req, user.id);
+        }
+        break;
+      case 'PUT':
+        if (path === 'complete-task') {
+          return await completeTask(req, user.id);
+        }
+        break;
+    }
+
+    return new Response(JSON.stringify({ error: 'Invalid endpoint' }), {
+      status: 404,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    console.error('Error in workflow-service:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
+
+async function transitionState(req: Request, userId: string): Promise<Response> {
+  const { application_id, target_state, notes, assigned_to }: TransitionRequest = await req.json();
+
+  // Get current application state
+  const { data: application, error: appError } = await supabase
+    .from('applications')
+    .select('current_state, assigned_to')
+    .eq('id', application_id)
+    .single();
+
+  if (appError) {
+    throw new Error(`Application not found: ${appError.message}`);
+  }
+
+  // Validate transition
+  const validationResult = await validateStateTransition(
+    application.current_state,
+    target_state,
+    userId
+  );
+
+  if (!validationResult.valid) {
+    throw new Error(validationResult.reason);
+  }
+
+  // Perform pre-transition validations
+  const preValidation = await performPreTransitionValidations(application_id, target_state);
+  if (!preValidation.valid) {
+    throw new Error(preValidation.reason);
+  }
+
+  // Update application state
+  const { data: updatedApp, error: updateError } = await supabase
+    .from('applications')
+    .update({
+      current_state: target_state,
+      assigned_to: assigned_to || application.assigned_to,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', application_id)
+    .select('*')
+    .single();
+
+  if (updateError) {
+    throw new Error(`Failed to update application: ${updateError.message}`);
+  }
+
+  // Complete current application step
+  const { error: completeStepError } = await supabase
+    .from('application_steps')
+    .update({
+      completed_at: new Date().toISOString(),
+      is_active: false,
+      notes,
+    })
+    .eq('application_id', application_id)
+    .eq('is_active', true);
+
+  if (completeStepError) {
+    console.error('Failed to complete current step:', completeStepError);
+  }
+
+  // Create new application step
+  const slaHours = getSLAHours(target_state);
+  const { error: newStepError } = await supabase
+    .from('application_steps')
+    .insert([{
+      application_id,
+      step_name: target_state,
+      started_at: new Date().toISOString(),
+      assigned_to: assigned_to,
+      sla_hours,
+    }]);
+
+  if (newStepError) {
+    console.error('Failed to create new step:', newStepError);
+  }
+
+  // Create automatic tasks based on state
+  await createAutomaticTasks(application_id, target_state, assigned_to);
+
+  // Create audit log
+  await logWorkflowEvent(application_id, application.current_state, target_state, userId, notes);
+
+  return new Response(JSON.stringify({
+    message: 'State transition completed successfully',
+    application: updatedApp
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function validateTransition(req: Request, userId: string): Promise<Response> {
+  const { application_id, target_state } = await req.json();
+
+  // Get current application state
+  const { data: application, error: appError } = await supabase
+    .from('applications')
+    .select('current_state')
+    .eq('id', application_id)
+    .single();
+
+  if (appError) {
+    throw new Error(`Application not found: ${appError.message}`);
+  }
+
+  // Validate transition
+  const validationResult = await validateStateTransition(
+    application.current_state,
+    target_state,
+    userId
+  );
+
+  // Perform pre-transition validations
+  const preValidation = await performPreTransitionValidations(application_id, target_state);
+
+  return new Response(JSON.stringify({
+    valid: validationResult.valid && preValidation.valid,
+    reasons: [
+      ...(validationResult.valid ? [] : [validationResult.reason]),
+      ...(preValidation.valid ? [] : [preValidation.reason])
+    ]
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function getAvailableTransitions(req: Request, userId: string): Promise<Response> {
+  const url = new URL(req.url);
+  const application_id = url.searchParams.get('application_id');
+
+  if (!application_id) {
+    throw new Error('Application ID is required');
+  }
+
+  // Get current application state
+  const { data: application, error: appError } = await supabase
+    .from('applications')
+    .select('current_state')
+    .eq('id', application_id)
+    .single();
+
+  if (appError) {
+    throw new Error(`Application not found: ${appError.message}`);
+  }
+
+  // Get user role
+  const { data: userRole, error: roleError } = await supabase
+    .rpc('get_current_user_role');
+
+  if (roleError) {
+    throw new Error('Unable to determine user role');
+  }
+
+  const currentState = application.current_state;
+  const availableStates = WORKFLOW_STATES[currentState]?.next || [];
+  
+  const validTransitions = [];
+  for (const state of availableStates) {
+    const validation = await validateStateTransition(currentState, state, userId);
+    if (validation.valid) {
+      validTransitions.push({
+        state,
+        label: formatStateName(state),
+        requirements: getStateRequirements(state)
+      });
+    }
+  }
+
+  return new Response(JSON.stringify({
+    current_state: currentState,
+    available_transitions: validTransitions
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function getWorkflowStatus(req: Request, userId: string): Promise<Response> {
+  const url = new URL(req.url);
+  const application_id = url.searchParams.get('application_id');
+
+  if (!application_id) {
+    throw new Error('Application ID is required');
+  }
+
+  // Get application with all workflow steps
+  const { data: application, error: appError } = await supabase
+    .from('applications')
+    .select(`
+      *,
+      application_steps(*)
+    `)
+    .eq('id', application_id)
+    .single();
+
+  if (appError) {
+    throw new Error(`Application not found: ${appError.message}`);
+  }
+
+  // Calculate progress
+  const totalSteps = Object.keys(WORKFLOW_STATES).length - 2; // Exclude REJECTED and ON_HOLD
+  const completedSteps = application.application_steps.filter(step => step.completed_at).length;
+  const progress = Math.round((completedSteps / totalSteps) * 100);
+
+  return new Response(JSON.stringify({
+    application_id,
+    current_state: application.current_state,
+    progress,
+    completed_steps: completedSteps,
+    total_steps: totalSteps,
+    workflow_history: application.application_steps.sort((a, b) => 
+      new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
+    )
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function createTask(req: Request, userId: string): Promise<Response> {
+  const taskData: CreateTaskRequest = await req.json();
+
+  const { data: task, error: taskError } = await supabase
+    .from('tasks')
+    .insert([{
+      ...taskData,
+      assigned_by: userId,
+      status: 'PENDING',
+      auto_generated: false,
+    }])
+    .select('*')
+    .single();
+
+  if (taskError) {
+    throw new Error(`Failed to create task: ${taskError.message}`);
+  }
+
+  return new Response(JSON.stringify({
+    message: 'Task created successfully',
+    task
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function getTasks(req: Request, userId: string): Promise<Response> {
+  const url = new URL(req.url);
+  const application_id = url.searchParams.get('application_id');
+  const assigned_to = url.searchParams.get('assigned_to');
+  const status = url.searchParams.get('status');
+
+  let query = supabase
+    .from('tasks')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (application_id) {
+    query = query.eq('application_id', application_id);
+  }
+
+  if (assigned_to) {
+    query = query.eq('assigned_to', assigned_to);
+  }
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(`Failed to fetch tasks: ${error.message}`);
+  }
+
+  return new Response(JSON.stringify({ tasks: data }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function completeTask(req: Request, userId: string): Promise<Response> {
+  const { task_id, notes } = await req.json();
+
+  const { data: task, error: updateError } = await supabase
+    .from('tasks')
+    .update({
+      status: 'COMPLETED',
+      completed_at: new Date().toISOString(),
+      description: notes ? `${task.description}\n\nCompletion Notes: ${notes}` : task.description,
+    })
+    .eq('id', task_id)
+    .select('*')
+    .single();
+
+  if (updateError) {
+    throw new Error(`Failed to complete task: ${updateError.message}`);
+  }
+
+  return new Response(JSON.stringify({
+    message: 'Task completed successfully',
+    task
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+// Helper functions
+async function validateStateTransition(currentState: string, targetState: string, userId: string): Promise<{valid: boolean, reason: string}> {
+  // Check if transition is allowed in workflow
+  if (!WORKFLOW_STATES[currentState]?.next.includes(targetState)) {
+    return { valid: false, reason: `Transition from ${currentState} to ${targetState} is not allowed` };
+  }
+
+  // Check user role permissions
+  const { data: userRole, error: roleError } = await supabase
+    .rpc('get_current_user_role');
+
+  if (roleError || !userRole) {
+    return { valid: false, reason: 'Unable to determine user role' };
+  }
+
+  if (!WORKFLOW_STATES[targetState].roles.includes(userRole)) {
+    return { valid: false, reason: `User role ${userRole} is not authorized for this transition` };
+  }
+
+  return { valid: true, reason: '' };
+}
+
+async function performPreTransitionValidations(applicationId: string, targetState: string): Promise<{valid: boolean, reason: string}> {
+  // Gate controls for specific states
+  if (targetState === 'DIRECTOR_REVIEW') {
+    // Check if all required documents are verified
+    const { data: documents, error: docError } = await supabase
+      .from('documents')
+      .select('verification_status')
+      .eq('application_id', applicationId)
+      .eq('is_required', true);
+
+    if (docError) {
+      return { valid: false, reason: 'Failed to check document status' };
+    }
+
+    const unverifiedDocs = documents?.filter(doc => doc.verification_status !== 'VERIFIED') || [];
+    if (unverifiedDocs.length > 0) {
+      return { valid: false, reason: 'All required documents must be verified before director review' };
+    }
+
+    // Check if minimum photos from control visit exist
+    const { data: photos, error: photoError } = await supabase
+      .from('control_photos')
+      .select('id')
+      .eq('application_id', applicationId);
+
+    if (photoError) {
+      return { valid: false, reason: 'Failed to check control photos' };
+    }
+
+    if (!photos || photos.length < 5) {
+      return { valid: false, reason: 'Minimum 5 photos from control visit required' };
+    }
+
+    // Check if technical and social reports are submitted
+    const { data: techReport, error: techError } = await supabase
+      .from('technical_reports')
+      .select('id')
+      .eq('application_id', applicationId)
+      .maybeSingle();
+
+    if (techError) {
+      return { valid: false, reason: 'Failed to check technical report' };
+    }
+
+    const { data: socialReport, error: socialError } = await supabase
+      .from('social_reports')
+      .select('id')
+      .eq('application_id', applicationId)
+      .maybeSingle();
+
+    if (socialError) {
+      return { valid: false, reason: 'Failed to check social report' };
+    }
+
+    if (!techReport) {
+      return { valid: false, reason: 'Technical report must be submitted before director review' };
+    }
+
+    if (!socialReport) {
+      return { valid: false, reason: 'Social report must be submitted before director review' };
+    }
+  }
+
+  return { valid: true, reason: '' };
+}
+
+async function createAutomaticTasks(applicationId: string, state: string, assignedTo?: string): Promise<void> {
+  const taskTemplates: Record<string, {title: string, description: string, priority: number}> = {
+    'INTAKE_REVIEW': {
+      title: 'Review Application Intake',
+      description: 'Review and validate all application information and documents',
+      priority: 3
+    },
+    'CONTROL_ASSIGN': {
+      title: 'Assign Control Inspector',
+      description: 'Assign a qualified inspector for property control visit',
+      priority: 3
+    },
+    'CONTROL_VISIT_SCHEDULED': {
+      title: 'Conduct Control Visit',
+      description: 'Perform on-site property inspection and document findings',
+      priority: 2
+    },
+    'TECHNICAL_REVIEW': {
+      title: 'Prepare Technical Report',
+      description: 'Analyze technical aspects and prepare comprehensive technical report',
+      priority: 3
+    },
+    'SOCIAL_REVIEW': {
+      title: 'Prepare Social Report',
+      description: 'Assess social circumstances and prepare social impact report',
+      priority: 3
+    },
+    'DIRECTOR_REVIEW': {
+      title: 'Director Review and Recommendation',
+      description: 'Review all reports and provide recommendation for ministerial decision',
+      priority: 1
+    },
+    'MINISTER_DECISION': {
+      title: 'Ministerial Decision Required',
+      description: 'Final decision on subsidy application approval and amount',
+      priority: 1
+    }
+  };
+
+  const template = taskTemplates[state];
+  if (!template) return;
+
+  try {
+    await supabase
+      .from('tasks')
+      .insert([{
+        application_id: applicationId,
+        task_type: 'WORKFLOW_STEP',
+        title: template.title,
+        description: template.description,
+        assigned_to: assignedTo,
+        priority: template.priority,
+        auto_generated: true,
+        status: 'PENDING',
+      }]);
+  } catch (error) {
+    console.error('Failed to create automatic task:', error);
+  }
+}
+
+async function logWorkflowEvent(
+  applicationId: string,
+  fromState: string,
+  toState: string,
+  userId: string,
+  notes?: string
+): Promise<void> {
+  try {
+    await supabase.from('audit_logs').insert([{
+      operation: 'WORKFLOW_TRANSITION',
+      table_name: 'applications',
+      record_id: applicationId,
+      old_values: { state: fromState },
+      new_values: { state: toState, notes },
+      user_id: userId,
+    }]);
+  } catch (error) {
+    console.error('Failed to log workflow event:', error);
+  }
+}
+
+function getSLAHours(state: string): number {
+  const slaMapping: Record<string, number> = {
+    'DRAFT': 72,
+    'INTAKE_REVIEW': 48,
+    'CONTROL_ASSIGN': 24,
+    'CONTROL_VISIT_SCHEDULED': 168, // 1 week
+    'CONTROL_IN_PROGRESS': 72,
+    'TECHNICAL_REVIEW': 120, // 5 days
+    'SOCIAL_REVIEW': 120, // 5 days
+    'DIRECTOR_REVIEW': 168, // 1 week
+    'MINISTER_DECISION': 240, // 10 days
+    'CLOSURE': 0,
+  };
+  return slaMapping[state] || 72;
+}
+
+function formatStateName(state: string): string {
+  return state.split('_').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ');
+}
+
+function getStateRequirements(state: string): string[] {
+  const requirements: Record<string, string[]> = {
+    'DIRECTOR_REVIEW': [
+      'All required documents verified',
+      'Minimum 5 control photos uploaded',
+      'Technical report submitted',
+      'Social report submitted'
+    ],
+    'MINISTER_DECISION': [
+      'Director recommendation provided'
+    ]
+  };
+  return requirements[state] || [];
+}
