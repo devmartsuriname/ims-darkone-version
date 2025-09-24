@@ -1,9 +1,7 @@
-import IconifyIcon from '@/components/wrapper/IconifyIcon'
-import { ApexOptions } from 'apexcharts'
-import ReactApexChart from 'react-apexcharts'
-import { Card, CardBody, Col, Row } from 'react-bootstrap'
+import { Col, Row } from 'react-bootstrap'
 import { useAuthContext } from '@/context/useAuthContext'
 import RoleCheck from '@/components/auth/RoleCheck'
+import { StatCard } from '@/components/ui/EnhancedCards'
 
 interface IMSCardType {
   title: string
@@ -16,83 +14,19 @@ interface IMSCardType {
   roles: string[]
 }
 
-const IMSStatCard = ({ count, icon, title, color, trend, trendUp, description }: Omit<IMSCardType, 'roles'>) => {
-  const trendChart: ApexOptions = {
-    chart: {
-      type: 'line',
-      height: 40,
-      sparkline: {
-        enabled: true,
-      },
-    },
-    series: [
-      {
-        data: trend ? [trend - 10, trend - 5, trend, trend + 5, trend + 2] : [25, 28, 32, 38, 43],
-      },
-    ],
-    stroke: {
-      width: 2,
-      curve: 'smooth',
-    },
-    markers: {
-      size: 0,
-    },
-    colors: [color],
-    tooltip: {
-      fixed: {
-        enabled: false,
-      },
-      x: {
-        show: false,
-      },
-      y: {
-        title: {
-          formatter: () => '',
-        },
-      },
-      marker: {
-        show: false,
-      },
-    },
-  }
-
+const IMSStatCard = ({ count, icon, title, color, trend, trendUp }: Omit<IMSCardType, 'roles'>) => {
   return (
-    <Card className="h-100">
-      <CardBody>
-        <Row className="align-items-center">
-          <Col xs={8}>
-            <p className="text-muted mb-1 text-truncate fs-14">{title}</p>
-            <h3 className="text-dark mt-1 mb-0 fw-bold">{count}</h3>
-            {description && (
-              <p className="text-muted mb-0 fs-12">{description}</p>
-            )}
-          </Col>
-          <Col xs={4}>
-            <div className="d-flex align-items-center justify-content-end">
-              <div className={`avatar-sm rounded-circle bg-soft-${color.replace('#', '')} d-flex align-items-center justify-content-center`}>
-                <IconifyIcon icon={icon} className={`fs-20 text-${color.replace('#', '')}`} />
-              </div>
-            </div>
-          </Col>
-        </Row>
-        {trend && (
-          <div className="mt-2">
-            <div className="d-flex align-items-center justify-content-between">
-              <div className="d-flex align-items-center">
-                <span className={`badge badge-soft-${trendUp ? 'success' : 'danger'} me-1`}>
-                  <IconifyIcon icon={trendUp ? 'solar:arrow-up-linear' : 'solar:arrow-down-linear'} className="me-1" />
-                  {Math.abs(trend)}%
-                </span>
-                <span className="text-muted fs-12">vs last month</span>
-              </div>
-              <div style={{ width: '60px' }}>
-                <ReactApexChart options={trendChart} series={trendChart.series} height={40} type="line" />
-              </div>
-            </div>
-          </div>
-        )}
-      </CardBody>
-    </Card>
+    <StatCard
+      title={title}
+      value={count}
+      change={trend ? {
+        value: trend,
+        type: trendUp ? 'increase' : 'decrease'
+      } : undefined}
+      icon={icon}
+      color={color}
+      className="animate__animated animate__fadeInUp"
+    />
   )
 }
 

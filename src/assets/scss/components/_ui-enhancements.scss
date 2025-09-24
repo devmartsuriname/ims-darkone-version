@@ -1,0 +1,344 @@
+// UI/UX Enhancement Styles
+// This file contains custom styles for enhanced UI components
+
+// Enhanced Cards
+.card-hoverable {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+  }
+}
+
+.action-card {
+  border: 2px dashed var(--bs-border-color);
+  transition: all 0.3s ease;
+  
+  &:hover:not(.disabled) {
+    border-color: var(--bs-primary);
+    background-color: var(--bs-primary-bg-subtle);
+    transform: translateY(-2px);
+  }
+  
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Enhanced Buttons
+.btn-gradient-primary {
+  background: linear-gradient(135deg, var(--bs-primary), #9c88ff);
+  border: none;
+  color: white;
+  
+  &:hover {
+    background: linear-gradient(135deg, #6f56ff, var(--bs-primary));
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(126, 103, 254, 0.4);
+  }
+}
+
+.btn-pulse {
+  animation: pulse 2s infinite;
+}
+
+// Floating Action Button
+.fab-button {
+  width: 56px;
+  height: 56px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  &.btn-sm {
+    width: 40px;
+    height: 40px;
+  }
+  
+  &.btn-lg {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+// Enhanced Forms
+.form-control {
+  transition: all 0.3s ease;
+  
+  &:focus {
+    box-shadow: 0 0 0 0.2rem rgba(126, 103, 254, 0.25);
+    border-color: var(--bs-primary);
+  }
+  
+  &.focused {
+    transform: translateY(-1px);
+  }
+}
+
+.input-group-text {
+  background-color: var(--bs-light);
+  border-color: var(--bs-border-color);
+}
+
+// Stepper Form
+.stepper-header {
+  .stepper-step {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    
+    &.pending {
+      background-color: var(--bs-light);
+      color: var(--bs-muted);
+      border: 2px solid var(--bs-border-color);
+    }
+    
+    &.active {
+      background-color: var(--bs-primary);
+      color: white;
+      box-shadow: 0 0 0 4px rgba(126, 103, 254, 0.2);
+    }
+    
+    &.completed {
+      background-color: var(--bs-success);
+      color: white;
+    }
+  }
+  
+  .stepper-line {
+    flex: 1;
+    height: 2px;
+    background-color: var(--bs-border-color);
+    margin: 0 1rem;
+    transition: all 0.3s ease;
+    
+    &.completed {
+      background-color: var(--bs-success);
+    }
+  }
+}
+
+// Timeline Component
+.timeline {
+  .timeline-item {
+    display: flex;
+    padding-bottom: 1.5rem;
+    
+    &:last-child {
+      padding-bottom: 0;
+    }
+  }
+  
+  .timeline-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 1rem;
+  }
+  
+  .timeline-marker-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    
+    &.bg-muted {
+      background-color: var(--bs-gray-400) !important;
+    }
+  }
+  
+  .timeline-marker-line {
+    width: 2px;
+    flex: 1;
+    background-color: var(--bs-border-color);
+    margin-top: 0.5rem;
+    min-height: 1rem;
+  }
+  
+  .timeline-content {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .timeline-title {
+    font-weight: 600;
+    color: var(--bs-body-color);
+  }
+  
+  .timeline-description {
+    line-height: 1.4;
+  }
+}
+
+// Loading States
+.placeholder-glow .placeholder {
+  animation: placeholder-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes placeholder-glow {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+// Enhanced Animations
+.animate__animated {
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
+}
+
+.animate__fadeIn {
+  animation-name: fadeIn;
+}
+
+.animate__fadeInUp {
+  animation-name: fadeInUp;
+}
+
+.animate__slideInRight {
+  animation-name: slideInRight;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translate3d(100%, 0, 0);
+    visibility: visible;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+// Responsive Enhancements
+@media (max-width: 768px) {
+  .fab-button {
+    width: 48px;
+    height: 48px;
+    
+    &.btn-lg {
+      width: 60px;
+      height: 60px;
+    }
+  }
+  
+  .stepper-header {
+    .stepper-step {
+      width: 32px;
+      height: 32px;
+      font-size: 0.875rem;
+    }
+    
+    .stepper-line {
+      margin: 0 0.5rem;
+    }
+  }
+}
+
+// Dark Mode Enhancements
+[data-bs-theme="dark"] {
+  .card-hoverable:hover {
+    box-shadow: 0 12px 40px rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .action-card {
+    border-color: var(--bs-border-color-translucent);
+    
+    &:hover:not(.disabled) {
+      background-color: rgba(126, 103, 254, 0.1);
+    }
+  }
+  
+  .input-group-text {
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+  }
+  
+  .timeline-marker-line {
+    background-color: var(--bs-border-color-translucent);
+  }
+}
+
+// Accessibility Enhancements
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+
+// Reduce motion for users who prefer it
+@media (prefers-reduced-motion: reduce) {
+  .card-hoverable,
+  .btn,
+  .form-control,
+  .stepper-step,
+  .fab-button {
+    transition: none !important;
+  }
+  
+  .animate__animated {
+    animation: none !important;
+  }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .card {
+    border-width: 2px !important;
+  }
+  
+  .btn {
+    border-width: 2px !important;
+  }
+  
+  .stepper-step {
+    border-width: 3px !important;
+  }
+}
