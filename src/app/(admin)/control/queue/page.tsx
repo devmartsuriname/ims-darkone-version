@@ -1,4 +1,5 @@
 import { ControlGuard } from '@/components/auth/RoleGuards';
+import { ControlQueueTable } from './components/ControlQueueTable';
 
 const ControlQueuePage = () => {
   return (
@@ -23,11 +24,23 @@ const ControlQueuePage = () => {
           <div className="col-12">
             <div className="card">
               <div className="card-body">
-                <h5 className="card-title">Control Department Queue</h5>
-                <p className="card-text">Applications pending control department review and assignment.</p>
-                <div className="alert alert-info">
-                  <strong>Note:</strong> This page will contain the control queue management interface.
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <div>
+                    <h5 className="card-title mb-1">Control Department Queue</h5>
+                    <p className="card-text mb-0">Applications pending control department review and assignment</p>
+                  </div>
+                  <div>
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => window.location.href = '/control/visits'}
+                    >
+                      <i className="bx bx-calendar me-2"></i>
+                      My Visits
+                    </button>
+                  </div>
                 </div>
+                
+                <ControlQueueTable />
               </div>
             </div>
           </div>
