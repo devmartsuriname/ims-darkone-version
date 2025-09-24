@@ -5,6 +5,7 @@ import { useAuthContext } from '@/context/useAuthContext';
 import { toast } from 'react-toastify';
 import ComponentContainerCard from '@/components/ComponentContainerCard';
 import PageTitle from '@/components/PageTitle';
+import type { Json } from '@/integrations/supabase/types';
 
 interface NotificationPreferences {
   email_notifications: boolean;
@@ -54,7 +55,7 @@ const NotificationPreferencesPage: React.FC = () => {
       if (profile?.notification_preferences) {
         setPreferences(prev => ({
           ...prev,
-          ...(profile.notification_preferences as any)
+          ...(profile.notification_preferences as unknown as NotificationPreferences)
         }));
       }
     } catch (error) {
@@ -73,7 +74,7 @@ const NotificationPreferencesPage: React.FC = () => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          notification_preferences: preferences as any,
+          notification_preferences: preferences as unknown as Json,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
