@@ -6,12 +6,20 @@ type FlatpickrProps = {
   value?: Date | [Date, Date]
   options?: any
   placeholder?: string
+  onChange?: (dates: Date[]) => void
 }
 
-const CustomFlatpickr = ({ className, value, options, placeholder }: FlatpickrProps) => {
+const CustomFlatpickr = ({ className, value, options, placeholder, onChange }: FlatpickrProps) => {
   return (
     <>
-      <Flatpickr className={className} data-enable-time value={value} options={options} placeholder={placeholder} />
+      <Flatpickr 
+        className={className} 
+        data-enable-time 
+        value={value} 
+        options={options} 
+        placeholder={placeholder}
+        onChange={onChange}
+      />
     </>
   )
 }

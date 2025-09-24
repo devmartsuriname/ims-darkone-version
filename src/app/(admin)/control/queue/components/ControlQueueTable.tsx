@@ -58,7 +58,7 @@ export const ControlQueueTable = () => {
       
       setApplications(data?.map(app => ({
         ...app,
-        applicant: app.applicants?.[0] || {
+        applicant: Array.isArray(app.applicants) ? app.applicants[0] : app.applicants || {
           first_name: '',
           last_name: '',
           address: null,

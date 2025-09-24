@@ -74,9 +74,16 @@ export const TechnicalAssessmentForm = ({ visitId, applicationId }: TechnicalAss
       if (data) {
         setExistingReport(data);
         // Populate form with existing data
-        Object.keys(data).forEach((key) => {
-          if (key in assessmentSchema.shape && data[key] !== null) {
-            setValue(key as keyof AssessmentFormData, data[key]);
+        const fieldsToMap = [
+          'foundation_condition', 'walls_condition', 'roof_condition', 'floor_condition',
+          'windows_doors_condition', 'electrical_condition', 'water_supply_condition',
+          'sanitation_condition', 'sewerage_condition', 'structural_issues', 'recommended_repairs',
+          'estimated_cost', 'urgency_level', 'technical_conclusion', 'recommendations'
+        ];
+        
+        fieldsToMap.forEach((field) => {
+          if (data[field as keyof typeof data] !== null && data[field as keyof typeof data] !== undefined) {
+            setValue(field as keyof AssessmentFormData, data[field as keyof typeof data] as any);
           }
         });
       }

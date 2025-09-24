@@ -62,13 +62,17 @@ const ScheduleVisitPage = () => {
             phone
           )
         `)
-        .eq('id', applicationId)
-        .single();
+        .eq('id', applicationId!)
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('Application not found');
+      }
+      
       setApplication({
         ...data,
-        applicant: data.applicants?.[0] || {
+        applicant: Array.isArray(data.applicants) ? data.applicants[0] : data.applicants || {
           first_name: '',
           last_name: '',
           address: null,
@@ -183,7 +187,7 @@ const ScheduleVisitPage = () => {
                             <label className="form-label">Visit Date & Time *</label>
                             <CustomFlatpickr
                               value={scheduledDate}
-                              onDateChange={(dates) => setValue('scheduled_date', dates[0])}
+                              onChange={(dates: Date[]) => setValue('scheduled_date', dates[0])}
                               options={{
                                 enableTime: true,
                                 dateFormat: 'Y-m-d H:i',

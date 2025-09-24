@@ -8,7 +8,7 @@ interface Photo {
   file_path: string;
   photo_category: string;
   photo_description?: string | null;
-  taken_at: string;
+  taken_at: string | null;
   file_size: number | null;
   gps_latitude?: number | null;
   gps_longitude?: number | null;
@@ -74,7 +74,7 @@ export const PhotoCaptureSystem = ({ visitId, applicationId }: PhotoCaptureSyste
         .order('taken_at', { ascending: false });
 
       if (error) throw error;
-      setPhotos(data || []);
+      setPhotos(data?.filter(photo => photo.taken_at !== null) as Photo[] || []);
     } catch (error) {
       console.error('Error fetching photos:', error);
       toast.error('Failed to load photos');
@@ -280,7 +280,7 @@ export const PhotoCaptureSystem = ({ visitId, applicationId }: PhotoCaptureSyste
                           )}
                           <div className="d-flex justify-content-between align-items-center">
                             <small className="text-muted">
-                              {new Date(photo.taken_at).toLocaleTimeString()}
+                              {photo.taken_at ? new Date(photo.taken_at).toLocaleTimeString() : 'Unknown time'}
                             </small>
                             <button
                               className="btn btn-sm btn-outline-danger"

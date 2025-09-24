@@ -8,10 +8,10 @@ import { TechnicalAssessmentForm } from './components/TechnicalAssessmentForm';
 
 interface ControlVisit {
   id: string;
-  scheduled_date: string;
-  visit_type: string;
-  visit_status: string;
-  location_notes?: string;
+  scheduled_date: string | null;
+  visit_type: string | null;
+  visit_status: string | null;
+  location_notes?: string | null;
   application: {
     id: string;
     application_number: string;
@@ -64,20 +64,25 @@ const ControlVisitPage = () => {
           )
         `)
         .eq('id', visitId!)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('Visit not found');
+      }
 
       setVisit({
         ...data,
         application: {
           ...data.applications,
-          applicant: data.applications.applicants?.[0] || {
-            first_name: '',
-            last_name: '',
-            phone: null,
-            address: null
-          }
+          applicant: Array.isArray(data.applications.applicants) ? 
+            data.applications.applicants[0] : 
+            data.applications.applicants || {
+              first_name: '',
+              last_name: '',
+              phone: null,
+              address: null
+            }
         }
       });
       
@@ -217,8 +222,8 @@ const ControlVisitPage = () => {
                       </div>
                       <div className="col-sm-6">
                         <p><strong>Property:</strong> {visit.application.property_address}</p>
-                        <p><strong>Visit Type:</strong> {visit.visit_type.replace('_', ' ')}</p>
-                        <p><strong>Scheduled:</strong> {new Date(visit.scheduled_date).toLocaleString()}</p>
+                        <p><strong>Visit Type:</strong> {visit.visit_type?.replace('_', ' ') || 'Unknown'}</p>
+                        <p><strong>Scheduled:</strong> {visit.scheduled_date ? new Date(visit.scheduled_date).toLocaleString() : 'Not scheduled'}</p>
                       </div>
                     </div>
                   </div>

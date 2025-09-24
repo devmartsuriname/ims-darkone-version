@@ -8,8 +8,8 @@ interface ControlVisit {
   id: string;
   scheduled_date: string | null;
   actual_date?: string | null;
-  visit_type: string;
-  visit_status: string;
+  visit_type: string | null;
+  visit_status: string | null;
   location_notes?: string | null;
   weather_conditions?: string | null;
   application: {
@@ -73,11 +73,13 @@ const ControlVisitsPage = () => {
         ...visit,
         application: {
           ...visit.applications,
-          applicant: visit.applications.applicants?.[0] || {
-            first_name: '',
-            last_name: '',
-            phone: null
-          }
+          applicant: Array.isArray(visit.applications.applicants) ? 
+            visit.applications.applicants[0] : 
+            visit.applications.applicants || {
+              first_name: '',
+              last_name: '',
+              phone: null
+            }
         }
       })) || []);
     } catch (error) {
@@ -92,7 +94,7 @@ const ControlVisitsPage = () => {
     navigate(`/control/visit/${visitId}`);
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | null) => {
     const badges = {
       'SCHEDULED': 'badge bg-warning',
       'IN_PROGRESS': 'badge bg-info',
@@ -102,13 +104,13 @@ const ControlVisitsPage = () => {
     };
     return (
       <span className={badges[status as keyof typeof badges] || 'badge bg-secondary'}>
-        {status.replace('_', ' ')}
+        {status?.replace('_', ' ') || 'Unknown'}
       </span>
     );
   };
 
-  const isOverdue = (scheduledDate: string, status: string) => {
-    return status === 'SCHEDULED' && new Date(scheduledDate) < new Date();
+  const isOverdue = (scheduledDate: string | null, status: string | null) => {
+    return scheduledDate && status === 'SCHEDULED' && new Date(scheduledDate) < new Date();
   };
 
   if (loading) {
@@ -212,15 +214,15 @@ const ControlVisitsPage = () => {
                             </td>
                             <td>
                               <span className="badge bg-info">
-                                {visit.visit_type.replace('_', ' ')}
+                                {visit.visit_type?.replace('_', ' ') || 'Unknown'}
                               </span>
                             </td>
                             <td>
-                              <div className={isOverdue(visit.scheduled_date, visit.visit_status) ? 'text-danger' : ''}>
-                                {new Date(visit.scheduled_date).toLocaleDateString()}
+                              <div className={visit.scheduled_date && isOverdue(visit.scheduled_date, visit.visit_status) ? 'text-danger' : ''}>
+                                {visit.scheduled_date ? new Date(visit.scheduled_date).toLocaleDateString() : 'Not scheduled'}
                                 <br />
-                                <small>{new Date(visit.scheduled_date).toLocaleTimeString()}</small>
-                                {isOverdue(visit.scheduled_date, visit.visit_status) && (
+                                <small>{visit.scheduled_date ? new Date(visit.scheduled_date).toLocaleTimeString() : ''}</small>
+                                {visit.scheduled_date && isOverdue(visit.scheduled_date, visit.visit_status) && (
                                   <div><small><i className="bx bx-time"></i> Overdue</small></div>
                                 )}
                               </div>
