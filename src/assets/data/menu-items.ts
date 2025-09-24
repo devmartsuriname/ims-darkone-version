@@ -160,6 +160,39 @@ export const MENU_ITEMS: MenuItemType[] = [
       },
     ],
   },
+  {
+    key: 'final-polish',
+    label: 'Final Polish',
+    isTitle: false,
+    icon: 'mingcute:sparkles-line',
+    url: '#',
+    children: [
+      {
+        key: 'performance-optimization',
+        label: 'Performance Optimization',
+        url: '/polish/performance',
+        parentKey: 'final-polish',
+      },
+      {
+        key: 'ux-enhancement',
+        label: 'UX Enhancement',
+        url: '/polish/ux-enhancement',
+        parentKey: 'final-polish',
+      },
+      {
+        key: 'production-readiness',
+        label: 'Production Readiness',
+        url: '/polish/production-readiness',
+        parentKey: 'final-polish',
+      },
+      {
+        key: 'documentation-training',
+        label: 'Documentation & Training',
+        url: '/polish/documentation',
+        parentKey: 'final-polish',
+      },
+    ],
+  },
 
   // ==================== QUALITY ASSURANCE ===============
   {

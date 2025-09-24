@@ -222,10 +222,29 @@ const imsRoutes: RoutesProps[] = [
     element: <WorkflowTestingPage />,
     exact: true,
   },
+  // Final Polish Routes
   {
-    path: '/workflow/monitoring',
-    name: 'Workflow Monitoring',
-    element: <WorkflowMonitoringPage />,
+    path: '/polish/performance',
+    name: 'Performance Optimization',
+    element: <PerformanceOptimizationPage />,
+    exact: true,
+  },
+  {
+    path: '/polish/ux-enhancement',
+    name: 'UX Enhancement', 
+    element: <UXEnhancementPage />,
+    exact: true,
+  },
+  {
+    path: '/polish/production-readiness',
+    name: 'Production Readiness',
+    element: <ProductionReadinessPage />,
+    exact: true,
+  },
+  {
+    path: '/polish/documentation',
+    name: 'Documentation & Training',
+    element: <DocumentationPage />,
     exact: true,
   },
   {
