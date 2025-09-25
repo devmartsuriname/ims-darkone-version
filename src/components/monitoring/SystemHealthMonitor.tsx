@@ -189,7 +189,7 @@ export const SystemHealthMonitor: React.FC = () => {
 
         // Profile access validation
         try {
-          const { data: profile, error } = await supabase
+          const { error } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', user.id)
