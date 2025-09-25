@@ -26,13 +26,14 @@ export const useAuthenticationFlow = () => {
       // Check if any admin users exist in the system
       const { data: adminUsers, error } = await supabase
         .from('user_roles')
-        .select('id')
+        .select('id, user_id, role, is_active')
         .eq('role', 'admin')
         .eq('is_active', true)
         .limit(1);
 
       if (error) {
         console.error('Error checking admin users:', error);
+        // If there's an error querying, assume setup is needed to be safe
         setAuthFlow({
           showInitialSetup: true,
           isFirstTimeSetup: true,

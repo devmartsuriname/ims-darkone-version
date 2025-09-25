@@ -40,6 +40,7 @@ const AppRouter = (props: RouteProps) => {
 
       {/* Default redirect */}
       <Route path="/" element={<Navigate to="/dashboards" replace />} />
+      <Route path="/auth/login" element={<Navigate to="/auth/sign-in" replace />} />
       <Route path="*" element={<Navigate to="/dashboards" replace />} />
     </Routes>
   )
