@@ -101,12 +101,12 @@ export const ProductionReadinessChecker: React.FC = () => {
       severity: 'critical',
       automated: true,
       details: isHTTPS ? 'Application served over HTTPS' : 'Application not using HTTPS',
-      recommendation: isHTTPS ? null : 'Configure HTTPS for production deployment'
+      recommendation: isHTTPS ? undefined : 'Configure HTTPS for production deployment'
     });
 
     // Authentication Check
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      await supabase.auth.getSession();
       checks.push({
         id: 'auth-system',
         category: 'security',
@@ -640,10 +640,10 @@ export const ProductionReadinessChecker: React.FC = () => {
                             <h6 className="mb-0">{check.name}</h6>
                           </div>
                           <div>
-                            <Badge bg={getSeverityColor(check.severity)} size="sm" className="me-1">
+                            <Badge bg={getSeverityColor(check.severity)} className="me-1">
                               {check.severity}
                             </Badge>
-                            <Badge bg={getStatusColor(check.status)} size="sm">
+                            <Badge bg={getStatusColor(check.status)}>
                               {check.status}
                             </Badge>
                           </div>

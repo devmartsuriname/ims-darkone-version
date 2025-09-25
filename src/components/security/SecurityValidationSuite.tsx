@@ -629,7 +629,7 @@ export const SecurityValidationSuite: React.FC = () => {
                                 className={`text-${getStatusColor(check.status)}`} 
                               />
                               <h6 className="mb-0">{check.name}</h6>
-                              <Badge bg={getSeverityColor(check.severity)} size="sm">
+                              <Badge bg={getSeverityColor(check.severity)}>
                                 {check.severity}
                               </Badge>
                             </div>
