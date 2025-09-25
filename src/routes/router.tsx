@@ -5,12 +5,17 @@ import { appRoutes, authRoutes } from '@/routes/index'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import PublicRoute from '@/components/auth/PublicRoute'
 import InitialSystemSetup from '@/components/auth/InitialSystemSetup'
+import SetupRouteGuard from '@/components/auth/SetupRouteGuard'
 
 const AppRouter = (props: RouteProps) => {
   return (
     <Routes>
       {/* System setup route - no layout wrapper */}
-      <Route path="/setup" element={<InitialSystemSetup />} />
+      <Route path="/setup" element={
+        <SetupRouteGuard>
+          <InitialSystemSetup />
+        </SetupRouteGuard>
+      } />
 
       {/* Public authentication routes */}
       {(authRoutes || []).map((route, idx) => (

@@ -1109,6 +1109,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_user_exists: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       can_control_inspect: {
         Args: Record<PropertyKey, never>
         Returns: boolean

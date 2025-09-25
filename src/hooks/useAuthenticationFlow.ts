@@ -23,36 +23,35 @@ export const useAuthenticationFlow = () => {
     try {
       setAuthFlow(prev => ({ ...prev, loading: true }));
 
-      // Check if any admin users exist in the system
-      const { data: adminUsers, error } = await supabase
-        .from('user_roles')
-        .select('id, user_id, role, is_active')
-        .eq('role', 'admin')
-        .eq('is_active', true)
-        .limit(1);
+      // Use SECURITY DEFINER RPC to check admin existence without RLS issues
+      const { data: hasAdminUsers, error } = await supabase.rpc('admin_user_exists');
 
       if (error) {
-        console.error('Error checking admin users:', error);
-        // If there's an error querying, assume setup is needed to be safe
+        console.error('Error in admin_user_exists RPC:', error);
+        // Fail-safe: do NOT force setup to avoid lock-in
         setAuthFlow({
-          showInitialSetup: true,
-          isFirstTimeSetup: true,
+          showInitialSetup: false,
+          isFirstTimeSetup: false,
           loading: false
         });
         return;
       }
 
-      const hasAdminUsers = adminUsers && adminUsers.length > 0;
+      const adminExists = !!hasAdminUsers;
       const localSetupComplete = localStorage.getItem('ims_initial_setup_complete') === 'true';
 
       console.log('System setup check:', {
-        hasAdminUsers,
-        localSetupComplete,
-        adminCount: adminUsers?.length || 0
+        adminExists,
+        localSetupComplete
       });
 
-      // Show initial setup if no admin users exist and setup hasn't been completed locally
-      if (!hasAdminUsers && !localSetupComplete) {
+      // Defensive: if admin exists, ensure flag is set
+      if (adminExists && !localSetupComplete) {
+        localStorage.setItem('ims_initial_setup_complete', 'true');
+      }
+
+      // Show initial setup only if no admin users exist and setup hasn't been completed locally
+      if (!adminExists && !localSetupComplete) {
         setAuthFlow({
           showInitialSetup: true,
           isFirstTimeSetup: true,
@@ -66,7 +65,7 @@ export const useAuthenticationFlow = () => {
         });
       }
     } catch (error) {
-      console.error('Error in system setup check:', error);
+      console.error('Unexpected error in system setup check:', error);
       setAuthFlow(prev => ({ ...prev, loading: false }));
     }
   };

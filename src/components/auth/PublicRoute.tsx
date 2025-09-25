@@ -8,7 +8,7 @@ interface PublicRouteProps {
   redirectTo?: string
 }
 
-const PublicRoute = ({ children, redirectTo = '/dashboard' }: PublicRouteProps) => {
+const PublicRoute = ({ children, redirectTo = '/dashboards' }: PublicRouteProps) => {
   const { isAuthenticated, loading } = useAuthContext()
   const navigate = useNavigate()
 

@@ -22,13 +22,19 @@ const SystemSetupChecker: React.FC<SystemSetupCheckerProps> = ({ children }) => 
       pathname: location.pathname
     });
 
-    // Don't redirect if already on setup page or loading
-    if (loading || location.pathname === '/setup') return;
+    if (loading) return;
 
-    // If system needs initial setup (no admin users exist), redirect to setup
-    if (showInitialSetup && isFirstTimeSetup) {
+    // If system needs initial setup and not on setup page, redirect to setup
+    if (showInitialSetup && isFirstTimeSetup && location.pathname !== '/setup') {
       console.log('Redirecting to setup page - no admin users exist');
       navigate('/setup', { replace: true });
+      return;
+    }
+
+    // If admin exists or setup is complete, block /setup and redirect to sign-in
+    if ((!showInitialSetup || !isFirstTimeSetup) && location.pathname === '/setup') {
+      console.log('Setup disabled - redirecting to sign-in');
+      navigate('/auth/sign-in', { replace: true });
     }
   }, [showInitialSetup, isFirstTimeSetup, isAuthenticated, loading, navigate, location.pathname]);
 
