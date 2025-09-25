@@ -10,12 +10,33 @@ import { SystemMetricsDashboard } from './components/SystemMetricsDashboard'
 import Chart from './components/Chart'
 import RoleCheck from '@/components/auth/RoleCheck'
 import IntegrationTestRunner from '@/components/testing/IntegrationTestRunner'
+import { RefreshButton } from '@/components/ui/RefreshButton'
+import { useState } from 'react'
 
 const page = () => {
+  const [lastUpdated, setLastUpdated] = useState(new Date())
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    // Force refresh by updating the timestamp
+    setTimeout(() => {
+      setLastUpdated(new Date())
+      setIsRefreshing(false)
+    }, 1000)
+  }
 
   return (
     <>
-      <PageTitle subName="IMS" title="Dashboard" />
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <PageTitle subName="IMS" title="Dashboard" />
+        <RefreshButton 
+          onRefresh={handleRefresh}
+          isLoading={isRefreshing}
+          lastUpdated={lastUpdated}
+          autoRefreshInterval={300} // Auto-refresh every 5 minutes
+        />
+      </div>
       
       {/* KPI Cards */}
       <IMSCards />

@@ -2,20 +2,12 @@ import { Card, CardBody } from 'react-bootstrap'
 import IconifyIcon from '@/components/wrapper/IconifyIcon'
 import { useAuthContext } from '@/context/useAuthContext'
 import RoleCheck from '@/components/auth/RoleCheck'
-
-interface ActivityItem {
-  id: string
-  type: 'application' | 'control' | 'review' | 'approval' | 'document'
-  title: string
-  description: string
-  time: string
-  icon: string
-  color: string
-  roles: string[]
-}
+import { LoadingSpinner } from '@/components/ui/LoadingStates'
+import { useRecentActivities } from '@/hooks/useRecentActivities'
 
 const RecentActivities = () => {
   const { roles } = useAuthContext()
+  const { activities, isLoading, error } = useRecentActivities(6)
   
   // Get primary role for filtering
   const getUserRole = () => {
@@ -26,72 +18,51 @@ const RecentActivities = () => {
   
   const userRole = getUserRole()
 
-  const activities: ActivityItem[] = [
-    {
-      id: '1',
-      type: 'application',
-      title: 'New Application Submitted',
-      description: 'Application #BSS-2024-0156 submitted by Maria Santos',
-      time: '5 minutes ago',
-      icon: 'solar:document-add-broken',
-      color: 'primary',
-      roles: ['admin', 'it', 'staff', 'front_office']
-    },
-    {
-      id: '2',
-      type: 'control',
-      title: 'Control Visit Completed',
-      description: 'Site visit completed for Application #BSS-2024-0145',
-      time: '1 hour ago',
-      icon: 'solar:home-2-broken',
-      color: 'info',
-      roles: ['admin', 'it', 'control', 'staff']
-    },
-    {
-      id: '3',
-      type: 'review',
-      title: 'Technical Review Approved',
-      description: 'Technical assessment completed for Application #BSS-2024-0134',
-      time: '2 hours ago',
-      icon: 'solar:clipboard-check-broken',
-      color: 'success',
-      roles: ['admin', 'it', 'staff', 'director']
-    },
-    {
-      id: '4',
-      type: 'approval',
-      title: 'Director Recommendation',
-      description: 'Application #BSS-2024-0123 recommended for approval',
-      time: '4 hours ago',
-      icon: 'solar:check-circle-broken',
-      color: 'warning',
-      roles: ['admin', 'it', 'director', 'minister']
-    },
-    {
-      id: '5',
-      type: 'document',
-      title: 'Document Uploaded',
-      description: 'Additional documents uploaded for Application #BSS-2024-0112',
-      time: '6 hours ago',
-      icon: 'solar:upload-broken',
-      color: 'secondary',
-      roles: ['admin', 'it', 'staff', 'front_office']
-    },
-    {
-      id: '6',
-      type: 'approval',
-      title: 'Final Approval Granted',
-      description: 'Application #BSS-2024-0098 approved by Minister',
-      time: '1 day ago',
-      icon: 'solar:star-circle-broken',
-      color: 'success',
-      roles: ['admin', 'it', 'minister', 'staff']
+  // Define role access for each activity type
+  const getActivityRoles = (type: string): string[] => {
+    switch (type) {
+      case 'application':
+        return ['admin', 'it', 'staff', 'front_office']
+      case 'control':
+        return ['admin', 'it', 'control', 'staff']
+      case 'review':
+        return ['admin', 'it', 'staff', 'director']
+      case 'approval':
+        return ['admin', 'it', 'director', 'minister']
+      case 'document':
+        return ['admin', 'it', 'staff', 'front_office']
+      default:
+        return ['admin', 'it']
     }
-  ]
+  }
 
-  const visibleActivities = activities.filter(activity => 
-    userRole && activity.roles.includes(userRole)
-  ).slice(0, 5)
+  const visibleActivities = activities.filter(activity => {
+    const allowedRoles = getActivityRoles(activity.type)
+    return userRole && allowedRoles.includes(userRole)
+  }).slice(0, 5)
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardBody className="text-center py-5">
+          <LoadingSpinner />
+          <p className="text-muted mt-2">Loading recent activities...</p>
+        </CardBody>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="alert alert-warning">
+            <strong>Warning:</strong> {error}
+          </div>
+        </CardBody>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -115,27 +86,34 @@ const RecentActivities = () => {
         </div>
 
         <div className="activity-timeline">
-          {visibleActivities.map((activity, index) => (
-            <RoleCheck key={activity.id} allowedRoles={activity.roles}>
-              <div className="activity-item d-flex">
-                <div className="flex-shrink-0">
-                  <div className={`avatar-xs bg-soft-${activity.color}`}>
-                    <div className={`avatar-title text-${activity.color} rounded-circle fs-16`}>
-                      <IconifyIcon icon={activity.icon} />
+          {visibleActivities.length === 0 ? (
+            <div className="text-center py-4">
+              <IconifyIcon icon="solar:inbox-broken" className="fs-1 text-muted" />
+              <p className="text-muted mt-2">No recent activities found</p>
+            </div>
+          ) : (
+            visibleActivities.map((activity, index) => (
+              <RoleCheck key={activity.id} allowedRoles={getActivityRoles(activity.type)}>
+                <div className="activity-item d-flex">
+                  <div className="flex-shrink-0">
+                    <div className={`avatar-xs bg-soft-${activity.color}`}>
+                      <div className={`avatar-title text-${activity.color} rounded-circle fs-16`}>
+                        <IconifyIcon icon={activity.icon} />
+                      </div>
                     </div>
                   </div>
+                  <div className="flex-grow-1 ms-3">
+                    <h6 className="mb-1 fs-14">{activity.title}</h6>
+                    <p className="text-muted mb-1 fs-12">{activity.description}</p>
+                    <small className="text-muted">{activity.time}</small>
+                  </div>
                 </div>
-                <div className="flex-grow-1 ms-3">
-                  <h6 className="mb-1 fs-14">{activity.title}</h6>
-                  <p className="text-muted mb-1 fs-12">{activity.description}</p>
-                  <small className="text-muted">{activity.time}</small>
-                </div>
-              </div>
-              {index < visibleActivities.length - 1 && (
-                <div className="activity-connector"></div>
-              )}
-            </RoleCheck>
-          ))}
+                {index < visibleActivities.length - 1 && (
+                  <div className="activity-connector"></div>
+                )}
+              </RoleCheck>
+            ))
+          )}
         </div>
 
         <div className="text-center mt-3">

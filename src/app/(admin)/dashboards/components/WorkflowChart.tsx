@@ -1,21 +1,44 @@
 import { ApexOptions } from 'apexcharts'
 import ReactApexChart from 'react-apexcharts'
 import { Card, CardBody } from 'react-bootstrap'
+import { LoadingSpinner } from '@/components/ui/LoadingStates'
+import { useWorkflowData } from '@/hooks/useWorkflowData'
 
 const WorkflowChart = () => {
+  const { data, isLoading, error } = useWorkflowData()
 
-  // Workflow stages data
-  const workflowData = [
-    { name: 'Draft', count: 45, color: '#e9ecef' },
-    { name: 'Intake Review', count: 32, color: '#ffc107' },
-    { name: 'Control Assigned', count: 28, color: '#fd7e14' },
-    { name: 'Control Visit', count: 23, color: '#0dcaf0' },
-    { name: 'Technical Review', count: 18, color: '#6f42c1' },
-    { name: 'Social Review', count: 15, color: '#d63384' },
-    { name: 'Director Review', count: 12, color: '#198754' },
-    { name: 'Minister Decision', count: 8, color: '#dc3545' },
-    { name: 'Approved', count: 6, color: '#20c997' },
-  ]
+  if (isLoading) {
+    return (
+      <Card>
+        <CardBody className="text-center py-5">
+          <LoadingSpinner />
+          <p className="text-muted mt-2">Loading workflow data...</p>
+        </CardBody>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="alert alert-warning">
+            <strong>Warning:</strong> {error}
+          </div>
+        </CardBody>
+      </Card>
+    )
+  }
+
+  if (!data || data.stages.length === 0) {
+    return (
+      <Card>
+        <CardBody className="text-center py-5">
+          <p className="text-muted">No workflow data available</p>
+        </CardBody>
+      </Card>
+    )
+  }
 
   const chartOptions: ApexOptions = {
     chart: {
@@ -46,14 +69,14 @@ const WorkflowChart = () => {
     series: [
       {
         name: 'Applications',
-        data: workflowData.map(item => ({
+        data: data.stages.map(item => ({
           x: item.name,
           y: item.count,
           fillColor: item.color,
         })),
       },
     ],
-    colors: workflowData.map(item => item.color),
+    colors: data.stages.map(item => item.color),
     xaxis: {
       type: 'category',
       labels: {
@@ -114,7 +137,7 @@ const WorkflowChart = () => {
                 </div>
                 <div className="flex-grow-1 ms-2">
                   <p className="text-muted mb-0">Avg. Processing Time</p>
-                  <h6 className="mb-0">14.5 days</h6>
+                  <h6 className="mb-0">{data.avgProcessingTime} days</h6>
                 </div>
               </div>
             </div>
@@ -129,7 +152,7 @@ const WorkflowChart = () => {
                 </div>
                 <div className="flex-grow-1 ms-2">
                   <p className="text-muted mb-0">SLA Compliance</p>
-                  <h6 className="mb-0">89.3%</h6>
+                  <h6 className="mb-0">{data.slaCompliance}%</h6>
                 </div>
               </div>
             </div>
