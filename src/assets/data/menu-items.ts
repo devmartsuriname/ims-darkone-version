@@ -168,6 +168,12 @@ export const MENU_ITEMS: MenuItemType[] = [
     url: '#',
     children: [
       {
+        key: 'polish-overview',
+        label: 'Overview',
+        url: '/polish/overview',
+        parentKey: 'final-polish',
+      },
+      {
         key: 'performance-optimization',
         label: 'Performance Optimization',
         url: '/polish/performance',

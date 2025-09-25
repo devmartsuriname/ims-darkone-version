@@ -30,9 +30,11 @@ const WorkflowTestingPage = lazy(() => import('@/app/(admin)/workflow/testing/pa
 
 
 // Polish Pages  
+const PolishOverviewPage = lazy(() => import('@/app/(admin)/polish/overview/page'))
 const PerformanceOptimizationPage = lazy(() => import('@/app/(admin)/polish/performance/page'))
 const UXEnhancementPage = lazy(() => import('@/app/(admin)/polish/ux-enhancement/page'))
 const DocumentationPage = lazy(() => import('@/app/(admin)/polish/documentation/page'))
+const PolishProductionReadinessPage = lazy(() => import('@/app/(admin)/polish/production-readiness/page'))
 
 // IMS Security Pages
 const SecurityScanningPage = lazy(() => import('@/app/(admin)/security/scanning/page'))
@@ -235,15 +237,27 @@ const imsRoutes: RoutesProps[] = [
     exact: true,
   },
   {
+    path: '/polish/overview',
+    name: 'Polish Overview',
+    element: <PolishOverviewPage />,
+    exact: true,
+  },
+  {
+    path: '/polish/performance',
+    name: 'Performance Optimization',
+    element: <PerformanceOptimizationPage />,
+    exact: true,
+  },
+  {
     path: '/polish/ux-enhancement',
-    name: 'UX Enhancement', 
+    name: 'UX Enhancement',
     element: <UXEnhancementPage />,
     exact: true,
   },
   {
     path: '/polish/production-readiness',
     name: 'Production Readiness',
-    element: <ProductionReadinessPage />,
+    element: <PolishProductionReadinessPage />,
     exact: true,
   },
   {

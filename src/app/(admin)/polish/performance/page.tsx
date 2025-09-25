@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, ProgressBar, Alert, Badge, Table, Button } from 'react-bootstrap';
+import { Card, Row, Col, Alert, Badge, Button, Table, ProgressBar } from 'react-bootstrap';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-toastify';
 import PageTitle from '@/components/PageTitle';
 import ComponentContainerCard from '@/components/ComponentContainerCard';
 
 interface PerformanceMetric {
-  metric: string;
+  name: string;
   value: number;
   unit: string;
-  status: 'excellent' | 'good' | 'warning' | 'critical';
+  status: 'good' | 'warning' | 'critical';
   target: number;
   description: string;
 }
@@ -25,8 +25,15 @@ interface BundleAnalysis {
 }
 
 interface DatabaseMetrics {
-  connectionPool: number;
-  queryPerformance: number;
+  connectionPool: {
+    active: number;
+    idle: number;
+    total: number;
+  };
+  queryPerformance: {
+    avgResponseTime: number;
+    slowQueries: number;
+  };
   indexUsage: number;
   cacheHitRate: number;
 }
@@ -62,44 +69,52 @@ const PerformanceOptimizationPage: React.FC = () => {
     // Simulate performance metrics
     const metrics: PerformanceMetric[] = [
       {
-        metric: 'First Contentful Paint',
+        name: 'First Contentful Paint (FCP)',
         value: 1.2,
         unit: 's',
         status: 'good',
-        target: 1.5,
-        description: 'Time until first content is rendered'
+        target: 1.8,
+        description: 'Time until the first text or image is displayed'
       },
       {
-        metric: 'Largest Contentful Paint',
+        name: 'Largest Contentful Paint (LCP)',
         value: 2.1,
         unit: 's',
         status: 'good',
         target: 2.5,
-        description: 'Time until largest content element is rendered'
+        description: 'Time until the largest element is displayed'
       },
       {
-        metric: 'Cumulative Layout Shift',
-        value: 0.05,
+        name: 'First Input Delay (FID)',
+        value: 85,
+        unit: 'ms',
+        status: 'warning',
+        target: 100,
+        description: 'Time from user interaction to browser response'
+      },
+      {
+        name: 'Cumulative Layout Shift (CLS)',
+        value: 0.08,
         unit: '',
-        status: 'excellent',
+        status: 'good',
         target: 0.1,
         description: 'Visual stability of the page'
       },
       {
-        metric: 'Time to Interactive',
-        value: 2.8,
+        name: 'Time to Interactive (TTI)',
+        value: 3.2,
         unit: 's',
         status: 'warning',
-        target: 2.5,
-        description: 'Time until page is fully interactive'
+        target: 3.8,
+        description: 'Time until the page is fully interactive'
       },
       {
-        metric: 'Bundle Size',
-        value: 1.8,
-        unit: 'MB',
+        name: 'Speed Index',
+        value: 2.8,
+        unit: 's',
         status: 'good',
-        target: 2.0,
-        description: 'Total JavaScript bundle size'
+        target: 3.4,
+        description: 'How quickly content is visually displayed'
       }
     ];
     setPerformanceMetrics(metrics);
@@ -108,15 +123,14 @@ const PerformanceOptimizationPage: React.FC = () => {
   const loadBundleAnalysis = async () => {
     // Simulate bundle analysis
     const analysis: BundleAnalysis = {
-      totalSize: 1834567,
-      gzippedSize: 456789,
+      totalSize: 2847593, // bytes
+      gzippedSize: 892847, // bytes
       chunks: [
-        { name: 'vendor', size: 890234, percentage: 48.5 },
-        { name: 'main', size: 345678, percentage: 18.8 },
-        { name: 'components', size: 234567, percentage: 12.8 },
-        { name: 'pages', size: 156789, percentage: 8.5 },
-        { name: 'utils', size: 87654, percentage: 4.8 },
-        { name: 'assets', size: 119645, percentage: 6.5 }
+        { name: 'main.js', size: 1247593, percentage: 43.8 },
+        { name: 'vendor.js', size: 892847, percentage: 31.4 },
+        { name: 'runtime.js', size: 124759, percentage: 4.4 },
+        { name: 'polyfills.js', size: 89284, percentage: 3.1 },
+        { name: 'styles.css', size: 493110, percentage: 17.3 }
       ]
     };
     setBundleAnalysis(analysis);
@@ -124,26 +138,44 @@ const PerformanceOptimizationPage: React.FC = () => {
 
   const loadDatabaseMetrics = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('health-check', {
-        body: { action: 'database_performance' }
+      const { data, error } = await supabase.functions.invoke('workflow-service', {
+        body: {
+          action: 'get_database_metrics'
+        }
       });
 
       if (error) throw error;
 
-      setDbMetrics(data.metrics || {
-        connectionPool: 85,
-        queryPerformance: 92,
-        indexUsage: 88,
-        cacheHitRate: 95
-      });
+      const metrics: DatabaseMetrics = data || {
+        connectionPool: {
+          active: 12,
+          idle: 8,
+          total: 20
+        },
+        queryPerformance: {
+          avgResponseTime: 45,
+          slowQueries: 3
+        },
+        indexUsage: 92,
+        cacheHitRate: 96.5
+      };
+
+      setDbMetrics(metrics);
     } catch (error) {
       console.error('Failed to load database metrics:', error);
       // Use mock data on error
       setDbMetrics({
-        connectionPool: 85,
-        queryPerformance: 92,
-        indexUsage: 88,
-        cacheHitRate: 95
+        connectionPool: {
+          active: 12,
+          idle: 8,
+          total: 20
+        },
+        queryPerformance: {
+          avgResponseTime: 45,
+          slowQueries: 3
+        },
+        indexUsage: 92,
+        cacheHitRate: 96.5
       });
     }
   };
@@ -153,14 +185,14 @@ const PerformanceOptimizationPage: React.FC = () => {
     try {
       const { error } = await supabase.functions.invoke('workflow-service', {
         body: {
-          action: 'optimize',
+          action: 'run_optimization',
           type: type
         }
       });
 
       if (error) throw error;
-      
-      toast.success(`${type} optimization completed successfully`);
+
+      toast.success(`${type} optimization completed`);
       await loadPerformanceData();
     } catch (error) {
       console.error('Optimization failed:', error);
@@ -170,31 +202,36 @@ const PerformanceOptimizationPage: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: PerformanceMetric['status']) => {
+  const getStatusColor = (status: string) => {
     const colors = {
-      excellent: 'success',
-      good: 'info',
+      good: 'success',
       warning: 'warning',
       critical: 'danger'
     };
-    return colors[status];
+    return colors[status as keyof typeof colors] || 'secondary';
   };
 
-  const getStatusVariant = (status: PerformanceMetric['status']) => {
+  const getStatusVariant = (status: string) => {
     const variants = {
-      excellent: 'success',
-      good: 'primary',
+      good: 'success',
       warning: 'warning',
       critical: 'danger'
     };
-    return variants[status];
+    return variants[status as keyof typeof variants] || 'secondary';
   };
 
-  const formatSize = (bytes: number): string => {
-    const kb = bytes / 1024;
-    const mb = kb / 1024;
-    if (mb >= 1) return `${mb.toFixed(1)} MB`;
-    return `${kb.toFixed(1)} KB`;
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getOverallScore = () => {
+    const goodMetrics = performanceMetrics.filter(m => m.status === 'good').length;
+    const total = performanceMetrics.length;
+    return Math.round((goodMetrics / total) * 100);
   };
 
   if (loading) {
@@ -211,67 +248,34 @@ const PerformanceOptimizationPage: React.FC = () => {
     <div className="container-fluid">
       <PageTitle 
         title="Performance Optimization" 
-        subName="System Performance Analysis & Optimization"
+        subName="Application Performance Monitoring & Optimization"
       />
 
       {/* Performance Overview */}
       <Row className="mb-4">
-        <Col lg={8}>
-          <ComponentContainerCard id="performance-metrics" title="Core Web Vitals & Performance Metrics">
-            <Row>
-              {performanceMetrics.map((metric, index) => (
-                <Col lg={6} key={index} className="mb-4">
-                  <Card className="border-0 h-100">
-                    <Card.Body>
-                      <div className="d-flex justify-content-between align-items-start mb-2">
-                        <h6 className="mb-0">{metric.metric}</h6>
-                        <Badge bg={getStatusVariant(metric.status)}>
-                          {metric.status.toUpperCase()}
-                        </Badge>
-                      </div>
-                      <div className="mb-2">
-                        <span className="h4 text-primary">{metric.value}</span>
-                        <span className="text-muted">{metric.unit}</span>
-                        <small className="text-muted ms-2">/ {metric.target}{metric.unit}</small>
-                      </div>
-                      <ProgressBar 
-                        now={Math.min((metric.value / metric.target) * 100, 100)} 
-                        variant={getStatusColor(metric.status)}
-                        className="mb-2"
-                        style={{ height: '4px' }}
-                      />
-                      <small className="text-muted">{metric.description}</small>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </ComponentContainerCard>
-        </Col>
-
         <Col lg={4}>
-          <Card className="mb-4">
-            <Card.Header>
-              <h6 className="mb-0">Performance Score</h6>
-            </Card.Header>
-            <Card.Body className="text-center">
+          <Card className="text-center">
+            <Card.Body>
               <div className="mb-3">
-                <div className="h1 text-success mb-1">87</div>
-                <p className="text-muted mb-0">Overall Performance Score</p>
+                <div className="h1 text-primary mb-1">{getOverallScore()}</div>
+                <p className="text-muted mb-0">Performance Score</p>
               </div>
-              <ProgressBar now={87} variant="success" className="mb-3" />
+              <ProgressBar 
+                now={getOverallScore()} 
+                variant={getOverallScore() >= 90 ? 'success' : getOverallScore() >= 70 ? 'warning' : 'danger'}
+                className="mb-3"
+              />
               <div className="d-grid gap-2">
                 <Button 
                   variant="primary" 
-                  onClick={() => runOptimization('performance')}
+                  onClick={() => runOptimization('all')}
                   disabled={optimizing}
                 >
-                  {optimizing ? 'Optimizing...' : 'Run Optimization'}
+                  {optimizing ? 'Optimizing...' : 'Run All Optimizations'}
                 </Button>
                 <Button 
                   variant="outline-secondary" 
                   onClick={loadPerformanceData}
-                  disabled={optimizing}
                 >
                   Refresh Metrics
                 </Button>
@@ -279,126 +283,206 @@ const PerformanceOptimizationPage: React.FC = () => {
             </Card.Body>
           </Card>
         </Col>
+
+        <Col lg={8}>
+          <ComponentContainerCard id="performance-metrics" title="Core Web Vitals">
+            <Row>
+              {performanceMetrics.map((metric, index) => (
+                <Col lg={4} md={6} key={index} className="mb-3">
+                  <Card className="border-0 h-100">
+                    <Card.Body className="text-center">
+                      <div className="mb-2">
+                        <Badge bg={getStatusColor(metric.status)}>
+                          {metric.status.toUpperCase()}
+                        </Badge>
+                      </div>
+                      <h6 className="mb-1">{metric.name}</h6>
+                      <div className="h4 text-primary mb-2">
+                        {metric.value}{metric.unit}
+                      </div>
+                      <ProgressBar 
+                        now={Math.min((metric.value / metric.target) * 100, 100)} 
+                        variant={getStatusVariant(metric.status)}
+                        className="mb-2"
+                        style={{ height: '4px' }}
+                      />
+                      <small className="text-muted">
+                        Target: {metric.target}{metric.unit}
+                      </small>
+                      <div className="mt-2">
+                        <small className="text-muted">{metric.description}</small>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </ComponentContainerCard>
+        </Col>
       </Row>
 
       {/* Bundle Analysis */}
-      {bundleAnalysis && (
-        <Row className="mb-4">
-          <Col lg={6}>
-            <ComponentContainerCard id="bundle-analysis" title="Bundle Analysis">
-              <div className="mb-3">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <span>Total Bundle Size:</span>
-                  <strong>{formatSize(bundleAnalysis.totalSize)}</strong>
+      <Row className="mb-4">
+        <Col lg={6}>
+          <ComponentContainerCard id="bundle-analysis" title="Bundle Analysis">
+            {bundleAnalysis && (
+              <>
+                <div className="mb-3">
+                  <Row>
+                    <Col>
+                      <div className="text-center">
+                        <div className="h5">{formatSize(bundleAnalysis.totalSize)}</div>
+                        <small className="text-muted">Total Bundle Size</small>
+                      </div>
+                    </Col>
+                    <Col>
+                      <div className="text-center">
+                        <div className="h5">{formatSize(bundleAnalysis.gzippedSize)}</div>
+                        <small className="text-muted">Gzipped Size</small>
+                      </div>
+                    </Col>
+                  </Row>
                 </div>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <span>Gzipped Size:</span>
-                  <strong className="text-success">{formatSize(bundleAnalysis.gzippedSize)}</strong>
-                </div>
-              </div>
 
-              <Table responsive size="sm">
-                <thead>
-                  <tr>
-                    <th>Chunk</th>
-                    <th>Size</th>
-                    <th>%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bundleAnalysis.chunks.map((chunk, index) => (
-                    <tr key={index}>
-                      <td>{chunk.name}</td>
-                      <td>{formatSize(chunk.size)}</td>
-                  <td>
-                        <Badge bg={chunk.percentage > 40 ? 'warning' : 'secondary'}>
-                      {chunk.percentage.toFixed(1)}%
-                    </Badge>
-                  </td>
+                <Table responsive>
+                  <thead>
+                    <tr>
+                      <th>Chunk</th>
+                      <th>Size</th>
+                      <th>%</th>
                     </tr>
-                  ))}
-                </tbody>
-              </Table>
+                  </thead>
+                  <tbody>
+                    {bundleAnalysis.chunks.map((chunk, index) => (
+                      <tr key={index}>
+                        <td>{chunk.name}</td>
+                        <td>{formatSize(chunk.size)}</td>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <ProgressBar 
+                              now={chunk.percentage} 
+                              className="flex-grow-1 me-2"
+                              style={{ height: '8px' }}
+                            />
+                            <small>{chunk.percentage}%</small>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
 
-              <Alert variant="info" className="mt-3">
-                <small>
-                  <strong>Recommendation:</strong> Consider code splitting for chunks larger than 30% of total bundle size.
-                </small>
-              </Alert>
-            </ComponentContainerCard>
-          </Col>
+                <div className="d-grid">
+                  <Button 
+                    variant="outline-primary"
+                    onClick={() => runOptimization('bundle')}
+                    disabled={optimizing}
+                  >
+                    Optimize Bundle
+                  </Button>
+                </div>
+              </>
+            )}
+          </ComponentContainerCard>
+        </Col>
 
-          <Col lg={6}>
+        <Col lg={6}>
+          <ComponentContainerCard id="database-metrics" title="Database Performance">
             {dbMetrics && (
-              <ComponentContainerCard id="database-metrics" title="Database Performance">
-                <Row>
-                  <Col sm={6} className="mb-3">
+              <>
+                <Row className="mb-3">
+                  <Col>
                     <div className="text-center">
-                      <div className="h4 text-primary mb-1">{dbMetrics.connectionPool}%</div>
-                      <p className="text-muted mb-0">Connection Pool</p>
-                      <ProgressBar now={dbMetrics.connectionPool} variant={dbMetrics.connectionPool > 90 ? 'danger' : 'primary'} />
+                      <div className="h5">{dbMetrics.connectionPool.active}/{dbMetrics.connectionPool.total}</div>
+                      <small className="text-muted">Active Connections</small>
+                      <ProgressBar 
+                        now={(dbMetrics.connectionPool.active / dbMetrics.connectionPool.total) * 100}
+                        variant="info"
+                        className="mt-1"
+                        style={{ height: '4px' }}
+                      />
                     </div>
                   </Col>
-                  <Col sm={6} className="mb-3">
+                  <Col>
                     <div className="text-center">
-                      <div className="h4 text-success mb-1">{dbMetrics.queryPerformance}%</div>
-                      <p className="text-muted mb-0">Query Performance</p>
-                      <ProgressBar now={dbMetrics.queryPerformance} variant="success" />
-                    </div>
-                  </Col>
-                  <Col sm={6} className="mb-3">
-                    <div className="text-center">
-                      <div className="h4 text-info mb-1">{dbMetrics.indexUsage}%</div>
-                      <p className="text-muted mb-0">Index Usage</p>
-                      <ProgressBar now={dbMetrics.indexUsage} variant="info" />
-                    </div>
-                  </Col>
-                  <Col sm={6} className="mb-3">
-                    <div className="text-center">
-                      <div className="h4 text-warning mb-1">{dbMetrics.cacheHitRate}%</div>
-                      <p className="text-muted mb-0">Cache Hit Rate</p>
-                      <ProgressBar now={dbMetrics.cacheHitRate} variant="warning" />
+                      <div className="h5">{dbMetrics.queryPerformance.avgResponseTime}ms</div>
+                      <small className="text-muted">Avg Response Time</small>
+                      <ProgressBar 
+                        now={Math.min(dbMetrics.queryPerformance.avgResponseTime / 100 * 100, 100)}
+                        variant={dbMetrics.queryPerformance.avgResponseTime < 50 ? 'success' : 'warning'}
+                        className="mt-1"
+                        style={{ height: '4px' }}
+                      />
                     </div>
                   </Col>
                 </Row>
 
-                <div className="d-grid gap-2 mt-3">
+                <Row className="mb-3">
+                  <Col>
+                    <div className="text-center">
+                      <div className="h5">{dbMetrics.indexUsage}%</div>
+                      <small className="text-muted">Index Usage</small>
+                      <ProgressBar 
+                        now={dbMetrics.indexUsage}
+                        variant={dbMetrics.indexUsage > 90 ? 'success' : 'warning'}
+                        className="mt-1"
+                        style={{ height: '4px' }}
+                      />
+                    </div>
+                  </Col>
+                  <Col>
+                    <div className="text-center">
+                      <div className="h5">{dbMetrics.cacheHitRate}%</div>
+                      <small className="text-muted">Cache Hit Rate</small>
+                      <ProgressBar 
+                        now={dbMetrics.cacheHitRate}
+                        variant={dbMetrics.cacheHitRate > 95 ? 'success' : 'warning'}
+                        className="mt-1"
+                        style={{ height: '4px' }}
+                      />
+                    </div>
+                  </Col>
+                </Row>
+
+                <div className="mb-3">
+                  <Alert variant="warning" className="mb-2">
+                    <small>
+                      <strong>Slow Queries:</strong> {dbMetrics.queryPerformance.slowQueries} queries taking over 1s
+                    </small>
+                  </Alert>
+                </div>
+
+                <div className="d-grid gap-2">
                   <Button 
-                    variant="outline-primary" 
-                    size="sm"
+                    variant="outline-primary"
                     onClick={() => runOptimization('database')}
                     disabled={optimizing}
                   >
                     Optimize Database
                   </Button>
                   <Button 
-                    variant="outline-secondary" 
-                    size="sm"
+                    variant="outline-secondary"
                     onClick={() => runOptimization('cache')}
                     disabled={optimizing}
                   >
-                    Clear & Rebuild Cache
+                    Clear Cache
                   </Button>
                 </div>
-              </ComponentContainerCard>
+              </>
             )}
-          </Col>
-        </Row>
-      )}
+          </ComponentContainerCard>
+        </Col>
+      </Row>
 
       {/* Optimization Recommendations */}
       <Row>
         <Col>
           <ComponentContainerCard id="optimization-recommendations" title="Optimization Recommendations">
-            <Alert variant="info" className="mb-3">
-              <strong>Performance Insights:</strong> Based on current metrics analysis
-            </Alert>
-
             <Table responsive>
               <thead>
                 <tr>
                   <th>Area</th>
-                  <th>Issue</th>
+                  <th>Priority</th>
                   <th>Impact</th>
                   <th>Recommendation</th>
                   <th>Action</th>
@@ -406,53 +490,45 @@ const PerformanceOptimizationPage: React.FC = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td>Bundle Size</td>
-                  <td>Large vendor chunk (48.5%)</td>
+                  <td>JavaScript Bundle</td>
+                  <td><Badge bg="warning">Medium</Badge></td>
+                  <td><Badge bg="success">High</Badge></td>
+                  <td>Implement code splitting for route-based chunks</td>
                   <td>
-                    <Badge bg="warning">Medium</Badge>
-                  </td>
-                  <td>Implement dynamic imports and code splitting</td>
-                  <td>
-                    <Button size="sm" variant="outline-primary" onClick={() => runOptimization('code_splitting')}>
+                    <Button size="sm" variant="outline-primary" onClick={() => runOptimization('code-splitting')}>
                       Apply
                     </Button>
                   </td>
                 </tr>
                 <tr>
-                  <td>Time to Interactive</td>
-                  <td>TTI exceeds target (2.8s &gt; 2.5s)</td>
+                  <td>Image Optimization</td>
+                  <td><Badge bg="success">Low</Badge></td>
+                  <td><Badge bg="warning">Medium</Badge></td>
+                  <td>Convert images to WebP format with lazy loading</td>
                   <td>
-                    <Badge bg="warning">Medium</Badge>
-                  </td>
-                  <td>Lazy load non-critical components</td>
-                  <td>
-                    <Button size="sm" variant="outline-primary" onClick={() => runOptimization('lazy_loading')}>
+                    <Button size="sm" variant="outline-primary" onClick={() => runOptimization('images')}>
                       Apply
                     </Button>
                   </td>
                 </tr>
                 <tr>
-                  <td>Database</td>
-                  <td>High connection pool usage (85%)</td>
+                  <td>Database Queries</td>
+                  <td><Badge bg="danger">High</Badge></td>
+                  <td><Badge bg="success">High</Badge></td>
+                  <td>Add indexes for frequently queried columns</td>
                   <td>
-                    <Badge bg="warning">Medium</Badge>
-                  </td>
-                  <td>Optimize query patterns and add connection pooling</td>
-                  <td>
-                    <Button size="sm" variant="outline-primary" onClick={() => runOptimization('db_optimization')}>
+                    <Button size="sm" variant="outline-primary" onClick={() => runOptimization('indexes')}>
                       Apply
                     </Button>
                   </td>
                 </tr>
                 <tr>
-                  <td>Images</td>
-                  <td>Unoptimized image assets</td>
+                  <td>CSS Optimization</td>
+                  <td><Badge bg="warning">Medium</Badge></td>
+                  <td><Badge bg="warning">Medium</Badge></td>
+                  <td>Remove unused CSS and optimize critical path</td>
                   <td>
-                    <Badge bg="secondary">Low</Badge>
-                  </td>
-                  <td>Implement image compression and WebP format</td>
-                  <td>
-                    <Button size="sm" variant="outline-primary" onClick={() => runOptimization('image_optimization')}>
+                    <Button size="sm" variant="outline-primary" onClick={() => runOptimization('css')}>
                       Apply
                     </Button>
                   </td>
