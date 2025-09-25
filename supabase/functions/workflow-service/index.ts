@@ -121,6 +121,14 @@ serve(async (req) => {
           return await createTask(req, user.id);
         } else if (path === 'validate-transition') {
           return await validateTransition(req, user.id);
+        } else if (path === 'health_check') {
+          return new Response(JSON.stringify({ 
+            status: 'healthy', 
+            service: 'workflow-service',
+            timestamp: new Date().toISOString()
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
         }
         break;
       case 'GET':

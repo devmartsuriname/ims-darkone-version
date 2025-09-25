@@ -86,6 +86,14 @@ serve(async (req) => {
           return await createApplication(req, user.id);
         } else if (path === 'update-state') {
           return await updateApplicationState(req, user.id);
+        } else if (path === 'health_check') {
+          return new Response(JSON.stringify({ 
+            status: 'healthy', 
+            service: 'application-service',
+            timestamp: new Date().toISOString()
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
         }
         break;
       case 'GET':

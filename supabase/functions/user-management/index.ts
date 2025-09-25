@@ -109,6 +109,16 @@ serve(async (req) => {
             });
           }
           return await assignRole(req, user.id);
+        } else if (path === 'health_check') {
+          return new Response(JSON.stringify({ 
+            status: 'healthy', 
+            service: 'user-management',
+            timestamp: new Date().toISOString()
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        } else if (path === 'create_test_data') {
+          return await createTestData(req);
         }
         break;
       case 'GET':
@@ -374,4 +384,208 @@ async function deactivateUser(userId: string, adminId: string): Promise<Response
   }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+}
+
+async function createTestData(req: Request): Promise<Response> {
+  try {
+    console.log('Creating comprehensive test data for workflow testing...');
+    
+    // Create test users with different roles
+    const testUsers = [
+      {
+        email: 'admin@ims.sr',
+        password: 'TestAdmin123!',
+        first_name: 'System',
+        last_name: 'Administrator',
+        role: 'admin'
+      },
+      {
+        email: 'director@ims.sr', 
+        password: 'TestDirector123!',
+        first_name: 'Housing',
+        last_name: 'Director',
+        role: 'director'
+      },
+      {
+        email: 'minister@ims.sr',
+        password: 'TestMinister123!',
+        first_name: 'Housing',
+        last_name: 'Minister', 
+        role: 'minister'
+      },
+      {
+        email: 'staff@ims.sr',
+        password: 'TestStaff123!',
+        first_name: 'Front Office',
+        last_name: 'Staff',
+        role: 'staff'
+      },
+      {
+        email: 'control@ims.sr',
+        password: 'TestControl123!',
+        first_name: 'Control',
+        last_name: 'Inspector',
+        role: 'control'
+      }
+    ];
+
+    const createdUsers = [];
+    
+    for (const userData of testUsers) {
+      try {
+        // Create auth user
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email: userData.email,
+          password: userData.password,
+          email_confirm: true,
+          user_metadata: {
+            first_name: userData.first_name,
+            last_name: userData.last_name
+          }
+        });
+
+        if (authError) {
+          console.log(`User ${userData.email} might already exist:`, authError.message);
+          continue;
+        }
+
+        if (authUser.user) {
+          // Create profile
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: authUser.user.id,
+              email: userData.email,
+              first_name: userData.first_name,
+              last_name: userData.last_name,
+              department: 'Test Department',
+              position: userData.role.charAt(0).toUpperCase() + userData.role.slice(1),
+              is_active: true
+            });
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+          }
+
+          // Assign role
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .upsert({
+              user_id: authUser.user.id,
+              role: userData.role,
+              assigned_by: authUser.user.id,
+              is_active: true
+            });
+
+          if (roleError) {
+            console.error('Role assignment error:', roleError);
+          }
+
+          createdUsers.push({
+            id: authUser.user.id,
+            email: userData.email,
+            role: userData.role
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to create user ${userData.email}:`, error);
+      }
+    }
+
+    // Create test applicants
+    const testApplicants = [
+      {
+        first_name: 'John',
+        last_name: 'Doe',
+        national_id: 'SR001234567',
+        email: 'john.doe@example.sr',
+        phone: '+597-123-4567',
+        address: '123 Main Street, Paramaribo',
+        district: 'Paramaribo',
+        nationality: 'Surinamese',
+        marital_status: 'Married',
+        employment_status: 'Employed',
+        monthly_income: 2500.00
+      },
+      {
+        first_name: 'Jane',
+        last_name: 'Smith',
+        national_id: 'SR007654321',
+        email: 'jane.smith@example.sr',
+        phone: '+597-765-4321',
+        address: '456 Side Street, Nieuw Nickerie',
+        district: 'Nickerie',
+        nationality: 'Surinamese',
+        marital_status: 'Single',
+        employment_status: 'Self-employed',
+        monthly_income: 1800.00
+      }
+    ];
+
+    const createdApplicants = [];
+    for (const applicantData of testApplicants) {
+      const { data: applicant, error: applicantError } = await supabase
+        .from('applicants')
+        .insert(applicantData)
+        .select()
+        .single();
+
+      if (!applicantError && applicant) {
+        createdApplicants.push(applicant);
+      }
+    }
+
+    // Create test applications
+    const adminUser = createdUsers.find(u => u.role === 'admin');
+    const staffUser = createdUsers.find(u => u.role === 'staff');
+
+    if (adminUser && createdApplicants.length > 0) {
+      const testApplications = createdApplicants.map((applicant, index) => ({
+        applicant_id: applicant.id,
+        application_number: `TEST-2024-${String(index + 1).padStart(4, '0')}`,
+        service_type: 'SUBSIDY',
+        current_state: 'DRAFT',
+        property_address: applicant.address,
+        property_district: applicant.district,
+        property_type: 'RESIDENTIAL',
+        property_surface_area: 150.0,
+        requested_amount: 25000.00,
+        reason_for_request: 'Home renovation and improvement',
+        title_type: 'Eigendom',
+        ownership_status: 'Owner',
+        created_by: staffUser?.id || adminUser.id,
+        priority_level: index === 0 ? 1 : 3
+      }));
+
+      const { data: applications, error: applicationError } = await supabase
+        .from('applications')
+        .insert(testApplications)
+        .select();
+
+      if (applicationError) {
+        console.error('Application creation error:', applicationError);
+      }
+    }
+
+    return new Response(JSON.stringify({
+      message: 'Test data created successfully',
+      created: {
+        users: createdUsers.length,
+        applicants: createdApplicants.length,
+        note: 'Test users created with passwords: TestRole123! (e.g., TestAdmin123!)'
+      }
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error: any) {
+    console.error('Error creating test data:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to create test data',
+      details: error.message 
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 }

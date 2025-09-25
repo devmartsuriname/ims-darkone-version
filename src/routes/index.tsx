@@ -25,7 +25,7 @@ const UserManagementPage = lazy(() => import('@/app/(admin)/admin/users/page'))
 const ProductionReadinessPage = lazy(() => import('@/app/(admin)/deployment/readiness/page'))
 
 // IMS Workflow Management Pages
-const WorkflowValidationPage = lazy(() => import('@/app/(admin)/workflow/validation/page'))
+const WorkflowValidationPage = lazy(() => import('@/app/(admin)/testing/workflow-validation/page'))
 const WorkflowTestingPage = lazy(() => import('@/app/(admin)/workflow/testing/page'))
 
 
