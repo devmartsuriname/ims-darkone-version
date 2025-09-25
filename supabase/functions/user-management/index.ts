@@ -187,25 +187,24 @@ async function createUser(req: Request, adminId: string | null): Promise<Respons
     throw new Error('Failed to create user');
   }
 
-  // Create profile
+  // Update the profile created by the trigger with additional fields
+  // The profile is automatically created by handle_new_user() trigger
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .insert([{
-      id: authUser.user.id,
-      email: userData.email,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
+    .update({
       phone: userData.phone,
       department: userData.department,
       position: userData.position,
-    }])
+    })
+    .eq('id', authUser.user.id)
     .select('*')
     .single();
 
   if (profileError) {
-    // Cleanup auth user if profile creation fails
+    console.error('Failed to update profile:', profileError);
+    // Cleanup auth user if profile update fails
     await supabase.auth.admin.deleteUser(authUser.user.id);
-    throw new Error(`Failed to create profile: ${profileError.message}`);
+    throw new Error(`Failed to update profile: ${profileError.message}`);
   }
 
   // Assign role
