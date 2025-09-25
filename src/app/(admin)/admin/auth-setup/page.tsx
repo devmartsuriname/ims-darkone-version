@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client'
 import PageTitle from '@/components/PageTitle'
 import IconifyIcon from '@/components/wrapper/IconifyIcon'
 import ComponentContainerCard from '@/components/ComponentContainerCard'
-import { useSuccessNotification, useErrorNotification } from '@/components/ui/NotificationToasts'
+import { useToastNotifications } from '@/components/ui/NotificationToasts'
 
 interface AuthTestResult {
   name: string
@@ -29,8 +29,7 @@ const AuthenticationSetupPage: React.FC = () => {
   })
   const [setupLoading, setSetupLoading] = useState(false)
 
-  const showSuccess = useSuccessNotification()
-  const showError = useErrorNotification()
+  const { success: showSuccess, error: showError } = useToastNotifications()
 
   useEffect(() => {
     checkInitialSetup()

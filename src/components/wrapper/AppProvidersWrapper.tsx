@@ -1,7 +1,7 @@
 import { AuthProvider } from '@/context/useAuthContext'
 import { LayoutProvider } from '@/context/useLayoutContext'
 import { NotificationProvider } from '@/context/useNotificationContext'
-import { NotificationProvider as ToastNotificationProvider } from '@/components/ui/NotificationToasts'
+// Toast notifications are now managed per component
 import WorkflowNotificationIntegration from '@/components/notifications/WorkflowNotificationIntegration'
 import SystemSetupChecker from '@/components/auth/SystemSetupChecker'
 import { ChildrenType } from '@/types/component-props'
@@ -16,13 +16,11 @@ const AppProvidersWrapper = ({ children }: ChildrenType) => {
         <AuthProvider>
           <LayoutProvider>
             <NotificationProvider>
-              <ToastNotificationProvider>
-                <WorkflowNotificationIntegration />
-                <SystemSetupChecker>
-                  {children}
-                </SystemSetupChecker>
-                <ToastContainer theme="colored" />
-              </ToastNotificationProvider>
+              <WorkflowNotificationIntegration />
+              <SystemSetupChecker>
+                {children}
+              </SystemSetupChecker>
+              <ToastContainer theme="colored" />
             </NotificationProvider>
           </LayoutProvider>
         </AuthProvider>

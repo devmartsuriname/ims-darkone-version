@@ -1,170 +1,172 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
-import { Toast, ToastContainer } from 'react-bootstrap'
+import React, { useEffect, useState } from 'react';
+import { Toast, ToastContainer } from 'react-bootstrap';
+import IconifyIcon from '@/components/wrapper/IconifyIcon';
 
-interface ToastNotification {
-  id: string
-  title: string
-  message: string
-  variant: 'primary' | 'success' | 'warning' | 'danger' | 'info'
-  duration?: number
-  timestamp: Date
+export interface ToastNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  duration?: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
-interface NotificationContextType {
-  notifications: ToastNotification[]
-  addNotification: (notification: Omit<ToastNotification, 'id' | 'timestamp'>) => void
-  removeNotification: (id: string) => void
-  clearAll: () => void
+interface NotificationToastsProps {
+  notifications: ToastNotification[];
+  onRemove: (id: string) => void;
+  position?: 'top-start' | 'top-center' | 'top-end' | 'bottom-start' | 'bottom-center' | 'bottom-end';
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
-
-export const useNotifications = () => {
-  const context = useContext(NotificationContext)
-  if (!context) {
-    throw new Error('useNotifications must be used within a NotificationProvider')
+const getToastVariant = (type: ToastNotification['type']) => {
+  switch (type) {
+    case 'success': return 'success';
+    case 'error': return 'danger';
+    case 'warning': return 'warning';
+    case 'info': return 'info';
+    default: return 'primary';
   }
-  return context
-}
+};
 
-interface NotificationProviderProps {
-  children: ReactNode
-}
-
-export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const [notifications, setNotifications] = useState<ToastNotification[]>([])
-
-  const addNotification = (notification: Omit<ToastNotification, 'id' | 'timestamp'>) => {
-    const newNotification: ToastNotification = {
-      ...notification,
-      id: Math.random().toString(36).substr(2, 9),
-      timestamp: new Date()
-    }
-
-    setNotifications(prev => [...prev, newNotification])
-
-    // Auto-remove notification after duration
-    const duration = notification.duration || 5000
-    setTimeout(() => {
-      removeNotification(newNotification.id)
-    }, duration)
+const getToastIcon = (type: ToastNotification['type']) => {
+  switch (type) {
+    case 'success': return 'solar:check-circle-bold';
+    case 'error': return 'solar:danger-circle-bold';
+    case 'warning': return 'solar:danger-triangle-bold';
+    case 'info': return 'solar:info-circle-bold';
+    default: return 'solar:bell-bold';
   }
+};
 
-  const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id))
-  }
-
-  const clearAll = () => {
-    setNotifications([])
-  }
-
+export const NotificationToasts: React.FC<NotificationToastsProps> = ({
+  notifications,
+  onRemove,
+  position = 'top-end'
+}) => {
   return (
-    <NotificationContext.Provider value={{ notifications, addNotification, removeNotification, clearAll }}>
-      {children}
-      <NotificationContainer />
-    </NotificationContext.Provider>
-  )
-}
-
-const NotificationContainer: React.FC = () => {
-  const { notifications, removeNotification } = useNotifications()
-
-  const getVariantIcon = (variant: string) => {
-    switch (variant) {
-      case 'success': return 'bi bi-check-circle-fill'
-      case 'warning': return 'bi bi-exclamation-triangle-fill'
-      case 'danger': return 'bi bi-x-circle-fill'
-      case 'info': return 'bi bi-info-circle-fill'
-      default: return 'bi bi-bell-fill'
-    }
-  }
-
-  const getVariantColor = (variant: string) => {
-    switch (variant) {
-      case 'success': return 'text-success'
-      case 'warning': return 'text-warning'
-      case 'danger': return 'text-danger'
-      case 'info': return 'text-info'
-      default: return 'text-primary'
-    }
-  }
-
-  return (
-    <ToastContainer position="top-end" className="p-3" style={{ zIndex: 1060 }}>
+    <ToastContainer position={position} className="p-3" style={{ zIndex: 1050 }}>
       {notifications.map((notification) => (
-        <Toast
+        <NotificationToast
           key={notification.id}
-          onClose={() => removeNotification(notification.id)}
-          show={true}
-          delay={notification.duration || 5000}
-          autohide
-          className="animate__animated animate__slideInRight"
-        >
-          <Toast.Header>
-            <i className={`${getVariantIcon(notification.variant)} ${getVariantColor(notification.variant)} me-2`}></i>
-            <strong className="me-auto">{notification.title}</strong>
-            <small className="text-muted">
-              {notification.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </small>
-          </Toast.Header>
-          <Toast.Body>
-            {notification.message}
-          </Toast.Body>
-        </Toast>
+          notification={notification}
+          onRemove={onRemove}
+        />
       ))}
     </ToastContainer>
-  )
+  );
+};
+
+interface NotificationToastProps {
+  notification: ToastNotification;
+  onRemove: (id: string) => void;
 }
 
-// Helper hooks for specific notification types
-export const useSuccessNotification = () => {
-  const { addNotification } = useNotifications()
-  
-  return (title: string, message: string, duration?: number) => {
-    addNotification({
-      title,
-      message,
-      variant: 'success',
-      duration
-    })
-  }
-}
+const NotificationToast: React.FC<NotificationToastProps> = ({ notification, onRemove }) => {
+  const [show, setShow] = useState(true);
 
-export const useErrorNotification = () => {
-  const { addNotification } = useNotifications()
-  
-  return (title: string, message: string, duration?: number) => {
-    addNotification({
-      title,
-      message,
-      variant: 'danger',
-      duration
-    })
-  }
-}
+  useEffect(() => {
+    if (notification.duration && notification.duration > 0) {
+      const timer = setTimeout(() => {
+        setShow(false);
+      }, notification.duration);
 
-export const useWarningNotification = () => {
-  const { addNotification } = useNotifications()
-  
-  return (title: string, message: string, duration?: number) => {
-    addNotification({
-      title,
-      message,
-      variant: 'warning',
-      duration
-    })
-  }
-}
+      return () => clearTimeout(timer);
+    }
+  }, [notification.duration]);
 
-export const useInfoNotification = () => {
-  const { addNotification } = useNotifications()
-  
-  return (title: string, message: string, duration?: number) => {
-    addNotification({
-      title,
-      message,
-      variant: 'info',
-      duration
-    })
-  }
-}
+  const handleClose = () => {
+    setShow(false);
+  };
+
+  const handleExited = () => {
+    onRemove(notification.id);
+  };
+
+  const variant = getToastVariant(notification.type);
+  const icon = getToastIcon(notification.type);
+
+  return (
+    <Toast
+      show={show}
+      onClose={handleClose}
+      onExited={handleExited}
+      className={`border-${variant} animate-fade-in`}
+      style={{ minWidth: '300px' }}
+    >
+      <Toast.Header className={`bg-${variant} text-white`}>
+        <IconifyIcon icon={icon} className="me-2" />
+        <strong className="me-auto">{notification.title}</strong>
+      </Toast.Header>
+      <Toast.Body>
+        <p className="mb-2">{notification.message}</p>
+        {notification.action && (
+          <div className="d-flex justify-content-end">
+            <button
+              type="button"
+              className={`btn btn-outline-${variant} btn-sm`}
+              onClick={() => {
+                notification.action!.onClick();
+                handleClose();
+              }}
+            >
+              {notification.action.label}
+            </button>
+          </div>
+        )}
+      </Toast.Body>
+    </Toast>
+  );
+};
+
+// Hook for managing toast notifications
+export const useToastNotifications = () => {
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+  const addNotification = (notification: Omit<ToastNotification, 'id'>) => {
+    const newNotification: ToastNotification = {
+      ...notification,
+      id: Date.now().toString() + Math.random().toString(36),
+      duration: notification.duration ?? 5000
+    };
+
+    setNotifications(prev => [...prev, newNotification]);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+  };
+
+  // Convenience methods
+  const success = (title: string, message: string, options?: Partial<ToastNotification>) => {
+    addNotification({ ...options, title, message, type: 'success' });
+  };
+
+  const error = (title: string, message: string, options?: Partial<ToastNotification>) => {
+    addNotification({ ...options, title, message, type: 'error' });
+  };
+
+  const warning = (title: string, message: string, options?: Partial<ToastNotification>) => {
+    addNotification({ ...options, title, message, type: 'warning' });
+  };
+
+  const info = (title: string, message: string, options?: Partial<ToastNotification>) => {
+    addNotification({ ...options, title, message, type: 'info' });
+  };
+
+  return {
+    notifications,
+    addNotification,
+    removeNotification,
+    clearAllNotifications,
+    success,
+    error,
+    warning,
+    info
+  };
+};

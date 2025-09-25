@@ -152,17 +152,22 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   height = '0.5rem',
   className = ''
 }) => {
+  const clampedProgress = Math.min(Math.max(progress, 0), 100);
+  
   return (
     <div className={`progress ${className}`} style={{ height }}>
       <div
         className={`progress-bar ${striped ? 'progress-bar-striped' : ''} ${animated ? 'progress-bar-animated' : ''} bg-${variant}`}
         role="progressbar"
-        style={{ width: `${progress}%` }}
-        aria-valuenow={progress}
+        style={{ 
+          width: `${clampedProgress}%`,
+          transition: 'width 0.3s ease-in-out'
+        }}
+        aria-valuenow={clampedProgress}
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        {showLabel && `${progress}%`}
+        {showLabel && `${clampedProgress}%`}
       </div>
     </div>
   )
