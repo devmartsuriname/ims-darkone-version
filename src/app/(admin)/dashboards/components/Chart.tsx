@@ -1,24 +1,52 @@
 import { ApexOptions } from 'apexcharts'
 import ReactApexChart from 'react-apexcharts'
 import { Card, CardBody, CardHeader, Col } from 'react-bootstrap'
+import { useChartData } from '@/hooks/useChartData'
+import Spinner from '@/components/Spinner'
 
 const Chart = () => {
+  const { chartData, isLoading, error } = useChartData()
+
+  if (isLoading) {
+    return (
+      <Col lg={12}>
+        <Card className="card-height-100">
+          <CardBody className="d-flex align-items-center justify-content-center">
+            <Spinner />
+          </CardBody>
+        </Card>
+      </Col>
+    )
+  }
+
+  if (error) {
+    return (
+      <Col lg={12}>
+        <Card className="card-height-100">
+          <CardBody className="d-flex align-items-center justify-content-center">
+            <div className="text-muted">Error loading chart data: {error}</div>
+          </CardBody>
+        </Card>
+      </Col>
+    )
+  }
+
   const salesChart: ApexOptions = {
     series: [
       {
         name: 'Applications Submitted',
         type: 'bar',
-        data: [34, 45, 52, 61, 58, 73, 69, 82, 76, 89, 95, 102],
+        data: chartData.map(item => item.submitted),
       },
       {
         name: 'Applications Processed',
         type: 'area',
-        data: [30, 42, 48, 58, 55, 70, 65, 78, 72, 85, 88, 95],
+        data: chartData.map(item => item.processed),
       },
       {
         name: 'Applications Approved',
         type: 'area',
-        data: [18, 28, 35, 42, 38, 48, 45, 52, 49, 58, 62, 68],
+        data: chartData.map(item => item.approved),
       },
     ],
     chart: {
@@ -34,7 +62,7 @@ const Chart = () => {
       curve: 'smooth',
     },
     fill: {
-      opacity: [1, 1, 1],
+      opacity: [1, 0.8, 0.6],
       type: ['solid', 'gradient', 'gradient'],
       gradient: {
         type: 'vertical',
@@ -45,14 +73,14 @@ const Chart = () => {
       },
     },
     markers: {
-      size: [0, 0],
+      size: [0, 4, 4],
       strokeWidth: 2,
       hover: {
-        size: 4,
+        size: 6,
       },
     },
     xaxis: {
-      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      categories: chartData.map(item => item.month),
       axisTicks: {
         show: false,
       },
@@ -91,11 +119,6 @@ const Chart = () => {
       horizontalAlign: 'center',
       offsetX: 0,
       offsetY: 5,
-      // markers: {
-      //     width: 9,
-      //     height: 9,
-      //     radius: 6,
-      // },
       itemMargin: {
         horizontal: 10,
         vertical: 0,
@@ -108,14 +131,14 @@ const Chart = () => {
         borderRadius: 3,
       },
     },
-    colors: ['#7e67fe', '#17c553', '#7942ed'],
+    colors: ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))'],
     tooltip: {
       shared: true,
       y: [
         {
           formatter: function (y) {
             if (typeof y !== 'undefined') {
-              return y.toFixed(1) + 'k'
+              return y.toString() + ' applications'
             }
             return y
           },
@@ -123,7 +146,15 @@ const Chart = () => {
         {
           formatter: function (y) {
             if (typeof y !== 'undefined') {
-              return y.toFixed(1) + 'k'
+              return y.toString() + ' applications'
+            }
+            return y
+          },
+        },
+        {
+          formatter: function (y) {
+            if (typeof y !== 'undefined') {
+              return y.toString() + ' applications'
             }
             return y
           },
@@ -136,13 +167,13 @@ const Chart = () => {
     <Col lg={12}>
       <Card className="card-height-100">
         <CardHeader className="d-flex align-items-center justify-content-between gap-2">
-          <h4 className="mb-0 flex-grow-1">Application Processing Analytics</h4>
+          <h4 className="mb-0 flex-grow-1">Subsidy Application Analytics</h4>
           <div>
             <button type="button" className="btn btn-sm btn-outline-light">
               ALL
             </button>
             <button type="button" className="btn btn-sm btn-outline-light">
-              1M
+              3M
             </button>
             <button type="button" className="btn btn-sm btn-outline-light">
               6M
@@ -155,7 +186,13 @@ const Chart = () => {
         <CardBody className="pt-0">
           <div dir="ltr">
             <div id="dash-performance-chart" className="apex-charts">
-              <ReactApexChart options={salesChart} series={salesChart.series} height={313} type="area" className="apex-charts" />
+              <ReactApexChart 
+                options={salesChart} 
+                series={salesChart.series} 
+                height={313} 
+                type="area" 
+                className="apex-charts" 
+              />
             </div>
           </div>
         </CardBody>
