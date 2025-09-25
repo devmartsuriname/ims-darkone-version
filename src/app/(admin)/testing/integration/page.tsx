@@ -1,14 +1,7 @@
-import { AdminGuard } from '@/components/auth/RoleGuards';
-import PageTitle from '@/components/PageTitle';
-import IntegrationTestDashboard from './components/IntegrationTestDashboard';
+import { IntegrationTestDashboard } from '@/components/testing/IntegrationTestDashboard'
 
-const IntegrationTestingPage = () => {
-  return (
-    <AdminGuard>
-      <PageTitle subName="IMS Testing" title="Integration Testing" />
-      <IntegrationTestDashboard />
-    </AdminGuard>
-  );
-};
+const page = () => {
+  return <IntegrationTestDashboard />
+}
 
-export default IntegrationTestingPage;
+export default page
