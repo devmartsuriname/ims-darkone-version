@@ -1,0 +1,350 @@
+// 
+// Responsive Layout Enhancements
+// This file contains responsive design improvements for the IMS application
+//
+
+// Mobile Navigation Helper Classes
+.mobile-nav-hidden {
+  display: none !important;
+  
+  @media (min-width: 769px) {
+    display: block !important;
+  }
+}
+
+.mobile-nav-visible {
+  display: block !important;
+  
+  @media (min-width: 769px) {
+    display: none !important;
+  }
+}
+
+// Responsive Text Utilities
+.text-responsive {
+  @media (max-width: 768px) {
+    font-size: 0.875rem !important;
+  }
+  
+  @media (max-width: 576px) {
+    font-size: 0.8rem !important;
+  }
+}
+
+.text-responsive-sm {
+  @media (max-width: 768px) {
+    font-size: 0.8rem !important;
+  }
+  
+  @media (max-width: 576px) {
+    font-size: 0.75rem !important;
+  }
+}
+
+// Responsive Spacing Utilities
+.p-responsive {
+  @media (max-width: 768px) {
+    padding: 0.75rem !important;
+  }
+  
+  @media (max-width: 576px) {
+    padding: 0.5rem !important;
+  }
+}
+
+.m-responsive {
+  @media (max-width: 768px) {
+    margin: 0.75rem !important;
+  }
+  
+  @media (max-width: 576px) {
+    margin: 0.5rem !important;
+  }
+}
+
+// Responsive Flexbox Utilities
+.flex-column-mobile {
+  @media (max-width: 768px) {
+    flex-direction: column !important;
+    
+    & > * {
+      margin-bottom: 0.5rem;
+    }
+    
+    & > *:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.flex-wrap-mobile {
+  @media (max-width: 768px) {
+    flex-wrap: wrap !important;
+  }
+}
+
+// Responsive Grid Enhancements
+.row-responsive {
+  @media (max-width: 768px) {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    
+    & > [class*="col-"] {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+  }
+}
+
+// Responsive Card Adjustments
+.card-responsive {
+  @media (max-width: 768px) {
+    .card-body {
+      padding: 0.75rem;
+    }
+    
+    .card-header {
+      padding: 0.75rem;
+      font-size: 0.9rem;
+    }
+    
+    .card-footer {
+      padding: 0.75rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .card-body {
+      padding: 0.625rem;
+    }
+    
+    .card-header {
+      padding: 0.625rem;
+      font-size: 0.875rem;
+    }
+    
+    .card-footer {
+      padding: 0.625rem;
+    }
+  }
+}
+
+// Enhanced Table Responsiveness
+.table-enhanced-responsive {
+  @media (max-width: 768px) {
+    font-size: 0.875rem;
+    
+    th, td {
+      padding: 0.5rem 0.375rem;
+    }
+    
+    .btn {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    font-size: 0.8rem;
+    
+    th, td {
+      padding: 0.375rem 0.25rem;
+    }
+    
+    .btn {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.4rem;
+    }
+  }
+}
+
+// Responsive Button Groups
+.btn-group-responsive {
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    
+    .btn {
+      margin-bottom: 0.25rem;
+      border-radius: 0.375rem !important;
+    }
+    
+    .btn:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Mobile-First Dashboard Layout
+.dashboard-responsive {
+  @media (max-width: 1200px) {
+    .dashboard-sidebar {
+      order: 2;
+    }
+    
+    .dashboard-main {
+      order: 1;
+    }
+  }
+}
+
+// Responsive Modal Enhancements
+.modal-responsive {
+  @media (max-width: 768px) {
+    .modal-dialog {
+      margin: 0.5rem;
+      max-width: calc(100% - 1rem);
+    }
+    
+    .modal-body {
+      padding: 0.75rem;
+    }
+    
+    .modal-header {
+      padding: 0.75rem;
+      
+      .modal-title {
+        font-size: 1rem;
+      }
+    }
+    
+    .modal-footer {
+      padding: 0.75rem;
+      flex-direction: column-reverse;
+      gap: 0.5rem;
+      
+      .btn {
+        width: 100%;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// Responsive Form Enhancements
+.form-responsive {
+  @media (max-width: 768px) {
+    .form-label {
+      font-size: 0.875rem;
+      margin-bottom: 0.375rem;
+    }
+    
+    .form-control,
+    .form-select {
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem;
+    }
+    
+    .input-group {
+      flex-wrap: wrap;
+      
+      .input-group-text {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+      }
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .form-label {
+      font-size: 0.8rem;
+    }
+    
+    .form-control,
+    .form-select {
+      font-size: 0.8rem;
+      padding: 0.5rem 0.625rem;
+    }
+  }
+}
+
+// Responsive Navigation
+.nav-responsive {
+  @media (max-width: 768px) {
+    flex-direction: column;
+    
+    .nav-item {
+      margin-bottom: 0.25rem;
+    }
+    
+    .nav-link {
+      padding: 0.75rem 1rem;
+      text-align: center;
+    }
+  }
+}
+
+// Responsive Dropdown Menus
+.dropdown-responsive {
+  @media (max-width: 768px) {
+    .dropdown-menu {
+      width: 100%;
+      max-width: calc(100vw - 2rem);
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      
+      .dropdown-item {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+// Responsive Offcanvas
+.offcanvas-responsive {
+  @media (max-width: 768px) {
+    .offcanvas {
+      width: calc(100vw - 2rem);
+      max-width: 320px;
+    }
+    
+    .offcanvas-body {
+      padding: 1rem 0.75rem;
+    }
+    
+    .offcanvas-header {
+      padding: 0.75rem;
+    }
+  }
+}
+
+// Touch-Friendly Interactions
+@media (hover: none) {
+  .btn-hover-effect:hover {
+    transform: none !important;
+  }
+  
+  .card-hoverable:hover {
+    transform: none !important;
+  }
+}
+
+// Responsive Typography Scale
+.responsive-heading {
+  @media (max-width: 768px) {
+    &.h1, &.display-1 {
+      font-size: 1.5rem !important;
+    }
+    
+    &.h2, &.display-2 {
+      font-size: 1.375rem !important;
+    }
+    
+    &.h3, &.display-3 {
+      font-size: 1.25rem !important;
+    }
+    
+    &.h4, &.display-4 {
+      font-size: 1.125rem !important;
+    }
+    
+    &.h5, &.display-5 {
+      font-size: 1rem !important;
+    }
+    
+    &.h6, &.display-6 {
+      font-size: 0.875rem !important;
+    }
+  }
+}

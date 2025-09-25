@@ -135,14 +135,52 @@
 html[data-sidebar-size="hidden"] {
      .app-topbar {
           padding: 0 $spacer * 0.5;
+          transition: padding 0.3s ease-in-out;
      }
 }
 
-
-// @include media-breakpoint-down(md) {
-@media (max-width: 375px) {
+// Enhanced responsive topbar
+@media (max-width: 1140px) {
      .app-topbar {
-          padding: 0 0.5 * $spacer !important;
+          .navbar-header {
+               padding: 0 0.5rem;
+          }
+          
+          .app-search {
+               .form-control {
+                    width: auto;
+                    min-width: 200px;
+               }
+          }
+     }
+}
+
+@media (max-width: 768px) {
+     .app-topbar {
+          height: 60px;
+          
+          .navbar-header {
+               padding: 0 0.375rem;
+          }
+          
+          .app-search {
+               .form-control {
+                    height: 35px;
+                    font-size: 0.875rem;
+                    min-width: 150px;
+               }
+          }
+          
+          .topbar-item {
+               height: 60px;
+               
+               .topbar-button {
+                    width: 35px;
+                    height: 35px;
+                    font-size: 1rem;
+                    padding: 0.375rem;
+               }
+          }
      }
 }
 
@@ -153,7 +191,63 @@ html[data-sidebar-size="hidden"] {
 
                .dropdown-menu {
                     width: 100%;
+                    max-width: calc(100vw - 1rem);
+                    left: 0.5rem !important;
+                    right: 0.5rem !important;
+                    transform: none !important;
                }
+          }
+          
+          .app-search {
+               .form-control {
+                    min-width: 120px;
+                    font-size: 0.8rem;
+               }
+          }
+     }
+}
+
+@media (max-width: 480px) {
+     .app-topbar {
+          .navbar-header {
+               .d-flex:first-child {
+                    gap: 0.5rem;
+               }
+               
+               .d-flex:last-child {
+                    gap: 0.25rem;
+               }
+          }
+          
+          .app-search {
+               .form-control {
+                    min-width: 100px;
+                    padding-left: 35px;
+                    padding-right: 10px;
+               }
+          }
+          
+          .topbar-item {
+               .topbar-button {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 0.9rem;
+                    padding: 0.25rem;
+               }
+          }
+     }
+}
+
+@media (max-width: 375px) {
+     .app-topbar {
+          padding: 0 0.25rem !important;
+          
+          .navbar-header {
+               padding: 0 0.25rem;
+          }
+          
+          .app-search {
+               display: none !important;
           }
      }
 }

@@ -126,9 +126,9 @@ const IMSCards = () => {
   )
 
   return (
-    <Row>
+    <Row className="g-3">
       {visibleCards.map((card, idx) => (
-        <Col xl={2} md={4} sm={6} key={idx} className="mb-3">
+        <Col xxl={2} xl={3} lg={4} md={6} sm={6} xs={12} key={idx}>
           <RoleCheck allowedRoles={card.roles}>
             <IMSStatCard {...card} />
           </RoleCheck>

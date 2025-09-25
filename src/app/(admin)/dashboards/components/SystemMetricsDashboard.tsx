@@ -194,20 +194,20 @@ export const SystemMetricsDashboard: React.FC = () => {
       </div>
 
       {stats && (
-        <div className="row">
+        <div className="row g-3">
           {/* Applications Stats */}
-          <div className="col-xl-3 col-md-6 mb-4">
+          <div className="col-xxl-3 col-xl-6 col-lg-6 col-md-6 col-sm-12">
             <div className="card border-start border-primary border-4">
               <div className="card-body">
-                <div className="d-flex justify-content-between">
-                  <div>
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="flex-grow-1">
                     <h6 className="text-muted mb-2">Total Applications</h6>
                     <h3 className="mb-0">{stats.applications.total}</h3>
                     <small className="text-muted">
                       {stats.applications.pending} pending, {stats.applications.completed} completed
                     </small>
                   </div>
-                  <div className="align-self-center">
+                  <div className="flex-shrink-0">
                     <IconifyIcon icon="solar:document-bold" className="text-primary fs-1" />
                   </div>
                 </div>
@@ -216,18 +216,18 @@ export const SystemMetricsDashboard: React.FC = () => {
           </div>
 
           {/* Users Stats */}
-          <div className="col-xl-3 col-md-6 mb-4">
+          <div className="col-xxl-3 col-xl-6 col-lg-6 col-md-6 col-sm-12">
             <div className="card border-start border-success border-4">
               <div className="card-body">
-                <div className="d-flex justify-content-between">
-                  <div>
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="flex-grow-1">
                     <h6 className="text-muted mb-2">Total Users</h6>
                     <h3 className="mb-0">{stats.users.total}</h3>
                     <small className="text-success">
                       +{stats.users.newThisWeek} this week
                     </small>
                   </div>
-                  <div className="align-self-center">
+                  <div className="flex-shrink-0">
                     <IconifyIcon icon="solar:users-group-rounded-bold" className="text-success fs-1" />
                   </div>
                 </div>
@@ -236,18 +236,18 @@ export const SystemMetricsDashboard: React.FC = () => {
           </div>
 
           {/* SLA Compliance */}
-          <div className="col-xl-3 col-md-6 mb-4">
+          <div className="col-xxl-3 col-xl-6 col-lg-6 col-md-6 col-sm-12">
             <div className="card border-start border-warning border-4">
               <div className="card-body">
-                <div className="d-flex justify-content-between">
-                  <div>
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="flex-grow-1">
                     <h6 className="text-muted mb-2">SLA Compliance</h6>
                     <h3 className="mb-0">{stats.sla.compliance}%</h3>
                     <small className="text-muted">
                       {stats.sla.overdue} overdue tasks
                     </small>
                   </div>
-                  <div className="align-self-center">
+                  <div className="flex-shrink-0">
                     <IconifyIcon icon="solar:clock-circle-bold" className="text-warning fs-1" />
                   </div>
                 </div>
@@ -256,16 +256,16 @@ export const SystemMetricsDashboard: React.FC = () => {
           </div>
 
           {/* Processing Time */}
-          <div className="col-xl-3 col-md-6 mb-4">
+          <div className="col-xxl-3 col-xl-6 col-lg-6 col-md-6 col-sm-12">
             <div className="card border-start border-info border-4">
               <div className="card-body">
-                <div className="d-flex justify-content-between">
-                  <div>
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="flex-grow-1">
                     <h6 className="text-muted mb-2">Avg Processing Time</h6>
                     <h3 className="mb-0">{stats.applications.avgProcessingTime}</h3>
                     <small className="text-muted">days</small>
                   </div>
-                  <div className="align-self-center">
+                  <div className="flex-shrink-0">
                     <IconifyIcon icon="solar:hourglass-bold" className="text-info fs-1" />
                   </div>
                 </div>
@@ -274,24 +274,24 @@ export const SystemMetricsDashboard: React.FC = () => {
           </div>
 
           {/* Storage Stats */}
-          <div className="col-md-6 mb-4">
-            <div className="card">
+          <div className="col-xxl-6 col-xl-12 col-lg-6 col-md-6 col-sm-12">
+            <div className="card h-100">
               <div className="card-header">
                 <h6 className="card-title mb-0">Storage Usage</h6>
               </div>
               <div className="card-body">
-                <div className="row">
+                <div className="row g-3">
                   <div className="col-6">
                     <div className="text-center">
                       <IconifyIcon icon="solar:document-text-bold" className="text-primary fs-2" />
-                      <h5 className="mt-2">{stats.storage.documents}</h5>
+                      <h5 className="mt-2 mb-1">{stats.storage.documents}</h5>
                       <small className="text-muted">Documents</small>
                     </div>
                   </div>
                   <div className="col-6">
                     <div className="text-center">
                       <IconifyIcon icon="solar:camera-bold" className="text-success fs-2" />
-                      <h5 className="mt-2">{stats.storage.photos}</h5>
+                      <h5 className="mt-2 mb-1">{stats.storage.photos}</h5>
                       <small className="text-muted">Photos</small>
                     </div>
                   </div>
@@ -301,8 +301,8 @@ export const SystemMetricsDashboard: React.FC = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="col-md-6 mb-4">
-            <div className="card">
+          <div className="col-xxl-6 col-xl-12 col-lg-6 col-md-6 col-sm-12">
+            <div className="card h-100">
               <div className="card-header">
                 <h6 className="card-title mb-0">Quick Actions</h6>
               </div>
@@ -313,15 +313,18 @@ export const SystemMetricsDashboard: React.FC = () => {
                     onClick={() => setShowPerformance(true)}
                   >
                     <IconifyIcon icon="solar:chart-square-bold" className="me-2" />
-                    View Performance Details
+                    <span className="d-none d-sm-inline">View Performance Details</span>
+                    <span className="d-sm-none">Performance</span>
                   </button>
                   <button className="btn btn-outline-success">
                     <IconifyIcon icon="solar:download-bold" className="me-2" />
-                    Export System Report
+                    <span className="d-none d-sm-inline">Export System Report</span>
+                    <span className="d-sm-none">Export</span>
                   </button>
                   <button className="btn btn-outline-warning">
                     <IconifyIcon icon="solar:settings-bold" className="me-2" />
-                    System Configuration
+                    <span className="d-none d-sm-inline">System Configuration</span>
+                    <span className="d-sm-none">Settings</span>
                   </button>
                 </div>
               </div>

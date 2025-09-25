@@ -28,7 +28,7 @@ const page = () => {
 
   return (
     <>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row gap-3">
         <PageTitle subName="IMS" title="Dashboard" />
         <RefreshButton 
           onRefresh={handleRefresh}
@@ -43,27 +43,27 @@ const page = () => {
       
       {/* System Metrics Dashboard */}
       <Row className="mt-4">
-        <Col xl={12}>
+        <Col xs={12}>
           <SystemMetricsDashboard />
         </Col>
       </Row>
       
       {/* Main Content Row */}
-      <Row className="mt-4">
-        <Col xl={8}>
+      <Row className="mt-4 g-3">
+        <Col xxl={8} xl={12} lg={12} md={12} sm={12}>
           <WorkflowChart />
         </Col>
-        <Col xl={4}>
+        <Col xxl={4} xl={12} lg={12} md={12} sm={12}>
           <QuickActions />
         </Col>
       </Row>
       
       {/* Activities & Analytics Row */}
-      <Row className="mt-4">
-        <Col xl={6}>
+      <Row className="mt-4 g-3">
+        <Col xxl={6} xl={12} lg={6} md={12} sm={12}>
           <RecentActivities />
         </Col>
-        <Col xl={6}>
+        <Col xxl={6} xl={12} lg={6} md={12} sm={12}>
           <RoleCheck allowedRoles={['admin', 'it', 'director', 'minister']}>
             <Chart />
           </RoleCheck>
@@ -72,7 +72,7 @@ const page = () => {
       
       {/* Integration Testing (Admin/IT Only) */}
       <Row className="mt-4">
-        <Col xl={12}>
+        <Col xs={12}>
           <RoleCheck allowedRoles={['admin', 'it']}>
             <IntegrationTestRunner />
           </RoleCheck>

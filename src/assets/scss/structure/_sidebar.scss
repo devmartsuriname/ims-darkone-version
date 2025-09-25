@@ -531,23 +531,100 @@
      }
  }
  
- // SideNav Hidden (Mobile View)
- html[data-sidebar-size='hidden'] {
-     .app-sidebar {
-         margin-left: calc($sidebar-width * -1);
-     }
- 
-     .page-content {
-         margin-left: 0;
-     }
- 
-     &.sidebar-enable {
-         .app-sidebar {
-             margin-left: 0;
-             z-index: 1055;
-         }
-     }
- }
+// SideNav Hidden (Mobile View)
+html[data-sidebar-size='hidden'] {
+    .app-sidebar {
+        margin-left: calc($sidebar-width * -1);
+        transition: margin-left 0.3s ease-in-out;
+    }
+
+    .page-content {
+        margin-left: 0;
+        transition: margin-left 0.3s ease-in-out;
+    }
+
+    .app-topbar {
+        padding-left: 0.5rem;
+        transition: padding-left 0.3s ease-in-out;
+    }
+
+    &.sidebar-enable {
+        .app-sidebar {
+            margin-left: 0;
+            z-index: 1055;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .offcanvas-backdrop {
+            z-index: 1050;
+        }
+    }
+}
+
+// Enhanced mobile responsiveness
+@media (max-width: 1140px) {
+    .app-sidebar {
+        z-index: 1055;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .page-content {
+        transition: margin-left 0.3s ease-in-out;
+    }
+    
+    .app-topbar {
+        transition: padding-left 0.3s ease-in-out;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-sidebar {
+        .navbar-nav {
+            margin: 0 10px;
+            
+            .nav-item {
+                .nav-link {
+                    padding: calc($sidebar-item-padding-y * 1.25) $sidebar-item-padding-x;
+                    font-size: 0.9rem;
+                    
+                    .nav-icon {
+                        font-size: calc($sidebar-item-icon-size * 1.1);
+                    }
+                }
+            }
+        }
+        
+        .menu-title {
+            font-size: 0.7rem;
+            padding: calc($sidebar-item-padding-y * 1.25) calc($sidebar-item-padding-x * 1.25);
+        }
+    }
+}
+
+@media (max-width: 576px) {
+    .app-sidebar {
+        width: calc(100vw - 1rem);
+        max-width: 280px;
+        
+        .navbar-nav {
+            .nav-item {
+                .nav-link {
+                    padding: 1rem $sidebar-item-padding-x;
+                    border-radius: 0.5rem;
+                    margin: 0.25rem 0;
+                    
+                    .nav-icon {
+                        font-size: 1.25rem;
+                    }
+                    
+                    .nav-text {
+                        font-size: 0.875rem;
+                    }
+                }
+            }
+        }
+    }
+}
  
  // Sidenav Dark and Brand
  html[data-bs-theme='dark'],
