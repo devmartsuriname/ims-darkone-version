@@ -14,6 +14,7 @@ export type MenuItemType = {
   target?: HTMLAttributeAnchorTarget
   isDisabled?: boolean
   children?: MenuItemType[]
+  allowedRoles?: string[] // New field for role-based visibility
 }
 
 export type SubMenus = {

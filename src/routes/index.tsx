@@ -1,5 +1,6 @@
 import { lazy } from 'react'
 import { Navigate, type RouteProps } from 'react-router-dom'
+import RouteGuard from '@/components/auth/RouteGuard'
 
 // Initial System Setup
 const InitialSystemSetup = lazy(() => import('@/components/auth/InitialSystemSetup'))
@@ -109,20 +110,32 @@ const imsRoutes: RoutesProps[] = [
   {
     path: '/control/queue',
     name: 'Control Queue',
-    element: <ControlQueuePage />,
+    element: (
+      <RouteGuard allowedRoles={['control', 'admin', 'it']}>
+        <ControlQueuePage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   // Reviews & Decisions
   {
     path: '/reviews/director',
     name: 'Director Review',
-    element: <DirectorReviewPage />,
+    element: (
+      <RouteGuard allowedRoles={['director', 'admin', 'it']}>
+        <DirectorReviewPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
     path: '/reviews/minister',
     name: 'Minister Decision',
-    element: <MinisterDecisionPage />,
+    element: (
+      <RouteGuard allowedRoles={['minister', 'admin', 'it']}>
+        <MinisterDecisionPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
@@ -135,7 +148,11 @@ const imsRoutes: RoutesProps[] = [
   {
     path: '/admin/users',
     name: 'User Management',
-    element: <UserManagementPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <UserManagementPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
@@ -179,70 +196,104 @@ const imsRoutes: RoutesProps[] = [
   },
   // Final Polish Routes
   {
-    path: '/polish/performance',
-    name: 'Performance Optimization',
-    element: <PerformanceOptimizationPage />,
-    exact: true,
-  },
-  {
     path: '/polish/overview',
     name: 'Polish Overview',
-    element: <PolishOverviewPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <PolishOverviewPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
     path: '/polish/performance',
     name: 'Performance Optimization',
-    element: <PerformanceOptimizationPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <PerformanceOptimizationPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
     path: '/polish/ux-enhancement',
     name: 'UX Enhancement',
-    element: <UXEnhancementPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <UXEnhancementPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
     path: '/polish/production-readiness',
     name: 'Production Readiness',
-    element: <PolishProductionReadinessPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <PolishProductionReadinessPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
     path: '/polish/documentation',
     name: 'Documentation & Training',
-    element: <DocumentationPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <DocumentationPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
     path: '/deployment/readiness',
     name: 'Production Readiness',
-    element: <ProductionReadinessPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <ProductionReadinessPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   // Security
   {
     path: '/security/scanning',
     name: 'Security Scanning',
-    element: <SecurityScanningPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <SecurityScanningPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
     path: '/security/monitoring',
     name: 'Security Monitoring',
-    element: <SecurityMonitoringPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <SecurityMonitoringPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
     path: '/security/hardening',
     name: 'Security Hardening',
-    element: <SecurityHardeningPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <SecurityHardeningPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
     path: '/security/penetration',
     name: 'Penetration Testing',
-    element: <PenetrationTestingPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <PenetrationTestingPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
  ]

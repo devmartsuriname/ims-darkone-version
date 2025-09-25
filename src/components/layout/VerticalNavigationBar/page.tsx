@@ -1,7 +1,7 @@
 import { getMenuItems } from '@/helpers/Manu'
 import SimplebarReactClient from '@/components/wrapper/SimplebarReactClient'
 import LogoBox from '@/components/wrapper/LogoBox'
-import AppMenu from './components/AppMenu'
+import RoleAwareAppMenu from './components/RoleAwareAppMenu'
 
 const page = () => {
   const menuItems = getMenuItems()
@@ -9,7 +9,7 @@ const page = () => {
     <div className="app-sidebar">
       <LogoBox />
       <SimplebarReactClient className="scrollbar" data-simplebar>
-        <AppMenu menuItems={menuItems} />
+        <RoleAwareAppMenu menuItems={menuItems} />
       </SimplebarReactClient>
     </div>
   )
