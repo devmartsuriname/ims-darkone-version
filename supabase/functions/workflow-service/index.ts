@@ -233,6 +233,9 @@ async function transitionState(req: Request, userId: string): Promise<Response> 
   // Create automatic tasks based on state
   await createAutomaticTasks(application_id, target_state, assigned_to);
 
+  // Send notifications for state transition
+  await sendStateTransitionNotifications(application_id, application.current_state, target_state, assigned_to);
+
   // Create audit log
   await logWorkflowEvent(application_id, application.current_state, target_state, userId, notes);
 
@@ -671,4 +674,79 @@ function getStateRequirements(state: string): string[] {
     ]
   };
   return requirements[state] || [];
+}
+
+async function sendStateTransitionNotifications(
+  applicationId: string, 
+  fromState: string, 
+  toState: string, 
+  assignedTo?: string
+): Promise<void> {
+  try {
+    // Get application details for notifications
+    const { data: application, error } = await supabase
+      .from('applications')
+      .select(`
+        application_number,
+        applicant_id,
+        applicants!applicant_id (first_name, last_name)
+      `)
+      .eq('id', applicationId)
+      .single();
+
+    if (error) {
+      console.error('Failed to fetch application for notifications:', error);
+      return;
+    }
+
+    const applicantName = application.applicants && Array.isArray(application.applicants) && application.applicants.length > 0
+      ? `${application.applicants[0].first_name} ${application.applicants[0].last_name}`
+      : application.applicants && !Array.isArray(application.applicants)
+      ? `${(application.applicants as any).first_name} ${(application.applicants as any).last_name}`
+      : 'Unknown Applicant';
+
+    // Send notification to assigned user if any
+    if (assignedTo) {
+      await supabase.functions.invoke('notification-service', {
+        body: {
+          type: 'in_app',
+          recipients: [assignedTo],
+          subject: 'Application Assignment',
+          message: `Application ${application.application_number} (${applicantName}) has been assigned to you for ${formatStateName(toState)}`,
+          data: {
+            application_id: applicationId,
+            category: 'APPLICATION',
+            type: 'assignment'
+          }
+        }
+      });
+    }
+
+    // Send role-based notifications
+    const roleMap: Record<string, string> = {
+      'CONTROL_ASSIGN': 'control',
+      'TECHNICAL_REVIEW': 'staff',
+      'SOCIAL_REVIEW': 'staff', 
+      'DIRECTOR_REVIEW': 'director',
+      'MINISTER_DECISION': 'minister'
+    };
+
+    const targetRole = roleMap[toState];
+    if (targetRole) {
+      await supabase.functions.invoke('notification-service', {
+        body: {
+          role: targetRole,
+          title: 'New Application Assignment',
+          message: `Application ${application.application_number} (${applicantName}) is now ready for ${formatStateName(toState)}`,
+          type: 'INFO',
+          category: 'APPLICATION',
+          application_id: applicationId
+        }
+      });
+    }
+
+    console.log(`Notifications sent for state transition: ${fromState} → ${toState}`);
+  } catch (error) {
+    console.error('Failed to send state transition notifications:', error);
+  }
 }

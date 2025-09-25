@@ -19,8 +19,16 @@ export class NotificationService {
     try {
       const { error } = await supabase.functions.invoke('notification-service', {
         body: {
-          action: 'send',
-          ...data
+          type: 'in_app',
+          recipients: [data.recipient_id],
+          subject: data.title,
+          message: data.message,
+          priority: data.type === 'ERROR' ? 'high' : 'normal',
+          data: {
+            category: data.category,
+            application_id: data.application_id,
+            ...data.metadata
+          }
         }
       });
 
@@ -38,9 +46,13 @@ export class NotificationService {
     try {
       const { error } = await supabase.functions.invoke('notification-service', {
         body: {
-          action: 'send_to_role',
           role,
-          ...data
+          title: data.title,
+          message: data.message,
+          type: data.type,
+          category: data.category,
+          application_id: data.application_id,
+          metadata: data.metadata
         }
       });
 
@@ -272,10 +284,15 @@ export const useNotifications = () => {
         body: { action: 'user-notifications' }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Notification service error:', error);
+        return;
+      }
 
-      setNotifications(data.notifications || []);
-      setUnreadCount(data.unread_count || 0);
+      if (data && data.notifications) {
+        setNotifications(data.notifications);
+        setUnreadCount(data.unread_count || 0);
+      }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     }
@@ -284,25 +301,33 @@ export const useNotifications = () => {
   React.useEffect(() => {
     fetchNotifications();
 
-    // Subscribe to real-time notifications
-    const channel = supabase
-      .channel('notifications_realtime')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'notifications',
-          filter: `recipient_id=eq.${supabase.auth.getUser().then(u => u.data.user?.id)}`
-        }, 
-        (payload) => {
-          console.log('Real-time notification update:', payload);
-          fetchNotifications(); // Refetch notifications on change
-        }
-      )
-      .subscribe();
+    // Subscribe to real-time notifications for current user
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
+      const channel = supabase
+        .channel('notifications_realtime')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'notifications',
+            filter: `recipient_id=eq.${user.id}`
+          }, 
+          (payload) => {
+            console.log('Real-time notification update:', payload);
+            fetchNotifications(); // Refetch notifications on change
+          }
+        )
+        .subscribe();
+
+      return () => supabase.removeChannel(channel);
+    };
+
+    const cleanup = setupRealtimeSubscription();
     return () => {
-      supabase.removeChannel(channel);
+      cleanup.then(fn => fn && fn());
     };
   }, [fetchNotifications]);
 

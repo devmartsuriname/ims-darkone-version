@@ -1,50 +1,49 @@
 import React from 'react';
 import { useWorkflowNotifications } from '@/hooks/useWorkflowNotifications';
-import { useSuccessNotification, useErrorNotification, useInfoNotification } from '@/components/ui/NotificationToasts';
+import { toast } from 'react-toastify';
 
 /**
  * Component that integrates workflow state changes with notifications
+ * This component provides global notification methods that can be used throughout the app
  */
 export const WorkflowNotificationIntegration: React.FC = () => {
   const { 
     notifyStatusChange, 
     notifyDirectorDecision, 
     notifyMinisterDecision,
-    sendRoleNotification 
+    sendRoleNotification,
+    sendEmailNotification,
+    notifyTaskAssignment,
+    notifySLADeadline
   } = useWorkflowNotifications();
-  
-  const showSuccess = useSuccessNotification();
-  const showError = useErrorNotification();
-  const showInfo = useInfoNotification();
 
-  // This component provides notification methods that can be used by other components
+  // Register global notification methods on window object for easy access
   React.useEffect(() => {
-    // Register global notification methods on window object for easy access
     (window as any).workflowNotifications = {
       notifyStatusChange: async (applicationId: string, fromState: string, toState: string) => {
         try {
           await notifyStatusChange(applicationId, fromState, toState);
-          showSuccess('Notification Sent', 'Status change notification sent to relevant users');
+          toast.success('Status change notification sent to relevant users');
         } catch (error) {
-          showError('Notification Failed', 'Failed to send status change notification');
+          toast.error('Failed to send status change notification');
         }
       },
       
       notifyDirectorDecision: async (applicationId: string, decision: string, notes: string) => {
         try {
           await notifyDirectorDecision(applicationId, decision, notes);
-          showSuccess('Notification Sent', 'Director decision notification sent');
+          toast.success('Director decision notification sent');
         } catch (error) {
-          showError('Notification Failed', 'Failed to send director decision notification');
+          toast.error('Failed to send director decision notification');
         }
       },
       
       notifyMinisterDecision: async (applicationId: string, decision: string, finalAmount?: number) => {
         try {
           await notifyMinisterDecision(applicationId, decision, finalAmount);
-          showSuccess('Notification Sent', 'Minister decision notification sent');
+          toast.success('Minister decision notification sent');
         } catch (error) {
-          showError('Notification Failed', 'Failed to send minister decision notification');
+          toast.error('Failed to send minister decision notification');
         }
       },
       
@@ -56,13 +55,54 @@ export const WorkflowNotificationIntegration: React.FC = () => {
       ) => {
         try {
           await sendRoleNotification(role, title, message, type);
-          showSuccess('Notification Sent', `Notification sent to all users with role: ${role}`);
+          toast.success(`Notification sent to all users with role: ${role}`);
         } catch (error) {
-          showError('Notification Failed', `Failed to send notification to role: ${role}`);
+          toast.error(`Failed to send notification to role: ${role}`);
+        }
+      },
+
+      sendEmailNotification: async (
+        recipients: string[],
+        subject: string,
+        message: string,
+        template?: string,
+        data?: Record<string, any>
+      ) => {
+        try {
+          await sendEmailNotification(recipients, subject, message, template, data);
+          toast.success('Email notification sent successfully');
+        } catch (error) {
+          toast.error('Failed to send email notification');
+        }
+      },
+
+      notifyTaskAssignment: async (taskId: string) => {
+        try {
+          await notifyTaskAssignment(taskId);
+          toast.success('Task assignment notification sent');
+        } catch (error) {
+          toast.error('Failed to send task assignment notification');
+        }
+      },
+
+      notifySLADeadline: async (applicationId: string, hoursRemaining: number) => {
+        try {
+          await notifySLADeadline(applicationId, hoursRemaining);
+          toast.success('SLA deadline notification sent');
+        } catch (error) {
+          toast.error('Failed to send SLA deadline notification');
         }
       }
     };
-  }, [notifyStatusChange, notifyDirectorDecision, notifyMinisterDecision, sendRoleNotification, showSuccess, showError, showInfo]);
+  }, [
+    notifyStatusChange, 
+    notifyDirectorDecision, 
+    notifyMinisterDecision, 
+    sendRoleNotification,
+    sendEmailNotification,
+    notifyTaskAssignment,
+    notifySLADeadline
+  ]);
 
   return null; // This is a utility component with no visual output
 };

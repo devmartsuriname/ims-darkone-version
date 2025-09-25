@@ -67,14 +67,20 @@ serve(async (req) => {
           return await sendNotification(req, user.id);
         } else if (path === 'send_to_role') {
           return await sendNotificationToRole(req, user.id);
-        } else if (path === 'send_to_role') {
-          return await sendNotificationToRole(req, user.id);
         } else if (path === 'task-notification') {
           return await createTaskNotification(req, user.id);
         } else if (path === 'application-notification') {
           return await createApplicationNotification(req, user.id);
         } else if (path === 'sla-reminders') {
           return await sendSLAReminders();
+        } else {
+          // Handle POST requests with body-based routing for backwards compatibility
+          const body = await req.json();
+          if (body.role && body.title && body.message) {
+            return await sendNotificationToRole(req, user.id);
+          } else if (body.type && body.recipients && body.message) {
+            return await sendNotification(req, user.id);
+          }
         }
         break;
       case 'GET':

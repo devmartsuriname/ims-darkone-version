@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { supabase } from '@/integrations/supabase/client'
 import { NotificationService } from '@/components/notifications/NotificationService'
 
 /**
@@ -96,12 +97,59 @@ export const useWorkflowNotifications = () => {
     }
   }, [])
 
+  const sendEmailNotification = useCallback(async (
+    recipients: string[],
+    subject: string,
+    message: string,
+    template?: string,
+    data?: Record<string, any>
+  ) => {
+    try {
+      const { error } = await supabase.functions.invoke('email-service', {
+        body: {
+          to: recipients,
+          subject,
+          template: template || 'workflow_notification',
+          templateData: {
+            message,
+            systemUrl: window.location.origin,
+            ...data
+          }
+        }
+      });
+
+      if (error) throw error;
+      console.log('Email notification sent successfully');
+    } catch (error) {
+      console.error('Failed to send email notification:', error);
+      throw error;
+    }
+  }, [])
+
+  const notifyTaskAssignment = useCallback(async (taskId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('notification-service', {
+        body: {
+          task_id: taskId,
+          type: 'assignment'
+        }
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Failed to send task assignment notification:', error);
+      throw error;
+    }
+  }, [])
+
   return {
     notifyStatusChange,
     notifyDirectorDecision,
     notifyMinisterDecision,
     notifySLADeadline,
     sendCustomNotification,
-    sendRoleNotification
+    sendRoleNotification,
+    sendEmailNotification,
+    notifyTaskAssignment
   }
 }
