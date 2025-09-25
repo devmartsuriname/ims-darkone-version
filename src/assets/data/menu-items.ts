@@ -297,6 +297,37 @@ export const MENU_ITEMS: MenuItemType[] = [
       },
     ],
   },
+  {
+    key: "monitoring",
+    label: "System Monitoring",
+    isTitle: false,
+    icon: "solar:monitor-bold",
+    url: "/monitoring",
+    allowedRoles: ['admin', 'it'],
+    children: [
+      {
+        key: "system-health",
+        label: "System Health",
+        url: "/monitoring/health",
+        parentKey: "monitoring",
+        allowedRoles: ['admin', 'it'],
+      },
+      {
+        key: "performance-monitoring", 
+        label: "Performance",
+        url: "/monitoring/performance",
+        parentKey: "monitoring",
+        allowedRoles: ['admin', 'it'],
+      },
+      {
+        key: "security-monitoring",
+        label: "Security Scanner", 
+        url: "/monitoring/security",
+        parentKey: "monitoring",
+        allowedRoles: ['admin', 'it'],
+      },
+    ],
+  },
 
   // ==================== DEPLOYMENT ===============
   {
