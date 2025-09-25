@@ -44,8 +44,6 @@ const SecurityHardeningPage = lazy(() => import('@/app/(admin)/security/hardenin
 const PenetrationTestingPage = lazy(() => import('@/app/(admin)/security/penetration/page'))
 
 
-// Temporary Logo Tools
-const LogoReplacer = lazy(() => import('@/components/admin/LogoReplacer'))
 
 // Auth Pages
 const AuthSignIn = lazy(() => import('@/app/(other)/auth/sign-in/page'))
@@ -297,13 +295,6 @@ const imsRoutes: RoutesProps[] = [
         <PenetrationTestingPage />
       </RouteGuard>
     ),
-    exact: true,
-  },
-  // Temporary Logo Replacement Tool
-  {
-    path: '/logo-replacer',
-    name: 'Logo Replacer',
-    element: <LogoReplacer />,
     exact: true,
   },
  ]

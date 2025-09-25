@@ -8,17 +8,17 @@ const Chart = () => {
       {
         name: 'Applications Submitted',
         type: 'bar',
-        data: [34, 65, 46, 68, 49, 61, 42, 44, 78, 52, 63, 67],
+        data: [34, 45, 52, 61, 58, 73, 69, 82, 76, 89, 95, 102],
       },
       {
         name: 'Applications Processed',
         type: 'area',
-        data: [28, 58, 40, 60, 45, 55, 38, 40, 70, 48, 58, 62],
+        data: [30, 42, 48, 58, 55, 70, 65, 78, 72, 85, 88, 95],
       },
       {
         name: 'Applications Approved',
         type: 'area',
-        data: [22, 45, 32, 48, 36, 44, 30, 32, 56, 38, 46, 50],
+        data: [18, 28, 35, 42, 38, 48, 45, 52, 49, 58, 62, 68],
       },
     ],
     chart: {
