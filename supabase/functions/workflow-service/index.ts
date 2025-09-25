@@ -501,65 +501,128 @@ async function validateStateTransition(currentState: string, targetState: string
 }
 
 async function performPreTransitionValidations(applicationId: string, targetState: string): Promise<{valid: boolean, reason: string}> {
-  // Gate controls for specific states
+  // Comprehensive gate validations for critical workflow states
   if (targetState === 'DIRECTOR_REVIEW') {
     // Check if all required documents are verified
     const { data: documents, error: docError } = await supabase
       .from('documents')
-      .select('verification_status')
+      .select('verification_status, document_type, document_name')
       .eq('application_id', applicationId)
       .eq('is_required', true);
 
     if (docError) {
-      return { valid: false, reason: 'Failed to check document status' };
+      return { valid: false, reason: 'Error checking document verification status' };
     }
 
     const unverifiedDocs = documents?.filter(doc => doc.verification_status !== 'VERIFIED') || [];
     if (unverifiedDocs.length > 0) {
-      return { valid: false, reason: 'All required documents must be verified before director review' };
+      const docNames = unverifiedDocs.map(doc => doc.document_name).join(', ');
+      return { 
+        valid: false, 
+        reason: `Required documents not verified: ${docNames}` 
+      };
     }
 
-    // Check if minimum photos from control visit exist
+    // Check if minimum photos are captured during control visit
     const { data: photos, error: photoError } = await supabase
       .from('control_photos')
-      .select('id')
+      .select('id, photo_category')
       .eq('application_id', applicationId);
 
     if (photoError) {
-      return { valid: false, reason: 'Failed to check control photos' };
+      return { valid: false, reason: 'Error checking control visit photos' };
     }
 
-    if (!photos || photos.length < 5) {
-      return { valid: false, reason: 'Minimum 5 photos from control visit required' };
+    if (!photos || photos.length < 8) {
+      return { 
+        valid: false, 
+        reason: `Minimum 8 photos required from control visit (currently ${photos?.length || 0})` 
+      };
     }
 
-    // Check if technical and social reports are submitted
+    // Check for required photo categories
+    const requiredCategories = ['EXTERIOR_FRONT', 'INTERIOR_MAIN', 'STRUCTURAL_ISSUES', 'UTILITIES'];
+    const photoCategories = photos.map(p => p.photo_category);
+    const missingCategories = requiredCategories.filter(cat => !photoCategories.includes(cat));
+    
+    if (missingCategories.length > 0) {
+      return {
+        valid: false,
+        reason: `Missing required photo categories: ${missingCategories.join(', ')}`
+      };
+    }
+
+    // Check if technical report is submitted and complete
     const { data: techReport, error: techError } = await supabase
       .from('technical_reports')
-      .select('id')
+      .select('id, technical_conclusion, recommendations, submitted_at')
       .eq('application_id', applicationId)
       .maybeSingle();
 
     if (techError) {
-      return { valid: false, reason: 'Failed to check technical report' };
+      return { valid: false, reason: 'Error checking technical report' };
     }
 
+    if (!techReport) {
+      return { valid: false, reason: 'Technical assessment report is required before director review' };
+    }
+
+    if (!techReport.technical_conclusion || !techReport.recommendations) {
+      return { valid: false, reason: 'Technical report must include conclusion and recommendations' };
+    }
+
+    // Check if social report is submitted and complete
     const { data: socialReport, error: socialError } = await supabase
       .from('social_reports')
-      .select('id')
+      .select('id, social_conclusion, recommendations, submitted_at')
       .eq('application_id', applicationId)
       .maybeSingle();
 
     if (socialError) {
-      return { valid: false, reason: 'Failed to check social report' };
-    }
-
-    if (!techReport) {
-      return { valid: false, reason: 'Technical report must be submitted before director review' };
+      return { valid: false, reason: 'Error checking social report' };
     }
 
     if (!socialReport) {
-      return { valid: false, reason: 'Social report must be submitted before director review' };
+      return { valid: false, reason: 'Social assessment report is required before director review' };
+    }
+
+    if (!socialReport.social_conclusion || !socialReport.recommendations) {
+      return { valid: false, reason: 'Social report must include conclusion and recommendations' };
+    }
+
+    // Check if control visit is completed
+    const { data: controlVisit, error: visitError } = await supabase
+      .from('control_visits')
+      .select('visit_status, actual_date')
+      .eq('application_id', applicationId)
+      .maybeSingle();
+
+    if (visitError) {
+      return { valid: false, reason: 'Error checking control visit status' };
+    }
+
+    if (!controlVisit || controlVisit.visit_status !== 'COMPLETED') {
+      return { valid: false, reason: 'Control visit must be completed before director review' };
+    }
+  }
+
+  // Gate validations for MINISTER_DECISION
+  if (targetState === 'MINISTER_DECISION') {
+    // Check if director has provided recommendation
+    const { data: directorSteps, error: directorError } = await supabase
+      .from('application_steps')
+      .select('notes, completed_at')
+      .eq('application_id', applicationId)
+      .eq('step_name', 'DIRECTOR_REVIEW')
+      .eq('status', 'COMPLETED')
+      .maybeSingle();
+
+    if (directorError) {
+      return { valid: false, reason: 'Error checking director review status' };
+    }
+
+    if (!directorSteps || !directorSteps.notes) {
+      return { valid: false, reason: 'Director recommendation is required before minister decision' };
     }
   }
 
