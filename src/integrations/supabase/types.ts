@@ -879,6 +879,45 @@ export type Database = {
           },
         ]
       }
+      system_health_reports: {
+        Row: {
+          alert_count: number
+          alerts: Json
+          created_at: string
+          database_metrics: Json
+          id: string
+          overall_status: string
+          performance_metrics: Json
+          service_metrics: Json
+          timestamp: string
+          updated_at: string
+        }
+        Insert: {
+          alert_count?: number
+          alerts?: Json
+          created_at?: string
+          database_metrics?: Json
+          id?: string
+          overall_status: string
+          performance_metrics?: Json
+          service_metrics?: Json
+          timestamp?: string
+          updated_at?: string
+        }
+        Update: {
+          alert_count?: number
+          alerts?: Json
+          created_at?: string
+          database_metrics?: Json
+          id?: string
+          overall_status?: string
+          performance_metrics?: Json
+          service_metrics?: Json
+          timestamp?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           application_id: string | null
