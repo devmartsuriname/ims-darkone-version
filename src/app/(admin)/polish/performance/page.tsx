@@ -260,11 +260,12 @@ const PerformanceOptimizationPage: React.FC = () => {
                 <div className="h1 text-primary mb-1">{getOverallScore()}</div>
                 <p className="text-muted mb-0">Performance Score</p>
               </div>
-              <ProgressBar 
-                now={getOverallScore()} 
-                variant={getOverallScore() >= 90 ? 'success' : getOverallScore() >= 70 ? 'warning' : 'danger'}
-                className="mb-3"
-              />
+              <div className="progress mb-3">
+                <div 
+                  className={`progress-bar bg-${getOverallScore() >= 90 ? 'success' : getOverallScore() >= 70 ? 'warning' : 'danger'}`}
+                  style={{ width: `${getOverallScore()}%` }}
+                ></div>
+              </div>
               <div className="d-grid gap-2">
                 <Button 
                   variant="primary" 

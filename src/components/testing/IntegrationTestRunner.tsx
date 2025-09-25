@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Button, Alert, ProgressBar, ListGroup, Badge } from 'react-bootstrap';
+import { Card, Button, Alert, ListGroup, Badge } from 'react-bootstrap';
 import { IMSIntegrationTester, WorkflowTestResult } from '@/utils/integration-test';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
 
@@ -98,12 +98,12 @@ const IntegrationTestRunner: React.FC = () => {
               <span className="small text-muted">Test Progress</span>
               <span className="small text-muted">{testProgress}%</span>
             </div>
-            <ProgressBar 
-              now={testProgress} 
-              variant="primary" 
-              striped 
-              animated={isRunning}
-            />
+            <div className="progress">
+              <div 
+                className={`progress-bar ${isRunning ? 'progress-bar-striped progress-bar-animated' : ''}`}
+                style={{ width: `${testProgress}%` }}
+              ></div>
+            </div>
           </div>
         )}
 
