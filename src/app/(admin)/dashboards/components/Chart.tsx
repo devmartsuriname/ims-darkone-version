@@ -1,26 +1,24 @@
 import { ApexOptions } from 'apexcharts'
 import ReactApexChart from 'react-apexcharts'
-import CountryMap from './CountryMap'
-import { Card, CardBody, CardHeader, Col, Row } from 'react-bootstrap'
-import SaleChart from './SaleChart'
+import { Card, CardBody, CardHeader, Col } from 'react-bootstrap'
 
 const Chart = () => {
   const salesChart: ApexOptions = {
     series: [
       {
-        name: 'Page Views',
+        name: 'Applications Submitted',
         type: 'bar',
         data: [34, 65, 46, 68, 49, 61, 42, 44, 78, 52, 63, 67],
       },
       {
-        name: 'Clicks',
+        name: 'Applications Processed',
         type: 'area',
-        data: [8, 12, 7, 17, 21, 11, 5, 9, 7, 29, 12, 35],
+        data: [28, 58, 40, 60, 45, 55, 38, 40, 70, 48, 58, 62],
       },
       {
-        name: 'Revenue',
+        name: 'Applications Approved',
         type: 'area',
-        data: [12, 16, 11, 22, 28, 25, 15, 29, 35, 45, 42, 48],
+        data: [22, 45, 32, 48, 36, 44, 30, 32, 56, 38, 46, 50],
       },
     ],
     chart: {
@@ -135,40 +133,34 @@ const Chart = () => {
   }
 
   return (
-    <>
-      <Row>
-        <Col lg={4}>
-          <Card className=" card-height-100 ">
-            <CardHeader className="d-flex align-items-center justify-content-between gap-2">
-              <h4 className=" mb-0 flex-grow-1 mb-0">Revenue</h4>
-              <div>
-                <button type="button" className="btn btn-sm btn-outline-light">
-                  ALL
-                </button>
-                <button type="button" className="btn btn-sm btn-outline-light">
-                  1M
-                </button>
-                <button type="button" className="btn btn-sm btn-outline-light">
-                  6M
-                </button>
-                <button type="button" className="btn btn-sm btn-outline-light active">
-                  1Y
-                </button>
-              </div>
-            </CardHeader>
-            <CardBody className="pt-0">
-              <div dir="ltr">
-                <div id="dash-performance-chart" className="apex-charts">
-                  <ReactApexChart options={salesChart} series={salesChart.series} height={313} type="area" className="apex-charts " />
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        </Col>
-        <SaleChart />
-        <CountryMap />
-      </Row>
-    </>
+    <Col lg={12}>
+      <Card className="card-height-100">
+        <CardHeader className="d-flex align-items-center justify-content-between gap-2">
+          <h4 className="mb-0 flex-grow-1">Application Processing Analytics</h4>
+          <div>
+            <button type="button" className="btn btn-sm btn-outline-light">
+              ALL
+            </button>
+            <button type="button" className="btn btn-sm btn-outline-light">
+              1M
+            </button>
+            <button type="button" className="btn btn-sm btn-outline-light">
+              6M
+            </button>
+            <button type="button" className="btn btn-sm btn-outline-light active">
+              1Y
+            </button>
+          </div>
+        </CardHeader>
+        <CardBody className="pt-0">
+          <div dir="ltr">
+            <div id="dash-performance-chart" className="apex-charts">
+              <ReactApexChart options={salesChart} series={salesChart.series} height={313} type="area" className="apex-charts" />
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+    </Col>
   )
 }
 
