@@ -69,7 +69,7 @@ export const SystemIntegrationTester: React.FC = () => {
     
     try {
       // Test authenticated access
-      const { data, error } = await supabase.from('profiles').select('id').limit(1);
+      const { error } = await supabase.from('profiles').select('id').limit(1);
       if (error && error.code !== 'PGRST116') throw error;
       updateTestResult('RLS Policies', 'passed', 'RLS policies working correctly');
     } catch (error: any) {
@@ -173,7 +173,7 @@ export const SystemIntegrationTester: React.FC = () => {
     
     try {
       // Try to list files in documents bucket
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('documents')
         .list('', { limit: 1 });
       
