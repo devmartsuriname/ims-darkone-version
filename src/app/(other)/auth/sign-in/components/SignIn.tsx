@@ -27,10 +27,10 @@ const SignIn = () => {
                 <div className="text-center mb-4">
                   <div className="auth-logo mb-4">
                     <Link to="/dashboards" className="logo-dark">
-                      <img src={DarkLogo} height={40} alt="IMS Logo" className="animate__animated animate__pulse" />
+                      <img src={DarkLogo} height={40} alt="Basiszorg Internal Management System" className="animate__animated animate__pulse" />
                     </Link>
                     <Link to="/dashboards" className="logo-light">
-                      <img src={LightLogo} height={36} alt="IMS Logo" className="animate__animated animate__pulse" />
+                      <img src={LightLogo} height={36} alt="Basiszorg Internal Management System" className="animate__animated animate__pulse" />
                     </Link>
                   </div>
                   <h3 className="fw-bold mb-2">Welcome Back!</h3>

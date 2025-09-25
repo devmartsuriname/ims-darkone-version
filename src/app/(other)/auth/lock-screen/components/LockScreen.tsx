@@ -37,10 +37,10 @@ const LockScreen = () => {
                     <div className="text-center">
                       <div className="mx-auto mb-4 text-center auth-logo">
                         <Link to="" className="logo-dark">
-                          <img src={DarkLogo} height={32} alt="logo dark" />
+                          <img src={DarkLogo} height={32} alt="Basiszorg Internal Management System" />
                         </Link>
                         <Link to="" className="logo-light">
-                          <img src={LightLogo} height={28} alt="logo light" />
+                          <img src={LightLogo} height={28} alt="Basiszorg Internal Management System" />
                         </Link>
                       </div>
                       <h4 className="fw-bold text-dark mb-2">Hi ! Gaston</h4>

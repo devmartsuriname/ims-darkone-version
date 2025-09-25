@@ -7,12 +7,12 @@ const LogoBox = () => {
   return (
     <div className="logo-box">
       <Link to="/dashboards" className="logo-dark">
-        <img width={24} height={24} src={logoSm} className="logo-sm" alt="logo sm" />
-        <img width={114} height={28} src={logoDark} className="logo-lg" alt="logo dark" />
+        <img width={24} height={24} src={logoSm} className="logo-sm" alt="Basiszorg IMS" />
+        <img width={114} height={28} src={logoDark} className="logo-lg" alt="Basiszorg Internal Management System" />
       </Link>
       <Link to="/dashboards" className="logo-light">
-        <img width={24} height={24} src={logoSm} className="logo-sm" alt="logo sm" />
-        <img width={114} height={28} src={logoLight} className="logo-lg" alt="logo light" />
+        <img width={24} height={24} src={logoSm} className="logo-sm" alt="Basiszorg IMS" />
+        <img width={114} height={28} src={logoLight} className="logo-lg" alt="Basiszorg Internal Management System" />
       </Link>
     </div>
   )
