@@ -44,6 +44,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // ✅ Health check BEFORE authentication (supports body-based check)
+  const body = await req.json().catch(() => ({}));
+  if (body.action === 'health_check') {
+    return new Response(JSON.stringify({ 
+      status: 'healthy', 
+      service: 'user-management',
+      timestamp: new Date().toISOString()
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   // Check if this is the initial admin creation (no admin users exist)
   const { data: adminCount, error: countError } = await supabase
     .from('user_roles')

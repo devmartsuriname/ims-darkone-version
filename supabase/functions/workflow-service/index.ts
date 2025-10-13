@@ -90,6 +90,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // ✅ Health check BEFORE authentication
+  const body = await req.json().catch(() => ({}));
+  if (body.action === 'health_check') {
+    return new Response(JSON.stringify({ 
+      status: 'healthy', 
+      service: 'workflow-service',
+      timestamp: new Date().toISOString()
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Missing authorization header' }), {

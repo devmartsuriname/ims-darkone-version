@@ -67,24 +67,34 @@ export const WorkflowSummaryDashboard: React.FC = () => {
         return acc;
       }, {} as Record<string, number>);
 
-      // Test edge function health
+      // Test edge function health (including all 6 functions)
       const edgeFunctions = [
         'user-management',
         'application-service', 
         'workflow-service',
         'notification-service',
-        'email-service'
+        'email-service',
+        'document-service',
+        'reporting-service'
       ];
 
       const edgeFunctionHealth: Record<string, boolean> = {};
       
       for (const func of edgeFunctions) {
         try {
-          const { error } = await supabase.functions.invoke(func, {
+          const { data, error } = await supabase.functions.invoke(func, {
             body: { action: 'health_check' }
           });
-          edgeFunctionHealth[func] = !error;
-        } catch {
+          
+          // Check both error AND response status
+          const isHealthy = !error && data?.status === 'healthy';
+          edgeFunctionHealth[func] = isHealthy;
+          
+          if (!isHealthy) {
+            console.warn(`Health check failed for ${func}:`, error || 'Invalid response');
+          }
+        } catch (err) {
+          console.error(`Exception calling ${func}:`, err);
           edgeFunctionHealth[func] = false;
         }
       }
