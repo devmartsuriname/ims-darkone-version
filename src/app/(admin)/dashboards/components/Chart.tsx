@@ -3,8 +3,9 @@ import ReactApexChart from 'react-apexcharts'
 import { Card, CardBody, CardHeader, Col } from 'react-bootstrap'
 import { useChartData } from '@/hooks/useChartData'
 import Spinner from '@/components/Spinner'
+import { memo, useMemo } from 'react'
 
-const Chart = () => {
+const Chart = memo(() => {
   const { chartData, isLoading, error } = useChartData()
 
   if (isLoading) {
@@ -31,7 +32,7 @@ const Chart = () => {
     )
   }
 
-  const salesChart: ApexOptions = {
+  const salesChart: ApexOptions = useMemo(() => ({
     series: [
       {
         name: 'Applications Submitted',
@@ -161,7 +162,7 @@ const Chart = () => {
         },
       ],
     },
-  }
+  }), [chartData])
 
   return (
     <Col lg={12}>
@@ -199,6 +200,8 @@ const Chart = () => {
       </Card>
     </Col>
   )
-}
+})
+
+Chart.displayName = 'Chart'
 
 export default Chart
