@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-toastify';
 import { StaffGuard } from '@/components/auth/RoleGuards';
+import PageTitle from '@/components/PageTitle';
 
 interface DecisionRecord {
   id: string;
@@ -216,20 +217,7 @@ const DecisionArchivePage = () => {
   return (
     <StaffGuard>
       <div className="container-fluid">
-        <div className="row">
-          <div className="col-12">
-            <div className="page-title-box d-sm-flex align-items-center justify-content-between">
-              <h4 className="mb-sm-0">Decision Archive</h4>
-              <div className="page-title-right">
-                <ol className="breadcrumb m-0">
-                  <li className="breadcrumb-item"><a href="#">IMS</a></li>
-                  <li className="breadcrumb-item"><a href="#">Reviews</a></li>
-                  <li className="breadcrumb-item active">Archive</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PageTitle title="Decision Archive" subName="Reviews" />
 
         <div className="row">
           <div className="col-12">

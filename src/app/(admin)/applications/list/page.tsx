@@ -5,6 +5,7 @@ import ApplicationListTable from './components/ApplicationListTable';
 import BulkOperations from './components/BulkOperations';
 import { EnhancedButton } from '@/components/ui/EnhancedButtons';
 import { toast } from 'react-toastify';
+import PageTitle from '@/components/PageTitle';
 
 const ApplicationListPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,26 +45,16 @@ const ApplicationListPage = () => {
   return (
     <StaffGuard>
       <div className="container-fluid">
-        <div className="row">
-          <div className="col-12">
-            <div className="page-title-box d-sm-flex align-items-center justify-content-between">
-              <h4 className="mb-sm-0">All Applications</h4>
-              <div className="page-title-right">
-                <div className="d-flex gap-2 align-items-center">
-                  <EnhancedButton
-                    variant="success"
-                    onClick={() => window.open('/admin/applications/intake', '_blank')}
-                  >
-                    <i className="bi bi-plus-circle"></i> New Application
-                  </EnhancedButton>
-                  <ol className="breadcrumb m-0">
-                    <li className="breadcrumb-item"><a href="/admin">IMS</a></li>
-                    <li className="breadcrumb-item"><a href="/admin/applications">Applications</a></li>
-                    <li className="breadcrumb-item active">All Applications</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
+        <PageTitle title="All Applications" subName="Applications" />
+        
+        <div className="row mb-3">
+          <div className="col-12 text-end">
+            <EnhancedButton
+              variant="success"
+              onClick={() => window.open('/admin/applications/intake', '_blank')}
+            >
+              <i className="bi bi-plus-circle"></i> New Application
+            </EnhancedButton>
           </div>
         </div>
 

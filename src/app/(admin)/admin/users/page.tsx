@@ -6,6 +6,7 @@ import InitialSetupModal from './components/InitialSetupModal';
 import { EnhancedButton } from '@/components/ui/EnhancedButtons';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-toastify';
+import PageTitle from '@/components/PageTitle';
 
 const UserManagementPage = () => {
   const [showUserModal, setShowUserModal] = useState(false);
@@ -124,26 +125,16 @@ const UserManagementPage = () => {
   return (
     <AdminGuard>
       <div className="container-fluid">
-        <div className="row">
-          <div className="col-12">
-            <div className="page-title-box d-sm-flex align-items-center justify-content-between">
-              <h4 className="mb-sm-0">User Management</h4>
-              <div className="page-title-right">
-                <div className="d-flex gap-2 align-items-center">
-                  <EnhancedButton
-                    variant="success"
-                    onClick={handleCreateUser}
-                  >
-                    <i className="bi bi-person-plus"></i> Add User
-                  </EnhancedButton>
-                  <ol className="breadcrumb m-0">
-                    <li className="breadcrumb-item"><a href="/admin">IMS</a></li>
-                    <li className="breadcrumb-item"><a href="/admin">Administration</a></li>
-                    <li className="breadcrumb-item active">Users</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
+        <PageTitle title="User Management" subName="Administration" />
+        
+        <div className="row mb-3">
+          <div className="col-12 text-end">
+            <EnhancedButton
+              variant="success"
+              onClick={handleCreateUser}
+            >
+              <i className="bi bi-person-plus"></i> Add User
+            </EnhancedButton>
           </div>
         </div>
 

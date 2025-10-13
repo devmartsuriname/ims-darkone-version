@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { ControlGuard } from '@/components/auth/RoleGuards';
 import { PhotoCaptureSystem } from './components/PhotoCaptureSystem';
 import { TechnicalAssessmentForm } from './components/TechnicalAssessmentForm';
+import PageTitle from '@/components/PageTitle';
 
 interface ControlVisit {
   id: string;
@@ -192,20 +193,7 @@ const ControlVisitPage = () => {
   return (
     <ControlGuard>
       <div className="container-fluid">
-        <div className="row">
-          <div className="col-12">
-            <div className="page-title-box d-sm-flex align-items-center justify-content-between">
-              <h4 className="mb-sm-0">Control Visit</h4>
-              <div className="page-title-right">
-                <ol className="breadcrumb m-0">
-                  <li className="breadcrumb-item"><a href="#">IMS</a></li>
-                  <li className="breadcrumb-item"><a href="#">Control</a></li>
-                  <li className="breadcrumb-item active">Visit</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PageTitle title="Control Visit" subName="Control" />
 
         <div className="row">
           <div className="col-12">

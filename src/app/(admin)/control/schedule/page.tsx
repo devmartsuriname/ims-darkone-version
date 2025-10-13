@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-toastify';
 import { ControlGuard } from '@/components/auth/RoleGuards';
 import CustomFlatpickr from '@/components/CustomFlatpickr';
+import PageTitle from '@/components/PageTitle';
 
 const scheduleSchema = z.object({
   scheduled_date: z.date({
@@ -145,20 +146,7 @@ const ScheduleVisitPage = () => {
   return (
     <ControlGuard>
       <div className="container-fluid">
-        <div className="row">
-          <div className="col-12">
-            <div className="page-title-box d-sm-flex align-items-center justify-content-between">
-              <h4 className="mb-sm-0">Schedule Control Visit</h4>
-              <div className="page-title-right">
-                <ol className="breadcrumb m-0">
-                  <li className="breadcrumb-item"><a href="#">IMS</a></li>
-                  <li className="breadcrumb-item"><a href="#">Control</a></li>
-                  <li className="breadcrumb-item active">Schedule Visit</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PageTitle title="Schedule Control Visit" subName="Control" />
 
         <div className="row">
           <div className="col-12">
