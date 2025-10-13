@@ -4,12 +4,20 @@ import Footer from '@/components/layout/Footer';
 import RoleCheck from '@/components/auth/RoleCheck';
 import { DashboardLayout, DashboardSection, DashboardGrid } from '@/components/dashboard/DashboardLayout';
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics';
+import { ErrorBoundary } from '@/components/dashboard/ErrorBoundary';
 import WorkflowChart from './components/WorkflowChart';
 import RecentActivities from './components/RecentActivities';
 import QuickActions from './components/QuickActions';
 import { SystemMetricsDashboard } from './components/SystemMetricsDashboard';
 import Chart from './components/Chart';
 import IntegrationTestRunner from '@/components/testing/IntegrationTestRunner';
+
+const ComponentErrorFallback = ({ error, componentName }: { error: Error; componentName: string }) => (
+  <div className="alert alert-warning">
+    <h6 className="alert-heading">Component Error: {componentName}</h6>
+    <p className="mb-0">{error.message}</p>
+  </div>
+);
 
 const page = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -40,33 +48,45 @@ const page = () => {
       autoRefreshInterval={300000} // 5 minutes
     >
       {/* Enhanced KPI Cards with Real-time Updates */}
-      <DashboardSection title="Performance Metrics">
-        <DashboardMetrics />
-      </DashboardSection>
+      <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="DashboardMetrics" />}>
+        <DashboardSection title="Performance Metrics">
+          <DashboardMetrics />
+        </DashboardSection>
+      </ErrorBoundary>
       
       {/* System Metrics Dashboard */}
-      <DashboardSection title="System Health" className="mt-4">
-        <SystemMetricsDashboard />
-      </DashboardSection>
+      <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="SystemMetricsDashboard" />}>
+        <DashboardSection title="System Health" className="mt-4">
+          <SystemMetricsDashboard />
+        </DashboardSection>
+      </ErrorBoundary>
       
       {/* Main Content Row */}
       <DashboardGrid spacing={4} className="mt-4">
         <Col xxl={8} xl={12} lg={12} md={12} sm={12}>
-          <WorkflowChart />
+          <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="WorkflowChart" />}>
+            <WorkflowChart />
+          </ErrorBoundary>
         </Col>
         <Col xxl={4} xl={12} lg={12} md={12} sm={12}>
-          <QuickActions />
+          <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="QuickActions" />}>
+            <QuickActions />
+          </ErrorBoundary>
         </Col>
       </DashboardGrid>
       
       {/* Activities & Analytics Row */}
       <DashboardGrid spacing={4} className="mt-4">
         <Col xxl={6} xl={12} lg={6} md={12} sm={12}>
-          <RecentActivities />
+          <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="RecentActivities" />}>
+            <RecentActivities />
+          </ErrorBoundary>
         </Col>
         <Col xxl={6} xl={12} lg={6} md={12} sm={12}>
           <RoleCheck allowedRoles={['admin', 'it', 'director', 'minister']}>
-            <Chart />
+            <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="Chart" />}>
+              <Chart />
+            </ErrorBoundary>
           </RoleCheck>
         </Col>
       </DashboardGrid>
@@ -74,7 +94,9 @@ const page = () => {
       {/* Integration Testing (Admin/IT Only) */}
       <DashboardSection className="mt-4">
         <RoleCheck allowedRoles={['admin', 'it']}>
-          <IntegrationTestRunner />
+          <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="IntegrationTestRunner" />}>
+            <IntegrationTestRunner />
+          </ErrorBoundary>
         </RoleCheck>
       </DashboardSection>
       
