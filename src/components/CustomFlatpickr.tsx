@@ -1,5 +1,5 @@
-import 'flatpickr/dist/themes/light.css'
 import Flatpickr from 'react-flatpickr'
+import '../../node_modules/flatpickr/dist/themes/light.css'
 
 type FlatpickrProps = {
   className?: string
