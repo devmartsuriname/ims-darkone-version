@@ -21,6 +21,7 @@ const MinisterDecisionPage = lazy(() => import('@/app/(admin)/reviews/minister/p
 
 // IMS Admin Pages
 const UserManagementPage = lazy(() => import('@/app/(admin)/admin/users/page'))
+const SystemSettingsPage = lazy(() => import('@/app/(admin)/admin/settings/page'))
 
 // IMS Deployment Pages
 const ProductionReadinessPage = lazy(() => import('@/app/(admin)/deployment/readiness/page'))
@@ -160,6 +161,16 @@ const imsRoutes: RoutesProps[] = [
     path: '/admin/auth-guide',
     name: 'Authentication Guide',
     element: <AuthenticationGuidePage />,
+    exact: true,
+  },
+  {
+    path: '/admin/settings',
+    name: 'System Settings',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <SystemSettingsPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   // Testing

@@ -143,6 +143,13 @@ export const MENU_ITEMS: MenuItemType[] = [
     ],
   },
   {
+    key: 'system-settings',
+    label: 'System Settings',
+    icon: 'mingcute:settings-3-line',
+    url: '/admin/settings',
+    allowedRoles: ['admin', 'it'],
+  },
+  {
     key: 'workflow',
     label: 'Workflow Management',
     isTitle: false,
