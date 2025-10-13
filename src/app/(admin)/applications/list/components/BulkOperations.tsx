@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { EnhancedButton } from '@/components/ui/EnhancedButtons';
 import { toast } from 'react-toastify';
 import { Database } from '@/integrations/supabase/types';
+import { exportToCSV, exportToPDF, exportToExcel, formatDateForExport, formatCurrencyForExport } from '@/utils/export-helpers';
 
 interface BulkOperationsProps {
   selectedApplications: string[];
@@ -18,6 +19,7 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({
   const [loading, setLoading] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -85,8 +87,8 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({
     }
   };
 
-  // Handle bulk export
-  const handleBulkExport = async () => {
+  // Handle bulk export with format selection
+  const handleBulkExport = async (format: 'csv' | 'excel' | 'pdf' = 'csv') => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -109,51 +111,80 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({
 
       if (error) throw error;
 
-      // Convert to CSV
-      const headers = [
-        'Application Number',
-        'Applicant Name',
-        'National ID',
-        'Phone',
-        'Email',
-        'Status',
-        'Priority',
-        'Requested Amount',
-        'Created Date',
-        'Property Address',
-        'Service Type'
+      const columns = [
+        { header: 'Application Number', key: 'application_number' },
+        { header: 'Applicant Name', key: 'applicant_name' },
+        { header: 'National ID', key: 'national_id' },
+        { header: 'Phone', key: 'phone' },
+        { header: 'Email', key: 'email' },
+        { header: 'Status', key: 'current_state' },
+        { header: 'Priority', key: 'priority_level' },
+        { header: 'Requested Amount', key: 'requested_amount' },
+        { header: 'Created Date', key: 'created_date' },
+        { header: 'Property Address', key: 'property_address' },
+        { header: 'Service Type', key: 'service_type' }
       ];
 
-      const csvContent = [
-        headers.join(','),
-        ...data.map(app => [
-          app.application_number,
-          `"${app.applicants?.first_name} ${app.applicants?.last_name}"`,
-          app.applicants?.national_id || '',
-          app.applicants?.phone || '',
-          app.applicants?.email || '',
-          app.current_state,
-          app.priority_level,
-          app.requested_amount || '',
-          new Date(app.created_at || '').toLocaleDateString(),
-          `"${app.property_address || ''}"`,
-          app.service_type
-        ].join(','))
-      ].join('\n');
+      const exportData = data.map(app => ({
+        application_number: app.application_number,
+        applicant_name: `${app.applicants?.first_name || ''} ${app.applicants?.last_name || ''}`,
+        national_id: app.applicants?.national_id || '',
+        phone: app.applicants?.phone || '',
+        email: app.applicants?.email || '',
+        current_state: app.current_state,
+        priority_level: app.priority_level,
+        requested_amount: formatCurrencyForExport(app.requested_amount),
+        created_date: formatDateForExport(app.created_at),
+        property_address: app.property_address || '',
+        service_type: app.service_type
+      }));
 
-      // Download CSV
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `applications_export_${new Date().toISOString().split('T')[0]}.csv`;
-      link.click();
-      window.URL.revokeObjectURL(url);
+      const filename = `applications_export_${new Date().toISOString().split('T')[0]}`;
 
-      toast.success(`Exported ${selectedApplications.length} application(s)`);
+      switch (format) {
+        case 'excel':
+          exportToExcel(exportData, columns, filename);
+          break;
+        case 'pdf':
+          exportToPDF(exportData, columns, filename, 'Applications Export Report');
+          break;
+        default:
+          exportToCSV(exportData, columns, filename);
+      }
+
+      toast.success(`Exported ${selectedApplications.length} application(s) as ${format.toUpperCase()}`);
+      setShowExportModal(false);
       onClearSelection();
     } catch (error) {
       toast.error('Failed to export applications');
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle bulk document verification
+  const handleBulkVerify = async () => {
+    setLoading(true);
+    try {
+      // Update all documents for selected applications to VERIFIED status
+      const { error } = await supabase
+        .from('documents')
+        .update({ 
+          verification_status: 'VERIFIED',
+          verified_by: (await supabase.auth.getUser()).data.user?.id,
+          verified_at: new Date().toISOString()
+        })
+        .in('application_id', selectedApplications)
+        .eq('verification_status', 'PENDING');
+
+      if (error) throw error;
+
+      toast.success(`Verified documents for ${selectedApplications.length} application(s)`);
+      onOperationComplete();
+      onClearSelection();
+    } catch (error) {
+      toast.error('Failed to verify documents');
       console.error('Error:', error);
     } finally {
       setLoading(false);
@@ -237,10 +268,18 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({
               <EnhancedButton
                 variant="success"
                 size="sm"
-                onClick={handleBulkExport}
+                onClick={() => setShowExportModal(true)}
                 disabled={loading}
               >
                 <i className="bi bi-download"></i> Export
+              </EnhancedButton>
+              <EnhancedButton
+                variant="info"
+                size="sm"
+                onClick={handleBulkVerify}
+                disabled={loading}
+              >
+                <i className="bi bi-check-circle"></i> Verify Docs
               </EnhancedButton>
               <EnhancedButton
                 variant="danger"
@@ -357,6 +396,60 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({
                 >
                   Update Status
                 </EnhancedButton>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </div>
+      )}
+
+      {/* Export Format Modal */}
+      {showExportModal && (
+        <div className="modal fade show d-block" tabIndex={-1}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Export Applications</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowExportModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>Select export format for {selectedApplications.length} selected application(s):</p>
+                <div className="d-grid gap-2">
+                  <EnhancedButton
+                    variant="outline-primary"
+                    onClick={() => handleBulkExport('csv')}
+                    disabled={loading}
+                  >
+                    <i className="bi bi-filetype-csv"></i> Export as CSV
+                  </EnhancedButton>
+                  <EnhancedButton
+                    variant="outline-success"
+                    onClick={() => handleBulkExport('excel')}
+                    disabled={loading}
+                  >
+                    <i className="bi bi-file-earmark-excel"></i> Export as Excel
+                  </EnhancedButton>
+                  <EnhancedButton
+                    variant="outline-danger"
+                    onClick={() => handleBulkExport('pdf')}
+                    disabled={loading}
+                  >
+                    <i className="bi bi-file-earmark-pdf"></i> Export as PDF
+                  </EnhancedButton>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowExportModal(false)}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>

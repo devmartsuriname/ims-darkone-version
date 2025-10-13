@@ -4,6 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import TextFormInput from '@/components/from/TextFormInput';
 import ChoicesFormInput from '@/components/from/ChoicesFormInput';
 import CustomFlatpickr from '@/components/CustomFlatpickr';
+import { HelpIcon } from '@/components/ui/EnhancedTooltip';
 
 const ApplicantDetailsStep: React.FC = () => {
   const { control, setValue, watch } = useFormContext();
@@ -68,12 +69,20 @@ const ApplicantDetailsStep: React.FC = () => {
 
           <Row>
             <Col md={6}>
-              <TextFormInput
-                name="national_id"
-                label="National ID Number *"
-                control={control}
-                placeholder="Enter national ID"
-              />
+              <div className="mb-3">
+                <label className="form-label">
+                  National ID Number *
+                  <HelpIcon 
+                    content="Enter the applicant's national identification number as it appears on their ID card"
+                    variant="info"
+                  />
+                </label>
+                <TextFormInput
+                  name="national_id"
+                  control={control}
+                  placeholder="Enter national ID"
+                />
+              </div>
             </Col>
             <Col md={6}>
               <div className="mb-3">
@@ -248,15 +257,23 @@ const ApplicantDetailsStep: React.FC = () => {
 
           <Row>
             <Col md={6}>
-              <TextFormInput
-                name="monthly_income"
-                type="number"
-                label="Monthly Income (SRD) *"
-                control={control}
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-              />
+              <div className="mb-3">
+                <label className="form-label">
+                  Monthly Income (SRD) *
+                  <HelpIcon 
+                    content="Enter the total monthly income in Surinamese Dollars. This is used to assess eligibility for housing subsidy."
+                    variant="info"
+                  />
+                </label>
+                <TextFormInput
+                  name="monthly_income"
+                  type="number"
+                  control={control}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                />
+              </div>
             </Col>
             <Col md={6}>
               <TextFormInput
