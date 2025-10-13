@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf'
-import 'jspdf-autotable'
+import '../../node_modules/jspdf-autotable/dist/jspdf.plugin.autotable.js'
 
 declare module 'jspdf' {
   interface jsPDF {
