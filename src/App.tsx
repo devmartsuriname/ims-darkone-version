@@ -2,8 +2,7 @@ import AppProvidersWrapper from './components/wrapper/AppProvidersWrapper'
 import configureFakeBackend from './helpers/fake-backend'
 import AppRouter from './routes/router'
 import SystemSetupChecker from './components/auth/SystemSetupChecker'
-import styles from './assets/scss/style.scss'
-void styles
+import './assets/scss/style.scss'
 
 configureFakeBackend()
 

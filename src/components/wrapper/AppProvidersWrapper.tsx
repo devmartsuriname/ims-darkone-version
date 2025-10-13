@@ -7,8 +7,7 @@ import SystemSetupChecker from '@/components/auth/SystemSetupChecker'
 import { ChildrenType } from '@/types/component-props'
 import { HelmetProvider } from 'react-helmet-async'
 import { ToastContainer } from 'react-toastify'
-import toastifyStyles from 'react-toastify/dist/ReactToastify.css'
-void toastifyStyles
+import 'react-toastify/dist/ReactToastify.css'
 
 const AppProvidersWrapper = ({ children }: ChildrenType) => {
   return (
