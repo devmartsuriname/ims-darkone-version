@@ -8,11 +8,11 @@ interface ReferenceDataItem {
   category: string
   code: string
   name_nl: string
-  name_en?: string
-  description?: string
-  sort_order: number
-  is_active: boolean
-  parent_code?: string
+  name_en?: string | null
+  description?: string | null
+  sort_order: number | null
+  is_active: boolean | null
+  parent_code?: string | null
 }
 
 const ReferenceDataManagement = () => {
@@ -65,7 +65,16 @@ const ReferenceDataManagement = () => {
       if (editingItem) {
         const { error } = await supabase
           .from('reference_data')
-          .update(formData)
+          .update({
+            category: formData.category,
+            code: formData.code,
+            name_nl: formData.name_nl,
+            name_en: formData.name_en || null,
+            description: formData.description || null,
+            sort_order: formData.sort_order,
+            is_active: formData.is_active,
+            parent_code: formData.parent_code || null
+          })
           .eq('id', editingItem.id)
         
         if (error) throw error
@@ -73,7 +82,16 @@ const ReferenceDataManagement = () => {
       } else {
         const { error } = await supabase
           .from('reference_data')
-          .insert([formData])
+          .insert([{
+            category: formData.category!,
+            code: formData.code!,
+            name_nl: formData.name_nl!,
+            name_en: formData.name_en || null,
+            description: formData.description || null,
+            sort_order: formData.sort_order || 0,
+            is_active: formData.is_active ?? true,
+            parent_code: formData.parent_code || null
+          }])
         
         if (error) throw error
         toast.success('Reference data created successfully')
@@ -306,7 +324,7 @@ const ReferenceDataModal = ({ show, item, categories, onHide, onSave }: ModalPro
                 <Form.Label>Sort Order</Form.Label>
                 <Form.Control
                   type="number"
-                  value={formData.sort_order}
+                  value={formData.sort_order ?? 0}
                   onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) })}
                 />
               </Form.Group>
@@ -316,7 +334,7 @@ const ReferenceDataModal = ({ show, item, categories, onHide, onSave }: ModalPro
                 <Form.Check
                   type="checkbox"
                   label="Active"
-                  checked={formData.is_active}
+                  checked={formData.is_active ?? true}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                 />
               </Form.Group>

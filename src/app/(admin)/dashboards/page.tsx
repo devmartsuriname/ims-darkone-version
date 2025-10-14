@@ -13,14 +13,17 @@ import { SystemMetricsDashboard } from './components/SystemMetricsDashboard';
 import Chart from './components/Chart';
 import IntegrationTestRunner from '@/components/testing/IntegrationTestRunner';
 
-const ComponentErrorFallback = ({ error, componentName }: { error: Error; componentName: string }) => {
-  console.error(`❌ Component Error [${componentName}]:`, error);
+const ComponentErrorFallback: React.FC<{ error: Error; retry: () => void }> = ({ error, retry }) => {
+  console.error(`❌ Component Error:`, error);
   return (
     <div className="alert alert-danger">
-      <h6 className="alert-heading">⚠️ Component Error: {componentName}</h6>
+      <h6 className="alert-heading">⚠️ Component Error</h6>
       <p className="mb-1"><strong>Error:</strong> {error.message}</p>
-      <details>
-        <summary className="btn btn-sm btn-outline-danger mt-2">View Stack Trace</summary>
+      <button className="btn btn-sm btn-outline-danger mt-2" onClick={retry}>
+        Retry
+      </button>
+      <details className="mt-2">
+        <summary className="btn btn-sm btn-outline-secondary">View Stack Trace</summary>
         <pre className="mt-2 mb-0" style={{ fontSize: '0.7rem', maxHeight: '200px', overflow: 'auto' }}>
           {error.stack}
         </pre>
@@ -90,14 +93,14 @@ const page = () => {
       )}
 
       {/* Enhanced KPI Cards with Real-time Updates */}
-      <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="DashboardMetrics" />}>
+      <ErrorBoundary fallback={ComponentErrorFallback}>
         <DashboardSection title="Performance Metrics">
           <DashboardMetrics />
         </DashboardSection>
       </ErrorBoundary>
       
       {/* System Metrics Dashboard */}
-      <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="SystemMetricsDashboard" />}>
+      <ErrorBoundary fallback={ComponentErrorFallback}>
         <DashboardSection title="System Health" className="mt-4">
           <SystemMetricsDashboard />
         </DashboardSection>
@@ -106,12 +109,12 @@ const page = () => {
       {/* Main Content Row */}
       <DashboardGrid spacing={4} className="mt-4">
         <Col xxl={8} xl={12} lg={12} md={12} sm={12}>
-          <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="WorkflowChart" />}>
+          <ErrorBoundary fallback={ComponentErrorFallback}>
             <WorkflowChart />
           </ErrorBoundary>
         </Col>
         <Col xxl={4} xl={12} lg={12} md={12} sm={12}>
-          <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="QuickActions" />}>
+          <ErrorBoundary fallback={ComponentErrorFallback}>
             <QuickActions />
           </ErrorBoundary>
         </Col>
@@ -120,13 +123,13 @@ const page = () => {
       {/* Activities & Analytics Row */}
       <DashboardGrid spacing={4} className="mt-4">
         <Col xxl={6} xl={12} lg={6} md={12} sm={12}>
-          <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="RecentActivities" />}>
+          <ErrorBoundary fallback={ComponentErrorFallback}>
             <RecentActivities />
           </ErrorBoundary>
         </Col>
         <Col xxl={6} xl={12} lg={6} md={12} sm={12}>
           <RoleCheck allowedRoles={['admin', 'it', 'director', 'minister']}>
-            <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="Chart" />}>
+            <ErrorBoundary fallback={ComponentErrorFallback}>
               <Chart />
             </ErrorBoundary>
           </RoleCheck>
@@ -136,7 +139,7 @@ const page = () => {
       {/* Integration Testing (Admin/IT Only) */}
       <DashboardSection className="mt-4">
         <RoleCheck allowedRoles={['admin', 'it']}>
-          <ErrorBoundary fallback={<ComponentErrorFallback error={new Error('Failed to load')} componentName="IntegrationTestRunner" />}>
+          <ErrorBoundary fallback={ComponentErrorFallback}>
             <IntegrationTestRunner />
           </ErrorBoundary>
         </RoleCheck>

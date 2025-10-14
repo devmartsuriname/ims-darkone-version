@@ -12,10 +12,7 @@ const SystemSettingsPage = () => {
     <>
       <PageTitle
         title="System Settings"
-        breadcrumbItems={[
-          { label: 'Administration', path: '/admin' },
-          { label: 'System Settings', active: true },
-        ]}
+        subName="Administration"
       />
 
       <Row>

@@ -427,14 +427,14 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({
                     <i className="bi bi-filetype-csv"></i> Export as CSV
                   </EnhancedButton>
                   <EnhancedButton
-                    variant="outline-success"
+                    variant="success"
                     onClick={() => handleBulkExport('excel')}
                     disabled={loading}
                   >
                     <i className="bi bi-file-earmark-excel"></i> Export as Excel
                   </EnhancedButton>
                   <EnhancedButton
-                    variant="outline-danger"
+                    variant="danger"
                     onClick={() => handleBulkExport('pdf')}
                     disabled={loading}
                   >
