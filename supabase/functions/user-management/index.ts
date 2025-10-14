@@ -39,22 +39,51 @@ interface AssignRoleRequest {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  // ... CORS ...
+
+  let body: any = {};
+  try {
+    const text = await req.text();
+    if (text) {
+      body = JSON.parse(text);
+    }
+  } catch (err) {
+    console.error('Failed to parse request body:', err);
   }
 
-  // ✅ Health check BEFORE authentication (supports body-based check)
-  const body = await req.json().catch(() => ({}));
   if (body.action === 'health_check') {
-    return new Response(JSON.stringify({ 
-      status: 'healthy', 
-      service: 'user-management',
-      timestamp: new Date().toISOString()
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    // ... health check ...
   }
+
+  // ... authentication and role checks ...
+
+  // Pass body to handlers
+  if (!path || path === 'user-management' || path === 'create') {
+    return await createUser(body, user?.id || null);
+  } else if (path === 'assign-role') {
+    return await assignRole(body, user.id);
+  } else if (path === 'create_test_data') {
+    return await createTestData(body);
+  }
+  // ... other routes ...
+});
+
+// Update handler signatures
+async function createUser(userData: CreateUserRequest, adminId: string | null) {
+  // Remove: const userData: CreateUserRequest = await req.json();
+  // Use: userData parameter
+}
+
+async function updateUser(updateData: UpdateUserRequest, userId: string, adminId: string) {
+  // Remove: const updateData: UpdateUserRequest = await req.json();
+  // Use: updateData parameter
+}
+
+async function assignRole(roleData: AssignRoleRequest, adminId: string) {
+  // Remove: const { user_id, role, is_active = true }: AssignRoleRequest = await req.json();
+  // Use: roleData parameter
+}
+
 
   // Check if this is the initial admin creation (no admin users exist)
   const { data: adminCount, error: countError } = await supabase
