@@ -84,23 +84,60 @@ interface CreateTaskRequest {
   due_date?: string;
 }
 
+// Line 54-70: Replace with safe parsing
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // ✅ Health check BEFORE authentication
-  const body = await req.json().catch(() => ({}));
+  // ✅ Parse body ONCE
+  let body: any = {};
+  try {
+    const text = await req.text();
+    if (text) {
+      body = JSON.parse(text);
+    }
+  } catch (err) {
+    console.error('Failed to parse request body:', err);
+  }
+
+  // Health check using pre-parsed body
   if (body.action === 'health_check') {
     return new Response(JSON.stringify({ 
       status: 'healthy', 
-      service: 'workflow-service',
+      service: 'application-service',
       timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+
+  // ... authentication ...
+
+  // Pass body to handlers
+  if (path === 'create') {
+    return await createApplication(body, user.id);
+  } else if (path === 'update-state') {
+    return await updateApplicationState(body, user.id);
+  }
+  // ...
+});
+
+// Update handler signatures
+async function createApplication(data: CreateApplicationRequest, userId: string) {
+  // Remove: const data = await req.json();
+  // Use: data parameter directly
+}
+
+async function updateApplicationState(data: UpdateApplicationStateRequest, userId: string) {
+  // Remove: const data = await req.json();
+  // Use: data parameter directly
+}
+
+async function updateApplication(data: any, applicationId: string, userId: string) {
+  // Remove: const updateData = await req.json();
+  // Use: data parameter directly
+}
 
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) {
