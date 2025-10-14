@@ -21,22 +21,38 @@ interface SendEmailRequest {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  // ... CORS and health check ...
+
+  let body: any = {};
+  try {
+    const text = await req.text();
+    if (text) {
+      body = JSON.parse(text);
+    }
+  } catch (err) {
+    console.error('Failed to parse request body:', err);
   }
 
-  // ✅ Health check BEFORE authentication
-  const body = await req.json().catch(() => ({}));
   if (body.action === 'health_check') {
-    return new Response(JSON.stringify({ 
-      status: 'healthy', 
-      service: 'email-service',
-      timestamp: new Date().toISOString()
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    // ... health check response ...
   }
+
+  // ... authentication ...
+
+  if (req.method === 'POST' && path === 'send') {
+    return await sendEmail(body); // Pass body directly
+  }
+});
+
+async function sendEmail(emailData: SendEmailRequest): Promise<Response> {
+  // Remove: const emailData: SendEmailRequest = await req.json();
+  // Use: emailData parameter directly
+  
+  let html = emailData.html;
+  let text = emailData.text;
+  // ... rest of logic ...
+}
+
 
   try {
     const authHeader = req.headers.get('Authorization');
