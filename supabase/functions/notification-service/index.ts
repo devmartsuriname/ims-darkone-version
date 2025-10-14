@@ -38,8 +38,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Parse body once and store it
+  let body: any = {};
+  try {
+    const text = await req.text();
+    if (text) {
+      body = JSON.parse(text);
+    }
+  } catch (err) {
+    console.error('Failed to parse request body:', err);
+  }
+
   // ✅ Health check BEFORE authentication
-  const body = await req.json().catch(() => ({}));
   if (body.action === 'health_check') {
     return new Response(JSON.stringify({ 
       status: 'healthy', 
@@ -76,22 +86,21 @@ serve(async (req) => {
     switch (req.method) {
       case 'POST':
         if (path === 'send') {
-          return await sendNotification(req, user.id);
+          return await sendNotification(body, user.id);
         } else if (path === 'send_to_role') {
-          return await sendNotificationToRole(req, user.id);
+          return await sendNotificationToRole(body, user.id);
         } else if (path === 'task-notification') {
-          return await createTaskNotification(req, user.id);
+          return await createTaskNotification(body, user.id);
         } else if (path === 'application-notification') {
-          return await createApplicationNotification(req, user.id);
+          return await createApplicationNotification(body, user.id);
         } else if (path === 'sla-reminders') {
           return await sendSLAReminders();
         } else {
           // Handle POST requests with body-based routing for backwards compatibility
-          const body = await req.json();
           if (body.role && body.title && body.message) {
-            return await sendNotificationToRole(req, user.id);
+            return await sendNotificationToRole(body, user.id);
           } else if (body.type && body.recipients && body.message) {
-            return await sendNotification(req, user.id);
+            return await sendNotification(body, user.id);
           }
         }
         break;
@@ -104,7 +113,7 @@ serve(async (req) => {
         break;
       case 'PUT':
         if (path === 'mark-read') {
-          return await markNotificationsAsRead(req, user.id);
+          return await markNotificationsAsRead(body, user.id);
         }
         break;
     }
@@ -122,8 +131,7 @@ serve(async (req) => {
   }
 });
 
-async function sendNotification(req: Request, userId: string): Promise<Response> {
-  const notificationData: SendNotificationRequest = await req.json();
+async function sendNotification(notificationData: SendNotificationRequest, userId: string): Promise<Response> {
 
   // Process each recipient
   const results = [];
@@ -158,8 +166,8 @@ async function sendNotification(req: Request, userId: string): Promise<Response>
   });
 }
 
-async function createTaskNotification(req: Request, userId: string): Promise<Response> {
-  const { task_id, type }: CreateTaskNotificationRequest = await req.json();
+async function createTaskNotification(data: CreateTaskNotificationRequest, userId: string): Promise<Response> {
+  const { task_id, type } = data;
 
   // Get task details
   const { data: task, error: taskError } = await supabase
@@ -224,8 +232,8 @@ async function createTaskNotification(req: Request, userId: string): Promise<Res
   });
 }
 
-async function createApplicationNotification(req: Request, userId: string): Promise<Response> {
-  const { application_id, type, message }: CreateApplicationNotificationRequest = await req.json();
+async function createApplicationNotification(data: CreateApplicationNotificationRequest, userId: string): Promise<Response> {
+  const { application_id, type, message } = data;
 
   // Get application details
   const { data: application, error: appError } = await supabase
@@ -374,9 +382,9 @@ async function getUserNotifications(req: Request, userId: string): Promise<Respo
   }
 }
 
-async function markNotificationsAsRead(req: Request, userId: string): Promise<Response> {
+async function markNotificationsAsRead(body: any, userId: string): Promise<Response> {
   try {
-    const { notification_ids } = await req.json();
+    const { notification_ids } = body;
 
     if (!notification_ids || !Array.isArray(notification_ids)) {
       return new Response(JSON.stringify({ error: 'Invalid notification_ids' }), {
@@ -457,8 +465,8 @@ async function sendSMSNotification(phone: string, data: SendNotificationRequest)
   return { type: 'sms', sent: true, provider: 'placeholder' };
 }
 
-async function sendNotificationToRole(req: Request, userId: string): Promise<Response> {
-  const { role, title, message, type, category, application_id, metadata } = await req.json();
+async function sendNotificationToRole(body: any, userId: string): Promise<Response> {
+  const { role, title, message, type, category, application_id, metadata } = body;
 
   try {
     // Get all users with the specified role

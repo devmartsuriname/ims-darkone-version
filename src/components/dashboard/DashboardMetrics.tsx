@@ -61,11 +61,13 @@ MetricCard.displayName = 'MetricCard';
 
 interface ConnectionStatusProps {
   isConnected: boolean;
-  lastUpdated: Date;
+  lastUpdated: Date | null;
 }
 
 const ConnectionStatus: React.FC<ConnectionStatusProps> = memo(({ isConnected, lastUpdated }) => {
-  const formatLastUpdated = (date: Date) => {
+  const formatLastUpdated = (date: Date | null) => {
+    if (!date) return 'never';
+    
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
