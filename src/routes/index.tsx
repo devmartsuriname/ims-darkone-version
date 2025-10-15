@@ -77,6 +77,7 @@ const EndToEndTestPage = lazy(() => import('@/app/(admin)/testing/end-to-end/pag
 const SystemValidationPage = lazy(() => import('@/app/(admin)/testing/system-validation/page'))
 const UATPreparationPage = lazy(() => import('@/app/(admin)/testing/uat-preparation/page'))
 const QADashboardPage = lazy(() => import('@/app/(admin)/qa/dashboard/page'))
+const ValidationDashboardPage = lazy(() => import('@/app/(admin)/testing/validation-dashboard/page'))
 
 // Notification Pages
 const NotificationsPage = lazy(() => import('@/app/(admin)/notifications/page'))
@@ -326,6 +327,16 @@ const imsRoutes: RoutesProps[] = [
     element: (
       <RouteGuard allowedRoles={['admin', 'it']}>
         <UATPreparationPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/testing/validation-dashboard',
+    name: 'Validation Dashboard',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <ValidationDashboardPage />
       </RouteGuard>
     ),
     exact: true,
