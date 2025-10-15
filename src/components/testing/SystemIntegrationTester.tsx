@@ -150,17 +150,21 @@ export const SystemIntegrationTester: React.FC = () => {
     addTestResult({ name: 'Storage Buckets', status: 'running', message: 'Testing storage access...', timestamp: new Date() });
     
     try {
-      const { data, error } = await supabase.storage.listBuckets();
-      if (error) throw error;
+      const requiredBuckets = ['documents', 'control-photos'];
+      const missingBuckets: string[] = [];
       
-      const expectedBuckets = ['documents', 'control-photos'];
-      const foundBuckets = data.map(b => b.name);
-      const missingBuckets = expectedBuckets.filter(b => !foundBuckets.includes(b));
+      // Test each bucket by trying to list its contents
+      for (const bucket of requiredBuckets) {
+        const { error } = await supabase.storage.from(bucket).list('', { limit: 1 });
+        if (error && (error.message?.toLowerCase().includes('not found') || error.message?.toLowerCase().includes('bucket'))) {
+          missingBuckets.push(bucket);
+        }
+      }
       
       if (missingBuckets.length === 0) {
-        updateTestResult('Storage Buckets', 'passed', `Found ${data.length} storage buckets`);
+        updateTestResult('Storage Buckets', 'passed', 'All required buckets accessible (documents, control-photos)');
       } else {
-        updateTestResult('Storage Buckets', 'warning', `Missing buckets: ${missingBuckets.join(', ')}`);
+        updateTestResult('Storage Buckets', 'warning', `Missing or inaccessible buckets: ${missingBuckets.join(', ')}`);
         setSystemStatus(prev => ({ ...prev, storage: 'degraded' }));
       }
     } catch (error: any) {

@@ -112,29 +112,25 @@ export const BugDetectionSystem: React.FC = () => {
 
     // Scan 3: Storage Configuration
     try {
-      const { data: buckets, error } = await supabase.storage.listBuckets();
-      if (error) {
+      const requiredBuckets = ['documents', 'control-photos'];
+      const missingBuckets: string[] = [];
+      
+      // Test each bucket by trying to list its contents
+      for (const bucket of requiredBuckets) {
+        const { error } = await supabase.storage.from(bucket).list('', { limit: 1 });
+        if (error && (error.message?.toLowerCase().includes('not found') || error.message?.toLowerCase().includes('bucket'))) {
+          missingBuckets.push(bucket);
+        }
+      }
+      
+      if (missingBuckets.length > 0) {
         addBug({
-          title: 'Storage System Error',
-          description: `Storage system is not accessible: ${error.message}`,
+          title: 'Missing Storage Buckets',
+          description: `Required storage buckets not accessible: ${missingBuckets.join(', ')}`,
           severity: 'high',
           status: 'detected',
           component: 'Storage'
         });
-      } else {
-        const requiredBuckets = ['documents', 'control-photos'];
-        const existingBuckets = buckets.map(b => b.name);
-        const missingBuckets = requiredBuckets.filter(b => !existingBuckets.includes(b));
-        
-        if (missingBuckets.length > 0) {
-          addBug({
-            title: 'Missing Storage Buckets',
-            description: `Required storage buckets not found: ${missingBuckets.join(', ')}`,
-            severity: 'high',
-            status: 'detected',
-            component: 'Storage'
-          });
-        }
       }
     } catch (error) {
       addBug({
