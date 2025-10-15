@@ -29,6 +29,12 @@ const ProductionReadinessPage = lazy(() => import('@/app/(admin)/deployment/read
 // IMS Workflow Management Pages
 const WorkflowValidationPage = lazy(() => import('@/app/(admin)/testing/workflow-validation/page'))
 const WorkflowTestingPage = lazy(() => import('@/app/(admin)/workflow/testing/page'))
+const WorkflowMonitoringPage = lazy(() => import('@/app/(admin)/workflow/monitoring/page'))
+
+// IMS Monitoring Pages
+const SystemHealthPage = lazy(() => import('@/app/(admin)/monitoring/health/page'))
+const PerformanceMonitoringPage = lazy(() => import('@/app/(admin)/monitoring/performance/page'))
+const SecurityHealthPage = lazy(() => import('@/app/(admin)/monitoring/security/page'))
 
 
 // Polish Pages  
@@ -175,9 +181,13 @@ const imsRoutes: RoutesProps[] = [
   },
   // Testing
   {
-    path: '/admin/testing/integration',
+    path: '/testing/integration',
     name: 'Integration Testing',
-    element: <IntegrationTestingPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <IntegrationTestingPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
@@ -203,7 +213,52 @@ const imsRoutes: RoutesProps[] = [
   {
     path: '/workflow/testing',
     name: 'Workflow Testing', 
-    element: <WorkflowTestingPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <WorkflowTestingPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/workflow/monitoring',
+    name: 'Workflow Monitoring',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it', 'staff']}>
+        <WorkflowMonitoringPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  // Monitoring Routes
+  {
+    path: '/monitoring/health',
+    name: 'System Health',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <SystemHealthPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/monitoring/performance',
+    name: 'Performance Monitoring',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <PerformanceMonitoringPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/monitoring/security',
+    name: 'Security Health Scanner',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <SecurityHealthPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   // Final Polish Routes
