@@ -155,8 +155,7 @@ export const SystemMetricsDashboard: React.FC = () => {
   if (showPerformance) {
     return (
       <div>
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h5>Performance Monitoring</h5>
+        <div className="d-flex justify-content-end align-items-center mb-4">
           <button 
             className="btn btn-outline-secondary"
             onClick={() => setShowPerformance(false)}
@@ -172,8 +171,7 @@ export const SystemMetricsDashboard: React.FC = () => {
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h5>System Metrics Dashboard</h5>
+      <div className="d-flex justify-content-end align-items-center mb-4">
         <div>
           <button 
             className="btn btn-outline-primary me-2"
