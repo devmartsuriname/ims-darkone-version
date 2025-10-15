@@ -191,9 +191,13 @@ const imsRoutes: RoutesProps[] = [
     exact: true,
   },
   {
-    path: '/admin/testing/end-to-end',
+    path: '/testing/end-to-end',
     name: 'End-to-End Testing',
-    element: <EndToEndTestPage />,
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <EndToEndTestPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   {
