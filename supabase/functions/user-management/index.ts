@@ -39,109 +39,88 @@ interface AssignRoleRequest {
 }
 
 serve(async (req) => {
-  // ... CORS ...
-
-  let body: any = {};
-  try {
-    const text = await req.text();
-    if (text) {
-      body = JSON.parse(text);
-    }
-  } catch (err) {
-    console.error('Failed to parse request body:', err);
-  }
-
-  if (body.action === 'health_check') {
-    // ... health check ...
-  }
-
-  // ... authentication and role checks ...
-
-  // Pass body to handlers
-  if (!path || path === 'user-management' || path === 'create') {
-    return await createUser(body, user?.id || null);
-  } else if (path === 'assign-role') {
-    return await assignRole(body, user.id);
-  } else if (path === 'create_test_data') {
-    return await createTestData(body);
-  }
-  // ... other routes ...
-});
-
-// Update handler signatures
-async function createUser(userData: CreateUserRequest, adminId: string | null) {
-  // Remove: const userData: CreateUserRequest = await req.json();
-  // Use: userData parameter
-}
-
-async function updateUser(updateData: UpdateUserRequest, userId: string, adminId: string) {
-  // Remove: const updateData: UpdateUserRequest = await req.json();
-  // Use: updateData parameter
-}
-
-async function assignRole(roleData: AssignRoleRequest, adminId: string) {
-  // Remove: const { user_id, role, is_active = true }: AssignRoleRequest = await req.json();
-  // Use: roleData parameter
-}
-
-
-  // Check if this is the initial admin creation (no admin users exist)
-  const { data: adminCount, error: countError } = await supabase
-    .from('user_roles')
-    .select('id')
-    .eq('role', 'admin')
-    .eq('is_active', true);
-
-  const isInitialSetup = !countError && (!adminCount || adminCount.length === 0);
-
-  let user = null;
-
-  // For initial setup, we don't require authentication
-  if (!isInitialSetup) {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !authUser) {
-      return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    user = authUser;
-  }
-
-  // For non-initial setup, check if user has admin/IT role
-  if (!isInitialSetup) {
-    const { data: hasPermission, error: permError } = await supabase
-      .rpc('is_admin_or_it');
-
-    if (permError || !hasPermission) {
-      return new Response(JSON.stringify({ error: 'Insufficient permissions' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Parse body once
+    let body: any = {};
+    try {
+      const text = await req.text();
+      if (text) {
+        body = JSON.parse(text);
+      }
+    } catch (err) {
+      console.error('Failed to parse request body:', err);
+    }
+
+    // Health check
+    if (body.action === 'health_check') {
+      return new Response(JSON.stringify({ 
+        status: 'healthy', 
+        service: 'user-management',
+        timestamp: new Date().toISOString()
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Check if this is the initial admin creation (no admin users exist)
+    const { data: adminCount, error: countError } = await supabase
+      .from('user_roles')
+      .select('id')
+      .eq('role', 'admin')
+      .eq('is_active', true);
+
+    const isInitialSetup = !countError && (!adminCount || adminCount.length === 0);
+
+    let user = null;
+
+    // For initial setup, we don't require authentication
+    if (!isInitialSetup) {
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      );
+
+      if (authError || !authUser) {
+        return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      user = authUser;
+    }
+
+    // For non-initial setup, check if user has admin/IT role
+    if (!isInitialSetup && user) {
+      const { data: hasPermission, error: permError } = await supabase
+        .rpc('is_admin_or_it');
+
+      if (permError || !hasPermission) {
+        return new Response(JSON.stringify({ error: 'Insufficient permissions' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
 
     switch (req.method) {
       case 'POST':
-        // Handle direct user creation for initial setup (without URL path)
         if (!path || path === 'user-management' || path === 'create') {
-          return await createUser(req, user?.id || null);
+          return await createUser(body, user?.id || null);
         } else if (path === 'assign-role') {
           if (!user) {
             return new Response(JSON.stringify({ error: 'Authentication required' }), {
@@ -149,22 +128,14 @@ async function assignRole(roleData: AssignRoleRequest, adminId: string) {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
           }
-          return await assignRole(req, user.id);
-        } else if (path === 'health_check') {
-          return new Response(JSON.stringify({ 
-            status: 'healthy', 
-            service: 'user-management',
-            timestamp: new Date().toISOString()
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return await assignRole(body, user.id);
         } else if (path === 'create_test_data') {
-          return await createTestData(req);
+          return await createTestData();
         }
         break;
       case 'GET':
         if (path === 'list') {
-          return await listUsers(req);
+          return await listUsers(url);
         } else if (path && path !== 'user-management') {
           return await getUser(path);
         }
@@ -177,7 +148,7 @@ async function assignRole(roleData: AssignRoleRequest, adminId: string) {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
           }
-          return await updateUser(req, path, user.id);
+          return await updateUser(body, path, user.id);
         }
         break;
       case 'DELETE':
@@ -206,9 +177,7 @@ async function assignRole(roleData: AssignRoleRequest, adminId: string) {
   }
 });
 
-async function createUser(req: Request, adminId: string | null): Promise<Response> {
-  const userData: CreateUserRequest = await req.json();
-
+async function createUser(userData: CreateUserRequest, adminId: string | null): Promise<Response> {
   // Create auth user
   const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
     email: userData.email,
@@ -229,7 +198,6 @@ async function createUser(req: Request, adminId: string | null): Promise<Respons
   }
 
   // Update the profile created by the trigger with additional fields
-  // The profile is automatically created by handle_new_user() trigger
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .update({
@@ -243,7 +211,6 @@ async function createUser(req: Request, adminId: string | null): Promise<Respons
 
   if (profileError) {
     console.error('Failed to update profile:', profileError);
-    // Cleanup auth user if profile update fails
     await supabase.auth.admin.deleteUser(authUser.user.id);
     throw new Error(`Failed to update profile: ${profileError.message}`);
   }
@@ -251,14 +218,19 @@ async function createUser(req: Request, adminId: string | null): Promise<Respons
   // Assign role
   const { error: roleError } = await supabase
     .from('user_roles')
+    .update({ is_active: false })
+    .eq('user_id', authUser.user.id);
+
+  const { error: newRoleError } = await supabase
+    .from('user_roles')
     .insert([{
       user_id: authUser.user.id,
       role: userData.role,
-      assigned_by: adminId || authUser.user.id, // Self-assigned for initial admin
+      assigned_by: adminId || authUser.user.id,
     }]);
 
-  if (roleError) {
-    console.error('Failed to assign role:', roleError);
+  if (newRoleError) {
+    console.error('Failed to assign role:', newRoleError);
   }
 
   return new Response(JSON.stringify({
@@ -274,9 +246,7 @@ async function createUser(req: Request, adminId: string | null): Promise<Respons
   });
 }
 
-async function updateUser(req: Request, userId: string, adminId: string): Promise<Response> {
-  const updateData: UpdateUserRequest = await req.json();
-
+async function updateUser(updateData: UpdateUserRequest, userId: string, adminId: string): Promise<Response> {
   const { data: profile, error: updateError } = await supabase
     .from('profiles')
     .update({
@@ -304,8 +274,8 @@ async function updateUser(req: Request, userId: string, adminId: string): Promis
   });
 }
 
-async function assignRole(req: Request, adminId: string): Promise<Response> {
-  const { user_id, role, is_active = true }: AssignRoleRequest = await req.json();
+async function assignRole(roleData: AssignRoleRequest, adminId: string): Promise<Response> {
+  const { user_id, role, is_active = true } = roleData;
 
   // Deactivate existing roles
   const { error: deactivateError } = await supabase
@@ -341,8 +311,7 @@ async function assignRole(req: Request, adminId: string): Promise<Response> {
   });
 }
 
-async function listUsers(req: Request): Promise<Response> {
-  const url = new URL(req.url);
+async function listUsers(url: URL): Promise<Response> {
   const page = parseInt(url.searchParams.get('page') || '1');
   const limit = parseInt(url.searchParams.get('limit') || '20');
   const role = url.searchParams.get('role');
@@ -399,7 +368,6 @@ async function getUser(userId: string): Promise<Response> {
 }
 
 async function deactivateUser(userId: string, adminId: string): Promise<Response> {
-  // Deactivate profile
   const { error: profileError } = await supabase
     .from('profiles')
     .update({ is_active: false, updated_at: new Date().toISOString() })
@@ -409,7 +377,6 @@ async function deactivateUser(userId: string, adminId: string): Promise<Response
     throw new Error(`Failed to deactivate profile: ${profileError.message}`);
   }
 
-  // Deactivate roles
   const { error: roleError } = await supabase
     .from('user_roles')
     .update({ is_active: false })
@@ -426,46 +393,45 @@ async function deactivateUser(userId: string, adminId: string): Promise<Response
   });
 }
 
-async function createTestData(req: Request): Promise<Response> {
+async function createTestData(): Promise<Response> {
   try {
     console.log('Creating comprehensive test data for workflow testing...');
     
-    // Create test users with different roles
     const testUsers = [
       {
         email: 'admin@ims.sr',
         password: 'TestAdmin123!',
         first_name: 'System',
         last_name: 'Administrator',
-        role: 'admin'
+        role: 'admin' as const
       },
       {
         email: 'director@ims.sr', 
         password: 'TestDirector123!',
         first_name: 'Housing',
         last_name: 'Director',
-        role: 'director'
+        role: 'director' as const
       },
       {
         email: 'minister@ims.sr',
         password: 'TestMinister123!',
         first_name: 'Housing',
         last_name: 'Minister', 
-        role: 'minister'
+        role: 'minister' as const
       },
       {
         email: 'staff@ims.sr',
         password: 'TestStaff123!',
         first_name: 'Front Office',
         last_name: 'Staff',
-        role: 'staff'
+        role: 'staff' as const
       },
       {
         email: 'control@ims.sr',
         password: 'TestControl123!',
         first_name: 'Control',
         last_name: 'Inspector',
-        role: 'control'
+        role: 'control' as const
       }
     ];
 
@@ -473,7 +439,6 @@ async function createTestData(req: Request): Promise<Response> {
     
     for (const userData of testUsers) {
       try {
-        // Create auth user
         const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
           email: userData.email,
           password: userData.password,
@@ -490,7 +455,6 @@ async function createTestData(req: Request): Promise<Response> {
         }
 
         if (authUser.user) {
-          // Create profile
           const { error: profileError } = await supabase
             .from('profiles')
             .upsert({
@@ -498,132 +462,52 @@ async function createTestData(req: Request): Promise<Response> {
               email: userData.email,
               first_name: userData.first_name,
               last_name: userData.last_name,
-              department: 'Test Department',
-              position: userData.role.charAt(0).toUpperCase() + userData.role.slice(1),
-              is_active: true
             });
 
           if (profileError) {
-            console.error('Profile creation error:', profileError);
+            console.error(`Failed to create profile for ${userData.email}:`, profileError);
           }
 
-          // Assign role
+          await supabase
+            .from('user_roles')
+            .update({ is_active: false })
+            .eq('user_id', authUser.user.id);
+
           const { error: roleError } = await supabase
             .from('user_roles')
-            .upsert({
+            .insert([{
               user_id: authUser.user.id,
               role: userData.role,
               assigned_by: authUser.user.id,
-              is_active: true
-            });
+            }]);
 
           if (roleError) {
-            console.error('Role assignment error:', roleError);
+            console.error(`Failed to assign role for ${userData.email}:`, roleError);
           }
 
           createdUsers.push({
-            id: authUser.user.id,
             email: userData.email,
-            role: userData.role
+            role: userData.role,
+            id: authUser.user.id
           });
         }
       } catch (error) {
-        console.error(`Failed to create user ${userData.email}:`, error);
-      }
-    }
-
-    // Create test applicants
-    const testApplicants = [
-      {
-        first_name: 'John',
-        last_name: 'Doe',
-        national_id: 'SR001234567',
-        email: 'john.doe@example.sr',
-        phone: '+597-123-4567',
-        address: '123 Main Street, Paramaribo',
-        district: 'Paramaribo',
-        nationality: 'Surinamese',
-        marital_status: 'Married',
-        employment_status: 'Employed',
-        monthly_income: 2500.00
-      },
-      {
-        first_name: 'Jane',
-        last_name: 'Smith',
-        national_id: 'SR007654321',
-        email: 'jane.smith@example.sr',
-        phone: '+597-765-4321',
-        address: '456 Side Street, Nieuw Nickerie',
-        district: 'Nickerie',
-        nationality: 'Surinamese',
-        marital_status: 'Single',
-        employment_status: 'Self-employed',
-        monthly_income: 1800.00
-      }
-    ];
-
-    const createdApplicants = [];
-    for (const applicantData of testApplicants) {
-      const { data: applicant, error: applicantError } = await supabase
-        .from('applicants')
-        .insert(applicantData)
-        .select()
-        .single();
-
-      if (!applicantError && applicant) {
-        createdApplicants.push(applicant);
-      }
-    }
-
-    // Create test applications
-    const adminUser = createdUsers.find(u => u.role === 'admin');
-    const staffUser = createdUsers.find(u => u.role === 'staff');
-
-    if (adminUser && createdApplicants.length > 0) {
-      const testApplications = createdApplicants.map((applicant, index) => ({
-        applicant_id: applicant.id,
-        application_number: `TEST-2024-${String(index + 1).padStart(4, '0')}`,
-        service_type: 'SUBSIDY',
-        current_state: 'DRAFT',
-        property_address: applicant.address,
-        property_district: applicant.district,
-        property_type: 'RESIDENTIAL',
-        property_surface_area: 150.0,
-        requested_amount: 25000.00,
-        reason_for_request: 'Home renovation and improvement',
-        title_type: 'Eigendom',
-        ownership_status: 'Owner',
-        created_by: staffUser?.id || adminUser.id,
-        priority_level: index === 0 ? 1 : 3
-      }));
-
-      const { data: applications, error: applicationError } = await supabase
-        .from('applications')
-        .insert(testApplications)
-        .select();
-
-      if (applicationError) {
-        console.error('Application creation error:', applicationError);
+        console.error(`Error creating user ${userData.email}:`, error);
       }
     }
 
     return new Response(JSON.stringify({
-      message: 'Test data created successfully',
-      created: {
-        users: createdUsers.length,
-        applicants: createdApplicants.length,
-        note: 'Test users created with passwords: TestRole123! (e.g., TestAdmin123!)'
-      }
+      success: true,
+      message: `Created ${createdUsers.length} test users`,
+      users: createdUsers,
+      credentials: testUsers.map(u => ({ email: u.email, password: u.password, role: u.role }))
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
-    console.error('Error creating test data:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to create test data',
-      details: error.message 
-    }), {
+    console.error('Failed to create test data:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
