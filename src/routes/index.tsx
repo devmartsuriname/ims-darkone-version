@@ -14,10 +14,17 @@ const ApplicationListPage = lazy(() => import('@/app/(admin)/applications/list/p
 
 // IMS Control Pages
 const ControlQueuePage = lazy(() => import('@/app/(admin)/control/queue/page'))
+const ControlSchedulePage = lazy(() => import('@/app/(admin)/control/schedule/page'))
+const ControlVisitPage = lazy(() => import('@/app/(admin)/control/visit/page'))
+const ControlVisitsPage = lazy(() => import('@/app/(admin)/control/visits/page'))
 
 // IMS Review Pages
 const DirectorReviewPage = lazy(() => import('@/app/(admin)/reviews/director/page'))
 const MinisterDecisionPage = lazy(() => import('@/app/(admin)/reviews/minister/page'))
+const TechnicalReviewPage = lazy(() => import('@/app/(admin)/reviews/technical/page'))
+const SocialReviewPage = lazy(() => import('@/app/(admin)/reviews/social/page'))
+const SocialAssessmentPage = lazy(() => import('@/app/(admin)/reviews/social/assessment/page'))
+const ReviewArchivePage = lazy(() => import('@/app/(admin)/reviews/archive/page'))
 
 // IMS Admin Pages
 const UserManagementPage = lazy(() => import('@/app/(admin)/admin/users/page'))
@@ -29,6 +36,7 @@ const HelpPage = lazy(() => import('@/app/(admin)/help/page'))
 
 // IMS Deployment Pages
 const ProductionReadinessPage = lazy(() => import('@/app/(admin)/deployment/readiness/page'))
+const DeploymentGuidePage = lazy(() => import('@/app/(admin)/deployment/guide/page'))
 
 // IMS Workflow Management Pages
 const WorkflowValidationPage = lazy(() => import('@/app/(admin)/testing/workflow-validation/page'))
@@ -45,12 +53,15 @@ const PerformanceOptimizationPage = lazy(() => import('@/app/(admin)/polish/perf
 const UXEnhancementPage = lazy(() => import('@/app/(admin)/polish/ux-enhancement/page'))
 const DocumentationPage = lazy(() => import('@/app/(admin)/polish/documentation/page'))
 const PolishProductionReadinessPage = lazy(() => import('@/app/(admin)/polish/production-readiness/page'))
+const PolishSecurityPage = lazy(() => import('@/app/(admin)/polish/security/page'))
+const PolishUATPage = lazy(() => import('@/app/(admin)/polish/uat/page'))
 
 // IMS Security Pages
 const SecurityScanningPage = lazy(() => import('@/app/(admin)/security/scanning/page'))
 const SecurityMonitoringPage = lazy(() => import('@/app/(admin)/security/monitoring/page'))
 const SecurityHardeningPage = lazy(() => import('@/app/(admin)/security/hardening/page'))
 const PenetrationTestingPage = lazy(() => import('@/app/(admin)/security/penetration/page'))
+const SecurityFinalValidationPage = lazy(() => import('@/app/(admin)/security/final-validation/page'))
 
 
 
@@ -65,12 +76,18 @@ const IntegrationTestingPage = lazy(() => import('@/app/(admin)/testing/integrat
 const EndToEndTestPage = lazy(() => import('@/app/(admin)/testing/end-to-end/page'))
 const SystemValidationPage = lazy(() => import('@/app/(admin)/testing/system-validation/page'))
 const UATPreparationPage = lazy(() => import('@/app/(admin)/testing/uat-preparation/page'))
+const QADashboardPage = lazy(() => import('@/app/(admin)/qa/dashboard/page'))
 
 // Notification Pages
 const NotificationsPage = lazy(() => import('@/app/(admin)/notifications/page'))
 
 const AuthenticationSetupPage = lazy(() => import('@/app/(admin)/admin/auth-setup/page'))
 const AuthenticationGuidePage = lazy(() => import('@/app/(admin)/admin/auth-guide/page'))
+const NotificationPreferencesPage = lazy(() => import('@/app/(admin)/admin/notification-preferences/page'))
+
+// Documentation Pages
+const TechnicalDocumentationPage = lazy(() => import('@/app/(admin)/documentation/technical/page'))
+const UserGuidePage = lazy(() => import('@/app/(admin)/documentation/user-guide/page'))
 
 // Error Pages
 const Error404 = lazy(() => import('@/app/(other)/error-pages/pages-404/page'))
@@ -129,6 +146,36 @@ const imsRoutes: RoutesProps[] = [
     ),
     exact: true,
   },
+  {
+    path: '/control/schedule',
+    name: 'Schedule Control Visit',
+    element: (
+      <RouteGuard allowedRoles={['control', 'admin', 'it']}>
+        <ControlSchedulePage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/control/visit',
+    name: 'Control Visit',
+    element: (
+      <RouteGuard allowedRoles={['control', 'admin', 'it']}>
+        <ControlVisitPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/control/visits',
+    name: 'Control Visits',
+    element: (
+      <RouteGuard allowedRoles={['control', 'admin', 'it', 'staff']}>
+        <ControlVisitsPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
   // Reviews & Decisions
   {
     path: '/reviews/director',
@@ -146,6 +193,46 @@ const imsRoutes: RoutesProps[] = [
     element: (
       <RouteGuard allowedRoles={['minister', 'admin', 'it']}>
         <MinisterDecisionPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/reviews/technical',
+    name: 'Technical Review',
+    element: (
+      <RouteGuard allowedRoles={['control', 'admin', 'it', 'staff']}>
+        <TechnicalReviewPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/reviews/social',
+    name: 'Social Review',
+    element: (
+      <RouteGuard allowedRoles={['staff', 'admin', 'it']}>
+        <SocialReviewPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/reviews/social/assessment',
+    name: 'Social Assessment',
+    element: (
+      <RouteGuard allowedRoles={['staff', 'admin', 'it']}>
+        <SocialAssessmentPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/reviews/archive',
+    name: 'Review Archive',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it', 'staff', 'director', 'minister']}>
+        <ReviewArchivePage />
       </RouteGuard>
     ),
     exact: true,
@@ -171,6 +258,12 @@ const imsRoutes: RoutesProps[] = [
     path: '/admin/auth-guide',
     name: 'Authentication Guide',
     element: <AuthenticationGuidePage />,
+    exact: true,
+  },
+  {
+    path: '/admin/notification-preferences',
+    name: 'Notification Preferences',
+    element: <NotificationPreferencesPage />,
     exact: true,
   },
   {
@@ -233,6 +326,16 @@ const imsRoutes: RoutesProps[] = [
     element: (
       <RouteGuard allowedRoles={['admin', 'it']}>
         <UATPreparationPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/qa/dashboard',
+    name: 'QA Dashboard',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <QADashboardPage />
       </RouteGuard>
     ),
     exact: true,
@@ -354,11 +457,41 @@ const imsRoutes: RoutesProps[] = [
     exact: true,
   },
   {
+    path: '/polish/security',
+    name: 'Security Polish',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <PolishSecurityPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/polish/uat',
+    name: 'UAT Polish',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <PolishUATPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
     path: '/deployment/readiness',
     name: 'Production Readiness',
     element: (
       <RouteGuard allowedRoles={['admin', 'it']}>
         <ProductionReadinessPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/deployment/guide',
+    name: 'Deployment Guide',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <DeploymentGuidePage />
       </RouteGuard>
     ),
     exact: true,
@@ -400,6 +533,43 @@ const imsRoutes: RoutesProps[] = [
     element: (
       <RouteGuard allowedRoles={['admin', 'it']}>
         <PenetrationTestingPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/security/final-validation',
+    name: 'Security Final Validation',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <SecurityFinalValidationPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  // Documentation
+  {
+    path: '/documentation/technical',
+    name: 'Technical Documentation',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <TechnicalDocumentationPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/documentation/user-guide',
+    name: 'User Guide',
+    element: <UserGuidePage />,
+    exact: true,
+  },
+  {
+    path: '/monitoring/system-health',
+    name: 'System Health Monitoring',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <SystemHealthPage />
       </RouteGuard>
     ),
     exact: true,
