@@ -325,14 +325,6 @@ const MinisterDecisionDashboard: React.FC = () => {
 
       if (stepError) throw stepError;
 
-      // Send notification (placeholder for future notification system)
-      console.log('Decision notification should be sent to:', {
-        applicationId,
-        decision,
-        finalAmount,
-        notes
-      });
-
       // Refresh applications list
       fetchApplications();
     } catch (error) {

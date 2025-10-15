@@ -37,7 +37,7 @@ const SocialAssessmentPage = () => {
           <SocialAssessmentForm 
             applicationId={applicationId}
             onSubmit={() => {
-              console.log('Social assessment completed')
+              // Social assessment completed
             }}
           />
         </Container>

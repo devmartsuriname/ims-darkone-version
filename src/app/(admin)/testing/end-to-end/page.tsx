@@ -13,13 +13,9 @@ const EndToEndTestPage: React.FC = () => {
     setResults([])
 
     try {
-      console.log('Starting End-to-End Workflow Test...')
       const workflowResults = await IMSIntegrationTester.testCompleteWorkflow()
       setResults(workflowResults)
-      
-      console.log('End-to-End test completed:', workflowResults)
     } catch (error) {
-      console.error('End-to-End test failed:', error)
       setResults([{
         success: false,
         step: 'End-to-End Test',

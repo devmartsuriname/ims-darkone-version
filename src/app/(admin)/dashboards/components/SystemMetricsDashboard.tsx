@@ -98,7 +98,7 @@ export const SystemMetricsDashboard: React.FC = () => {
         storage: storageStats
       });
     } catch (error) {
-      console.error('Failed to fetch system stats:', error);
+      // Error fetching system stats
     } finally {
       setIsLoading(false);
     }
