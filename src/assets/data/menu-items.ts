@@ -260,6 +260,13 @@ export const MENU_ITEMS: MenuItemType[] = [
         allowedRoles: ['admin', 'it'],
       },
       {
+        key: 'validation-dashboard',
+        label: 'Validation Dashboard',
+        url: '/testing/validation-dashboard',
+        parentKey: 'testing',
+        allowedRoles: ['admin', 'it'],
+      },
+      {
         key: 'end-to-end-testing',
         label: 'End-to-End Testing',
         url: '/testing/end-to-end',
@@ -323,7 +330,7 @@ export const MENU_ITEMS: MenuItemType[] = [
     label: "System Monitoring",
     isTitle: false,
     icon: "solar:monitor-bold",
-    url: "/monitoring/health",
+    url: "/monitoring/system-health",
     allowedRoles: ['admin', 'it'],
   },
 

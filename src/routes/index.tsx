@@ -387,13 +387,19 @@ const imsRoutes: RoutesProps[] = [
   },
   // Monitoring Routes (Consolidated)
   {
-    path: '/monitoring/health',
+    path: '/monitoring/system-health',
     name: 'System Health',
     element: (
       <RouteGuard allowedRoles={['admin', 'it']}>
         <SystemHealthPage />
       </RouteGuard>
     ),
+    exact: true,
+  },
+  {
+    path: '/monitoring/health',
+    name: 'System Health Redirect',
+    element: <Navigate to="/monitoring/system-health" replace />,
     exact: true,
   },
   {

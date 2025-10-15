@@ -36,7 +36,7 @@ const ROUTES_TO_TEST: RouteTest[] = [
   { path: '/workflow/monitoring', name: 'Workflow Monitoring', allowedRoles: ['admin', 'it', 'staff'], category: 'Workflow' },
   
   // Monitoring Routes
-  { path: '/monitoring/health', name: 'System Health', allowedRoles: ['admin', 'it'], category: 'Monitoring' },
+  { path: '/monitoring/system-health', name: 'System Health', allowedRoles: ['admin', 'it'], category: 'Monitoring' },
   { path: '/monitoring/performance', name: 'Performance Monitoring', allowedRoles: ['admin', 'it'], category: 'Monitoring' },
   { path: '/monitoring/security', name: 'Security Health', allowedRoles: ['admin', 'it'], category: 'Monitoring' },
   
