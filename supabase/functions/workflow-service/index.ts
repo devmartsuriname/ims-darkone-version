@@ -783,12 +783,11 @@ async function sendStateTransitionNotifications(
     if (targetRole) {
       await supabase.functions.invoke('notification-service', {
         body: {
+          action: 'sendNotificationToRole',
           role: targetRole,
           title: 'New Application Assignment',
           message: `Application ${application.application_number} (${applicantName}) is now ready for ${formatStateName(toState)}`,
-          type: 'INFO',
-          category: 'APPLICATION',
-          application_id: applicationId
+          type: 'INFO'
         }
       });
     }
