@@ -7,10 +7,26 @@ import PageTitle from '@/components/PageTitle';
 import { useAuthContext } from '@/context/useAuthContext';
 
 export const IntegrationTestDashboard: React.FC = () => {
-  const { roles } = useAuthContext();
+  const { roles, loading } = useAuthContext();
   const [activeTab, setActiveTab] = useState('integration');
 
-  const userRoles = roles.map(r => r.role);
+  // Show loading state while auth is initializing
+  if (loading) {
+    return (
+      <div className="container-fluid">
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+          <div className="text-center">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="mt-3 text-muted">Loading integration testing dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const userRoles = roles?.map(r => r.role) || [];
   const isAdminOrIT = userRoles.includes('admin') || userRoles.includes('it');
 
   if (!isAdminOrIT) {
