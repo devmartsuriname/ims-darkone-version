@@ -101,8 +101,8 @@ serve(async (req) => {
       console.error('Failed to parse request body:', err);
     }
 
-    // Health check
-    if (body.action === 'health_check') {
+    // Health check (supports both 'health_check' and 'health-check')
+    if (body.action === 'health_check' || body.action === 'health-check') {
       return new Response(JSON.stringify({ 
         status: 'healthy', 
         service: 'workflow-service',
