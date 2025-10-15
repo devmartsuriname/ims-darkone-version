@@ -239,6 +239,13 @@ export const MENU_ITEMS: MenuItemType[] = [
     allowedRoles: ['admin', 'it'],
     children: [
       {
+        key: 'system-validation',
+        label: 'System Validation',
+        url: '/testing/system-validation',
+        parentKey: 'testing',
+        allowedRoles: ['admin', 'it'],
+      },
+      {
         key: 'integration-testing',
         label: 'Integration Testing',
         url: '/testing/integration',

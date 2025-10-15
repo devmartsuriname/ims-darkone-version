@@ -59,6 +59,7 @@ const LockScreen = lazy(() => import('@/app/(other)/auth/lock-screen/page'))
 // Testing Pages
 const IntegrationTestingPage = lazy(() => import('@/app/(admin)/testing/integration/page'))
 const EndToEndTestPage = lazy(() => import('@/app/(admin)/testing/end-to-end/page'))
+const SystemValidationPage = lazy(() => import('@/app/(admin)/testing/system-validation/page'))
 
 // Notification Pages
 const NotificationsPage = lazy(() => import('@/app/(admin)/notifications/page'))
@@ -192,6 +193,16 @@ const imsRoutes: RoutesProps[] = [
     path: '/admin/testing/end-to-end',
     name: 'End-to-End Testing',
     element: <EndToEndTestPage />,
+    exact: true,
+  },
+  {
+    path: '/testing/system-validation',
+    name: 'System Validation',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <SystemValidationPage />
+      </RouteGuard>
+    ),
     exact: true,
   },
   // Notifications
