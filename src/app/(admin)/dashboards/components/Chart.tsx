@@ -8,30 +8,6 @@ import { memo, useMemo } from 'react'
 const Chart = memo(() => {
   const { chartData, isLoading, error } = useChartData()
 
-  if (isLoading) {
-    return (
-      <Col lg={12}>
-        <Card className="card-height-100">
-          <CardBody className="d-flex align-items-center justify-content-center">
-            <Spinner />
-          </CardBody>
-        </Card>
-      </Col>
-    )
-  }
-
-  if (error) {
-    return (
-      <Col lg={12}>
-        <Card className="card-height-100">
-          <CardBody className="d-flex align-items-center justify-content-center">
-            <div className="text-muted">Error loading chart data: {error}</div>
-          </CardBody>
-        </Card>
-      </Col>
-    )
-  }
-
   const salesChart: ApexOptions = useMemo(() => ({
     series: [
       {
@@ -163,6 +139,30 @@ const Chart = memo(() => {
       ],
     },
   }), [chartData])
+
+  if (isLoading) {
+    return (
+      <Col lg={12}>
+        <Card className="card-height-100">
+          <CardBody className="d-flex align-items-center justify-content-center">
+            <Spinner />
+          </CardBody>
+        </Card>
+      </Col>
+    )
+  }
+
+  if (error) {
+    return (
+      <Col lg={12}>
+        <Card className="card-height-100">
+          <CardBody className="d-flex align-items-center justify-content-center">
+            <div className="text-muted">Error loading chart data: {error}</div>
+          </CardBody>
+        </Card>
+      </Col>
+    )
+  }
 
   return (
     <Col lg={12}>
