@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Tab, Tabs } from 'react-bootstrap';
+import { Tab, Tabs } from 'react-bootstrap';
 import PageTitle from '@/components/PageTitle';
 import { SystemHealthMonitor } from '@/components/monitoring/SystemHealthMonitor';
 import { PerformanceMonitorSuite } from '@/components/performance/PerformanceMonitorSuite';
@@ -8,10 +8,10 @@ import RoleCheck from '@/components/auth/RoleCheck';
 
 const SystemHealthPage: React.FC = () => {
   return (
-    <Container fluid>
+    <>
       <PageTitle 
         title="System Health Assessment" 
-        subName="Comprehensive system monitoring and health diagnostics"
+        subName="Monitoring"
       />
 
       <RoleCheck allowedRoles={['admin', 'it']}>
@@ -29,7 +29,7 @@ const SystemHealthPage: React.FC = () => {
           </Tab>
         </Tabs>
       </RoleCheck>
-    </Container>
+    </>
   );
 };
 

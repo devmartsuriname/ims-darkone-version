@@ -31,10 +31,8 @@ const WorkflowValidationPage = lazy(() => import('@/app/(admin)/testing/workflow
 const WorkflowTestingPage = lazy(() => import('@/app/(admin)/workflow/testing/page'))
 const WorkflowMonitoringPage = lazy(() => import('@/app/(admin)/workflow/monitoring/page'))
 
-// IMS Monitoring Pages
-const SystemHealthPage = lazy(() => import('@/app/(admin)/monitoring/health/page'))
-const PerformanceMonitoringPage = lazy(() => import('@/app/(admin)/monitoring/performance/page'))
-const SecurityHealthPage = lazy(() => import('@/app/(admin)/monitoring/security/page'))
+// IMS Monitoring Pages  
+const SystemHealthPage = lazy(() => import('@/app/(admin)/monitoring/system-health/page'))
 
 
 // Polish Pages  
@@ -230,7 +228,7 @@ const imsRoutes: RoutesProps[] = [
     ),
     exact: true,
   },
-  // Monitoring Routes
+  // Monitoring Routes (Consolidated)
   {
     path: '/monitoring/health',
     name: 'System Health',
@@ -246,7 +244,7 @@ const imsRoutes: RoutesProps[] = [
     name: 'Performance Monitoring',
     element: (
       <RouteGuard allowedRoles={['admin', 'it']}>
-        <PerformanceMonitoringPage />
+        <SystemHealthPage />
       </RouteGuard>
     ),
     exact: true,
@@ -256,7 +254,7 @@ const imsRoutes: RoutesProps[] = [
     name: 'Security Health Scanner',
     element: (
       <RouteGuard allowedRoles={['admin', 'it']}>
-        <SecurityHealthPage />
+        <SystemHealthPage />
       </RouteGuard>
     ),
     exact: true,
