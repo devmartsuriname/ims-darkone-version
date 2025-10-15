@@ -66,15 +66,19 @@ const CustomFlatpickr = ({ className, value, options, placeholder, onChange }: F
     onChange?.([date])
   }
 
+  // Ensure Bootstrap form-control styling is applied if no custom className
+  const inputClassName = className || 'form-control'
+
   return (
     <input
       type={inputType}
-      className={className}
+      className={inputClassName}
       placeholder={placeholder}
       value={inputValue}
       onChange={handleChange}
       min={min}
       max={max}
+      aria-label={placeholder}
     />
   )
 }

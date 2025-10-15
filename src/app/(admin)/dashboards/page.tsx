@@ -13,7 +13,6 @@ import Chart from './components/Chart';
 import IntegrationTestRunner from '@/components/testing/IntegrationTestRunner';
 
 const ComponentErrorFallback: React.FC<{ error: Error; retry: () => void }> = ({ error, retry }) => {
-  console.error(`❌ Component Error:`, error);
   return (
     <div className="alert alert-danger">
       <h6 className="alert-heading">⚠️ Component Error</h6>

@@ -132,9 +132,8 @@ const ApplicationIntakeForm: React.FC = () => {
     try {
       // Auto-save functionality would be implemented here
       // For now, we'll skip this to focus on main submission
-      console.log('Auto-save functionality coming soon')
     } catch (error) {
-      console.error('Auto-save failed:', error)
+      // Auto-save failed - silent fail for now
     }
   }
 
