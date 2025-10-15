@@ -60,6 +60,7 @@ const LockScreen = lazy(() => import('@/app/(other)/auth/lock-screen/page'))
 const IntegrationTestingPage = lazy(() => import('@/app/(admin)/testing/integration/page'))
 const EndToEndTestPage = lazy(() => import('@/app/(admin)/testing/end-to-end/page'))
 const SystemValidationPage = lazy(() => import('@/app/(admin)/testing/system-validation/page'))
+const UATPreparationPage = lazy(() => import('@/app/(admin)/testing/uat-preparation/page'))
 
 // Notification Pages
 const NotificationsPage = lazy(() => import('@/app/(admin)/notifications/page'))
@@ -201,6 +202,16 @@ const imsRoutes: RoutesProps[] = [
     element: (
       <RouteGuard allowedRoles={['admin', 'it']}>
         <SystemValidationPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/testing/uat-preparation',
+    name: 'UAT Preparation',
+    element: (
+      <RouteGuard allowedRoles={['admin', 'it']}>
+        <UATPreparationPage />
       </RouteGuard>
     ),
     exact: true,

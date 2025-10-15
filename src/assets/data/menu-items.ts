@@ -246,6 +246,13 @@ export const MENU_ITEMS: MenuItemType[] = [
         allowedRoles: ['admin', 'it'],
       },
       {
+        key: 'uat-preparation',
+        label: 'UAT Preparation',
+        url: '/testing/uat-preparation',
+        parentKey: 'testing',
+        allowedRoles: ['admin', 'it'],
+      },
+      {
         key: 'integration-testing',
         label: 'Integration Testing',
         url: '/testing/integration',
