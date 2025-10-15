@@ -280,9 +280,7 @@ export const useNotifications = () => {
 
   const fetchNotifications = React.useCallback(async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('notification-service', {
-        body: { action: 'user-notifications' }
-      });
+      const { data, error } = await supabase.functions.invoke('notification-service/user-notifications');
 
       if (error) {
         console.error('Notification service error:', error);
@@ -333,9 +331,8 @@ export const useNotifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase.functions.invoke('notification-service', {
+      const { error } = await supabase.functions.invoke('notification-service/mark-read', {
         body: { 
-          action: 'mark-read',
           notification_ids: [notificationId]
         }
       });
@@ -358,9 +355,8 @@ export const useNotifications = () => {
 
       if (notificationIds.length === 0) return;
 
-      const { error } = await supabase.functions.invoke('notification-service', {
+      const { error } = await supabase.functions.invoke('notification-service/mark-read', {
         body: { 
-          action: 'mark-read',
           notification_ids: notificationIds
         }
       });

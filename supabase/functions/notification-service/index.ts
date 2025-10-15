@@ -82,18 +82,21 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
+    
+    // Support both URL path routing and body-based action routing
+    const action = body.action || path;
 
     switch (req.method) {
       case 'POST':
-        if (path === 'send') {
+        if (action === 'send' || path === 'send') {
           return await sendNotification(body, user.id);
-        } else if (path === 'send_to_role') {
+        } else if (action === 'send_to_role' || path === 'send_to_role') {
           return await sendNotificationToRole(body, user.id);
-        } else if (path === 'task-notification') {
+        } else if (action === 'task-notification' || path === 'task-notification') {
           return await createTaskNotification(body, user.id);
-        } else if (path === 'application-notification') {
+        } else if (action === 'application-notification' || path === 'application-notification') {
           return await createApplicationNotification(body, user.id);
-        } else if (path === 'sla-reminders') {
+        } else if (action === 'sla-reminders' || path === 'sla-reminders') {
           return await sendSLAReminders();
         } else {
           // Handle POST requests with body-based routing for backwards compatibility
@@ -105,14 +108,14 @@ serve(async (req) => {
         }
         break;
       case 'GET':
-        if (path === 'list') {
+        if (action === 'list' || path === 'list') {
           return await listNotifications(req, user.id);
-        } else if (path === 'user-notifications') {
+        } else if (action === 'user-notifications' || path === 'user-notifications') {
           return await getUserNotifications(req, user.id);
         }
         break;
       case 'PUT':
-        if (path === 'mark-read') {
+        if (action === 'mark-read' || path === 'mark-read') {
           return await markNotificationsAsRead(body, user.id);
         }
         break;
