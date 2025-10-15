@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Col } from 'react-bootstrap';
 import Footer from '@/components/layout/Footer';
 import RoleCheck from '@/components/auth/RoleCheck';
 import { DashboardLayout, DashboardSection, DashboardGrid } from '@/components/dashboard/DashboardLayout';
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics';
 import { ErrorBoundary } from '@/components/dashboard/ErrorBoundary';
-import { DashboardDebugger } from './components/DashboardDebugger';
 import WorkflowChart from './components/WorkflowChart';
 import RecentActivities from './components/RecentActivities';
 import QuickActions from './components/QuickActions';
@@ -35,36 +34,15 @@ const ComponentErrorFallback: React.FC<{ error: Error; retry: () => void }> = ({
 const page = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showDebugger, setShowDebugger] = useState(true);
 
-  useEffect(() => {
-    console.log('✅ Dashboard Page Mounted');
-    console.log('📊 Components Loading:', {
-      DashboardMetrics: 'ready',
-      SystemMetricsDashboard: 'ready',
-      WorkflowChart: 'ready',
-      QuickActions: 'ready',
-      RecentActivities: 'ready',
-      Chart: 'ready',
-      IntegrationTestRunner: 'ready'
-    });
-    
-    return () => {
-      console.log('👋 Dashboard Page Unmounted');
-    };
-  }, []);
 
   const handleRefresh = useCallback(async () => {
-    console.log('🔄 Dashboard Refresh Started');
     setIsRefreshing(true);
     
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       setLastUpdated(new Date());
       window.dispatchEvent(new CustomEvent('dashboard-refresh'));
-      console.log('✅ Dashboard Refresh Complete');
-    } catch (error) {
-      console.error('❌ Dashboard Refresh Error:', error);
     } finally {
       setIsRefreshing(false);
     }
@@ -79,19 +57,6 @@ const page = () => {
       isRefreshing={isRefreshing}
       autoRefreshInterval={300000} // 5 minutes
     >
-      {/* Debug Info */}
-      {showDebugger && (
-        <div className="mb-3">
-          <DashboardDebugger />
-          <button 
-            className="btn btn-sm btn-outline-secondary mt-2"
-            onClick={() => setShowDebugger(false)}
-          >
-            Hide Debug Info
-          </button>
-        </div>
-      )}
-
       {/* Enhanced KPI Cards with Real-time Updates */}
       <ErrorBoundary fallback={ComponentErrorFallback}>
         <DashboardSection title="Performance Metrics">
