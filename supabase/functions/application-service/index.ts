@@ -51,110 +51,75 @@ interface UpdateApplicationStateRequest {
   assigned_to?: string;
 }
 
-// Line 54-70: Replace with safe parsing
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // ✅ Parse body ONCE
-  let body: any = {};
   try {
-    const text = await req.text();
-    if (text) {
-      body = JSON.parse(text);
+    // Parse body once
+    let body: any = {};
+    try {
+      const text = await req.text();
+      if (text) {
+        body = JSON.parse(text);
+      }
+    } catch (err) {
+      console.error('Failed to parse request body:', err);
     }
-  } catch (err) {
-    console.error('Failed to parse request body:', err);
-  }
 
-  // Health check using pre-parsed body
-  if (body.action === 'health_check') {
-    return new Response(JSON.stringify({ 
-      status: 'healthy', 
-      service: 'application-service',
-      timestamp: new Date().toISOString()
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+    // Health check
+    if (body.action === 'health_check') {
+      return new Response(JSON.stringify({ 
+        status: 'healthy', 
+        service: 'application-service',
+        timestamp: new Date().toISOString()
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-  // ... authentication ...
+    // Authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-  // Pass body to handlers
-  if (path === 'create') {
-    return await createApplication(body, user.id);
-  } else if (path === 'update-state') {
-    return await updateApplicationState(body, user.id);
-  }
-  // ...
-});
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
 
-// Update handler signatures
-async function createApplication(data: CreateApplicationRequest, userId: string) {
-  // Remove: const data = await req.json();
-  // Use: data parameter directly
-}
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-async function updateApplicationState(data: UpdateApplicationStateRequest, userId: string) {
-  // Remove: const data = await req.json();
-  // Use: data parameter directly
-}
-
-async function updateApplication(data: any, applicationId: string, userId: string) {
-  // Remove: const updateData = await req.json();
-  // Use: data parameter directly
-}
-
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser(
-    authHeader.replace('Bearer ', '')
-  );
-
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  try {
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
 
     switch (req.method) {
       case 'POST':
         if (path === 'create') {
-          return await createApplication(req, user.id);
+          return await createApplication(body, user.id);
         } else if (path === 'update-state') {
-          return await updateApplicationState(req, user.id);
-        } else if (path === 'health_check') {
-          return new Response(JSON.stringify({ 
-            status: 'healthy', 
-            service: 'application-service',
-            timestamp: new Date().toISOString()
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return await updateApplicationState(body, user.id);
         }
         break;
       case 'GET':
         if (path === 'list') {
-          return await listApplications(req, user.id);
+          return await listApplications(url, user.id);
         } else if (path && path !== 'application-service') {
           return await getApplication(path, user.id);
         }
         break;
       case 'PUT':
         if (path && path !== 'application-service') {
-          return await updateApplication(req, path, user.id);
+          return await updateApplication(body, path, user.id);
         }
         break;
     }
@@ -172,8 +137,8 @@ async function updateApplication(data: any, applicationId: string, userId: strin
   }
 });
 
-async function createApplication(req: Request, userId: string): Promise<Response> {
-  const { applicant, application }: CreateApplicationRequest = await req.json();
+async function createApplication(data: CreateApplicationRequest, userId: string): Promise<Response> {
+  const { applicant, application } = data;
 
   // Generate application number
   const timestamp = Date.now().toString(36);
@@ -235,8 +200,8 @@ async function createApplication(req: Request, userId: string): Promise<Response
   });
 }
 
-async function updateApplicationState(req: Request, userId: string): Promise<Response> {
-  const { application_id, new_state, notes, assigned_to }: UpdateApplicationStateRequest = await req.json();
+async function updateApplicationState(data: UpdateApplicationStateRequest, userId: string): Promise<Response> {
+  const { application_id, new_state, notes, assigned_to } = data;
 
   // Get current application
   const { data: currentApp, error: fetchError } = await supabase
@@ -316,8 +281,7 @@ async function updateApplicationState(req: Request, userId: string): Promise<Res
   });
 }
 
-async function listApplications(req: Request, userId: string): Promise<Response> {
-  const url = new URL(req.url);
+async function listApplications(url: URL, userId: string): Promise<Response> {
   const page = parseInt(url.searchParams.get('page') || '1');
   const limit = parseInt(url.searchParams.get('limit') || '10');
   const status = url.searchParams.get('status');
@@ -379,9 +343,7 @@ async function getApplication(applicationId: string, userId: string): Promise<Re
   });
 }
 
-async function updateApplication(req: Request, applicationId: string, userId: string): Promise<Response> {
-  const updateData = await req.json();
-
+async function updateApplication(data: any, applicationId: string, userId: string): Promise<Response> {
   const { data: currentApp, error: fetchError } = await supabase
     .from('applications')
     .select('*')
@@ -395,7 +357,7 @@ async function updateApplication(req: Request, applicationId: string, userId: st
   const { data: updatedApp, error: updateError } = await supabase
     .from('applications')
     .update({
-      ...updateData,
+      ...data,
       updated_at: new Date().toISOString(),
     })
     .eq('id', applicationId)
