@@ -21,40 +21,34 @@ interface SendEmailRequest {
 }
 
 serve(async (req) => {
-  // ... CORS and health check ...
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
 
-  let body: any = {};
   try {
-    const text = await req.text();
-    if (text) {
-      body = JSON.parse(text);
+    // Parse body once
+    let body: any = {};
+    try {
+      const text = await req.text();
+      if (text) {
+        body = JSON.parse(text);
+      }
+    } catch (err) {
+      console.error('Failed to parse request body:', err);
     }
-  } catch (err) {
-    console.error('Failed to parse request body:', err);
-  }
 
-  if (body.action === 'health_check') {
-    // ... health check response ...
-  }
+    // Health check
+    if (body.action === 'health_check') {
+      return new Response(JSON.stringify({ 
+        status: 'healthy', 
+        service: 'email-service',
+        timestamp: new Date().toISOString()
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-  // ... authentication ...
-
-  if (req.method === 'POST' && path === 'send') {
-    return await sendEmail(body); // Pass body directly
-  }
-});
-
-async function sendEmail(emailData: SendEmailRequest): Promise<Response> {
-  // Remove: const emailData: SendEmailRequest = await req.json();
-  // Use: emailData parameter directly
-  
-  let html = emailData.html;
-  let text = emailData.text;
-  // ... rest of logic ...
-}
-
-
-  try {
+    // Authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
@@ -78,7 +72,7 @@ async function sendEmail(emailData: SendEmailRequest): Promise<Response> {
     const path = url.pathname.split('/').pop();
 
     if (req.method === 'POST' && path === 'send') {
-      return await sendEmail(req);
+      return await sendEmail(body);
     }
 
     return new Response(JSON.stringify({ error: 'Invalid endpoint' }), {
@@ -95,10 +89,8 @@ async function sendEmail(emailData: SendEmailRequest): Promise<Response> {
   }
 });
 
-async function sendEmail(req: Request): Promise<Response> {
+async function sendEmail(emailData: SendEmailRequest): Promise<Response> {
   try {
-    const emailData: SendEmailRequest = await req.json();
-    
     let html = emailData.html;
     let text = emailData.text;
 
