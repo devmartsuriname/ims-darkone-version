@@ -56,9 +56,28 @@ const ROUTES_TO_TEST: RouteTest[] = [
 const SystemValidationPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthContext();
-  const [routeTests, setRouteTests] = useState<RouteTest[]>(ROUTES_TO_TEST);
+  const [routeTests, setRouteTests] = useState<RouteTest[]>(() => {
+    // Initialize from localStorage or use defaults
+    const saved = localStorage.getItem('route-test-results');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return ROUTES_TO_TEST.map(r => ({ ...r, status: 'pending' as const }));
+      }
+    }
+    return ROUTES_TO_TEST.map(r => ({ ...r, status: 'pending' as const }));
+  });
   const [consoleErrors, setConsoleErrors] = useState<string[]>([]);
   const [testingInProgress, setTestingInProgress] = useState(false);
+  const [lastTestRun, setLastTestRun] = useState<string | null>(() => 
+    localStorage.getItem('route-test-timestamp')
+  );
+
+  // Save test results to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('route-test-results', JSON.stringify(routeTests));
+  }, [routeTests]);
 
   useEffect(() => {
     // Monitor console errors
@@ -76,16 +95,32 @@ const SystemValidationPage: React.FC = () => {
     };
   }, []);
 
-  const testRoute = (route: RouteTest) => {
+  const testRoute = async (route: RouteTest) => {
     try {
-      navigate(route.path);
-      setTimeout(() => {
+      // Mark as testing (pending)
+      setRouteTests(prev => prev.map(r => 
+        r.path === route.path 
+          ? { ...r, status: 'pending' as const, error: undefined }
+          : r
+      ));
+
+      // Test by fetching the route (doesn't navigate away)
+      const response = await fetch(route.path, { method: 'HEAD' });
+      
+      // Check if it's a successful response or expected redirect
+      if (response.ok || response.redirected) {
         setRouteTests(prev => prev.map(r => 
           r.path === route.path 
             ? { ...r, status: 'pass' as const }
             : r
         ));
-      }, 500);
+      } else {
+        setRouteTests(prev => prev.map(r => 
+          r.path === route.path 
+            ? { ...r, status: 'fail' as const, error: `HTTP ${response.status}` }
+            : r
+        ));
+      }
     } catch (error) {
       setRouteTests(prev => prev.map(r => 
         r.path === route.path 
@@ -99,18 +134,34 @@ const SystemValidationPage: React.FC = () => {
     setTestingInProgress(true);
     setConsoleErrors([]);
     
+    // Reset all to pending first
+    setRouteTests(prev => prev.map(r => ({ ...r, status: 'pending' as const, error: undefined })));
+    
+    // Test each route sequentially
     for (const route of routeTests) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      testRoute(route);
+      await testRoute(route);
+      await new Promise(resolve => setTimeout(resolve, 300)); // Small delay between tests
     }
     
+    // Save timestamp
+    const timestamp = new Date().toLocaleString();
+    setLastTestRun(timestamp);
+    localStorage.setItem('route-test-timestamp', timestamp);
+    
     setTestingInProgress(false);
-    navigate('/testing/system-validation');
   };
 
   const resetTests = () => {
     setRouteTests(ROUTES_TO_TEST.map(r => ({ ...r, status: 'pending' as const, error: undefined })));
     setConsoleErrors([]);
+  };
+
+  const clearResults = () => {
+    localStorage.removeItem('route-test-results');
+    localStorage.removeItem('route-test-timestamp');
+    setRouteTests(ROUTES_TO_TEST.map(r => ({ ...r, status: 'pending' as const, error: undefined })));
+    setConsoleErrors([]);
+    setLastTestRun(null);
   };
 
   const groupedRoutes = routeTests.reduce((acc, route) => {
@@ -180,20 +231,28 @@ const SystemValidationPage: React.FC = () => {
         {/* Controls */}
         <Card className="mb-4">
           <Card.Body>
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-2 align-items-center flex-wrap">
               <Button 
                 variant="primary" 
                 onClick={testAllAccessibleRoutes}
                 disabled={testingInProgress}
               >
-                {testingInProgress ? 'Testing in Progress...' : 'Test All Routes'}
+                {testingInProgress ? `Testing... (${stats.passed + stats.failed}/${stats.total})` : 'Test All Routes'}
               </Button>
               <Button variant="secondary" onClick={resetTests}>
                 Reset Tests
               </Button>
+              <Button variant="danger" onClick={clearResults}>
+                Clear Results
+              </Button>
               <Button variant="info" onClick={() => navigate('/dashboards')}>
                 Return to Dashboard
               </Button>
+              {lastTestRun && (
+                <small className="text-muted ms-auto">
+                  Last test run: {lastTestRun}
+                </small>
+              )}
             </div>
           </Card.Body>
         </Card>
@@ -230,9 +289,15 @@ const SystemValidationPage: React.FC = () => {
                             ))}
                           </td>
                           <td>
-                            {route.status === 'pass' && <Badge bg="success">Pass</Badge>}
-                            {route.status === 'fail' && <Badge bg="danger">Fail</Badge>}
-                            {route.status === 'pending' && <Badge bg="warning">Pending</Badge>}
+                            {route.status === 'pass' && <Badge bg="success">✓ Pass</Badge>}
+                            {route.status === 'fail' && (
+                              <span>
+                                <Badge bg="danger">✗ Fail</Badge>
+                                {route.error && <small className="text-danger ms-2">{route.error}</small>}
+                              </span>
+                            )}
+                            {!route.status && <Badge bg="secondary">Not Tested</Badge>}
+                            {route.status === 'pending' && <Badge bg="warning">⟳ Testing...</Badge>}
                           </td>
                           <td>
                             <Button 
