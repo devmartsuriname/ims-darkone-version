@@ -84,114 +84,79 @@ interface CreateTaskRequest {
   due_date?: string;
 }
 
-// Line 54-70: Replace with safe parsing
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // ✅ Parse body ONCE
-  let body: any = {};
   try {
-    const text = await req.text();
-    if (text) {
-      body = JSON.parse(text);
+    // Parse body once
+    let body: any = {};
+    try {
+      const text = await req.text();
+      if (text) {
+        body = JSON.parse(text);
+      }
+    } catch (err) {
+      console.error('Failed to parse request body:', err);
     }
-  } catch (err) {
-    console.error('Failed to parse request body:', err);
-  }
 
-  // Health check using pre-parsed body
-  if (body.action === 'health_check') {
-    return new Response(JSON.stringify({ 
-      status: 'healthy', 
-      service: 'application-service',
-      timestamp: new Date().toISOString()
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+    // Health check
+    if (body.action === 'health_check') {
+      return new Response(JSON.stringify({ 
+        status: 'healthy', 
+        service: 'workflow-service',
+        timestamp: new Date().toISOString()
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-  // ... authentication ...
+    // Authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-  // Pass body to handlers
-  if (path === 'create') {
-    return await createApplication(body, user.id);
-  } else if (path === 'update-state') {
-    return await updateApplicationState(body, user.id);
-  }
-  // ...
-});
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
 
-// Update handler signatures
-async function createApplication(data: CreateApplicationRequest, userId: string) {
-  // Remove: const data = await req.json();
-  // Use: data parameter directly
-}
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-async function updateApplicationState(data: UpdateApplicationStateRequest, userId: string) {
-  // Remove: const data = await req.json();
-  // Use: data parameter directly
-}
-
-async function updateApplication(data: any, applicationId: string, userId: string) {
-  // Remove: const updateData = await req.json();
-  // Use: data parameter directly
-}
-
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser(
-    authHeader.replace('Bearer ', '')
-  );
-
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  try {
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
 
     switch (req.method) {
       case 'POST':
         if (path === 'transition') {
-          return await transitionState(req, user.id);
+          return await transitionState(body, user.id);
         } else if (path === 'create-task') {
-          return await createTask(req, user.id);
+          return await createTask(body, user.id);
         } else if (path === 'validate-transition') {
-          return await validateTransition(req, user.id);
-        } else if (path === 'health_check') {
-          return new Response(JSON.stringify({ 
-            status: 'healthy', 
-            service: 'workflow-service',
-            timestamp: new Date().toISOString()
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return await validateTransition(body, user.id);
         }
         break;
       case 'GET':
         if (path === 'available-transitions') {
-          return await getAvailableTransitions(req, user.id);
+          return await getAvailableTransitions(url, user.id);
         } else if (path === 'workflow-status') {
-          return await getWorkflowStatus(req, user.id);
+          return await getWorkflowStatus(url, user.id);
         } else if (path === 'tasks') {
-          return await getTasks(req, user.id);
+          return await getTasks(url, user.id);
         }
         break;
       case 'PUT':
         if (path === 'complete-task') {
-          return await completeTask(req, user.id);
+          return await completeTask(body, user.id);
         }
         break;
     }
@@ -209,8 +174,8 @@ async function updateApplication(data: any, applicationId: string, userId: strin
   }
 });
 
-async function transitionState(req: Request, userId: string): Promise<Response> {
-  const { application_id, target_state, notes, assigned_to }: TransitionRequest = await req.json();
+async function transitionState(data: TransitionRequest, userId: string): Promise<Response> {
+  const { application_id, target_state, notes, assigned_to } = data;
 
   // Get current application state
   const { data: application, error: appError } = await supabase
@@ -304,8 +269,8 @@ async function transitionState(req: Request, userId: string): Promise<Response> 
   });
 }
 
-async function validateTransition(req: Request, userId: string): Promise<Response> {
-  const { application_id, target_state } = await req.json();
+async function validateTransition(data: any, userId: string): Promise<Response> {
+  const { application_id, target_state } = data;
 
   // Get current application state
   const { data: application, error: appError } = await supabase
@@ -339,8 +304,7 @@ async function validateTransition(req: Request, userId: string): Promise<Respons
   });
 }
 
-async function getAvailableTransitions(req: Request, userId: string): Promise<Response> {
-  const url = new URL(req.url);
+async function getAvailableTransitions(url: URL, userId: string): Promise<Response> {
   const application_id = url.searchParams.get('application_id');
 
   if (!application_id) {
@@ -356,14 +320,6 @@ async function getAvailableTransitions(req: Request, userId: string): Promise<Re
 
   if (appError) {
     throw new Error(`Application not found: ${appError.message}`);
-  }
-
-  // Get user role
-  const { data: userRole, error: roleError } = await supabase
-    .rpc('get_current_user_role');
-
-  if (roleError) {
-    throw new Error('Unable to determine user role');
   }
 
   const currentState = application.current_state;
@@ -389,8 +345,7 @@ async function getAvailableTransitions(req: Request, userId: string): Promise<Re
   });
 }
 
-async function getWorkflowStatus(req: Request, userId: string): Promise<Response> {
-  const url = new URL(req.url);
+async function getWorkflowStatus(url: URL, userId: string): Promise<Response> {
   const application_id = url.searchParams.get('application_id');
 
   if (!application_id) {
@@ -430,9 +385,7 @@ async function getWorkflowStatus(req: Request, userId: string): Promise<Response
   });
 }
 
-async function createTask(req: Request, userId: string): Promise<Response> {
-  const taskData: CreateTaskRequest = await req.json();
-
+async function createTask(taskData: CreateTaskRequest, userId: string): Promise<Response> {
   const { data: task, error: taskError } = await supabase
     .from('tasks')
     .insert([{
@@ -456,8 +409,7 @@ async function createTask(req: Request, userId: string): Promise<Response> {
   });
 }
 
-async function getTasks(req: Request, userId: string): Promise<Response> {
-  const url = new URL(req.url);
+async function getTasks(url: URL, userId: string): Promise<Response> {
   const application_id = url.searchParams.get('application_id');
   const assigned_to = url.searchParams.get('assigned_to');
   const status = url.searchParams.get('status');
@@ -490,10 +442,9 @@ async function getTasks(req: Request, userId: string): Promise<Response> {
   });
 }
 
-async function completeTask(req: Request, userId: string): Promise<Response> {
-  const { task_id, notes } = await req.json();
+async function completeTask(data: any, userId: string): Promise<Response> {
+  const { task_id, notes } = data;
 
-  // First get the task to update its description
   const { data: existingTask, error: fetchError } = await supabase
     .from('tasks')
     .select('*')
@@ -529,12 +480,10 @@ async function completeTask(req: Request, userId: string): Promise<Response> {
 
 // Helper functions
 async function validateStateTransition(currentState: string, targetState: string, userId: string): Promise<{valid: boolean, reason: string}> {
-  // Check if transition is allowed in workflow
   if (!(WORKFLOW_STATES as any)[currentState]?.next.includes(targetState)) {
     return { valid: false, reason: `Transition from ${currentState} to ${targetState} is not allowed` };
   }
 
-  // Check user role permissions
   const { data: userRole, error: roleError } = await supabase
     .rpc('get_current_user_role');
 
@@ -550,9 +499,7 @@ async function validateStateTransition(currentState: string, targetState: string
 }
 
 async function performPreTransitionValidations(applicationId: string, targetState: string): Promise<{valid: boolean, reason: string}> {
-  // Comprehensive gate validations for critical workflow states
   if (targetState === 'DIRECTOR_REVIEW') {
-    // Check if all required documents are verified
     const { data: documents, error: docError } = await supabase
       .from('documents')
       .select('verification_status, document_type, document_name')
@@ -566,13 +513,9 @@ async function performPreTransitionValidations(applicationId: string, targetStat
     const unverifiedDocs = documents?.filter(doc => doc.verification_status !== 'VERIFIED') || [];
     if (unverifiedDocs.length > 0) {
       const docNames = unverifiedDocs.map(doc => doc.document_name).join(', ');
-      return { 
-        valid: false, 
-        reason: `Required documents not verified: ${docNames}` 
-      };
+      return { valid: false, reason: `Required documents not verified: ${docNames}` };
     }
 
-    // Check if minimum photos are captured during control visit
     const { data: photos, error: photoError } = await supabase
       .from('control_photos')
       .select('id, photo_category')
@@ -583,25 +526,17 @@ async function performPreTransitionValidations(applicationId: string, targetStat
     }
 
     if (!photos || photos.length < 8) {
-      return { 
-        valid: false, 
-        reason: `Minimum 8 photos required from control visit (currently ${photos?.length || 0})` 
-      };
+      return { valid: false, reason: `Minimum 8 photos required from control visit (currently ${photos?.length || 0})` };
     }
 
-    // Check for required photo categories
     const requiredCategories = ['EXTERIOR_FRONT', 'INTERIOR_MAIN', 'STRUCTURAL_ISSUES', 'UTILITIES'];
     const photoCategories = photos.map(p => p.photo_category);
     const missingCategories = requiredCategories.filter(cat => !photoCategories.includes(cat));
     
     if (missingCategories.length > 0) {
-      return {
-        valid: false,
-        reason: `Missing required photo categories: ${missingCategories.join(', ')}`
-      };
+      return { valid: false, reason: `Missing required photo categories: ${missingCategories.join(', ')}` };
     }
 
-    // Check if technical report is submitted and complete
     const { data: techReport, error: techError } = await supabase
       .from('technical_reports')
       .select('id, technical_conclusion, recommendations, submitted_at')
@@ -620,7 +555,6 @@ async function performPreTransitionValidations(applicationId: string, targetStat
       return { valid: false, reason: 'Technical report must include conclusion and recommendations' };
     }
 
-    // Check if social report is submitted and complete
     const { data: socialReport, error: socialError } = await supabase
       .from('social_reports')
       .select('id, social_conclusion, recommendations, submitted_at')
@@ -639,7 +573,6 @@ async function performPreTransitionValidations(applicationId: string, targetStat
       return { valid: false, reason: 'Social report must include conclusion and recommendations' };
     }
 
-    // Check if control visit is completed
     const { data: controlVisit, error: visitError } = await supabase
       .from('control_visits')
       .select('visit_status, actual_date')
@@ -655,9 +588,7 @@ async function performPreTransitionValidations(applicationId: string, targetStat
     }
   }
 
-  // Gate validations for MINISTER_DECISION
   if (targetState === 'MINISTER_DECISION') {
-    // Check if director has provided recommendation
     const { data: directorSteps, error: directorError } = await supabase
       .from('application_steps')
       .select('notes, completed_at')
@@ -764,12 +695,12 @@ function getSLAHours(state: string): number {
     'DRAFT': 72,
     'INTAKE_REVIEW': 48,
     'CONTROL_ASSIGN': 24,
-    'CONTROL_VISIT_SCHEDULED': 168, // 1 week
+    'CONTROL_VISIT_SCHEDULED': 168,
     'CONTROL_IN_PROGRESS': 72,
-    'TECHNICAL_REVIEW': 120, // 5 days
-    'SOCIAL_REVIEW': 120, // 5 days
-    'DIRECTOR_REVIEW': 168, // 1 week
-    'MINISTER_DECISION': 240, // 10 days
+    'TECHNICAL_REVIEW': 120,
+    'SOCIAL_REVIEW': 120,
+    'DIRECTOR_REVIEW': 168,
+    'MINISTER_DECISION': 240,
     'CLOSURE': 0,
   };
   return slaMapping[state] || 72;
@@ -803,7 +734,6 @@ async function sendStateTransitionNotifications(
   assignedTo?: string
 ): Promise<void> {
   try {
-    // Get application details for notifications
     const { data: application, error } = await supabase
       .from('applications')
       .select(`
@@ -825,7 +755,6 @@ async function sendStateTransitionNotifications(
       ? `${(application.applicants as any).first_name} ${(application.applicants as any).last_name}`
       : 'Unknown Applicant';
 
-    // Send notification to assigned user if any
     if (assignedTo) {
       await supabase.functions.invoke('notification-service', {
         body: {
@@ -842,7 +771,6 @@ async function sendStateTransitionNotifications(
       });
     }
 
-    // Send role-based notifications
     const roleMap: Record<string, string> = {
       'CONTROL_ASSIGN': 'control',
       'TECHNICAL_REVIEW': 'staff',
