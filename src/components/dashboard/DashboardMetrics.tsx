@@ -177,8 +177,7 @@ export const DashboardMetrics: React.FC = memo(() => {
   return (
     <ErrorBoundary fallback={DashboardErrorFallback}>
       <div>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5 className="mb-0">Performance Metrics</h5>
+        <div className="d-flex justify-content-end align-items-center mb-3">
           <ConnectionStatus isConnected={isConnected} lastUpdated={lastUpdated} />
         </div>
         
