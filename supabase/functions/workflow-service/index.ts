@@ -256,7 +256,7 @@ async function transitionState(data: TransitionRequest, userId: string): Promise
   await createAutomaticTasks(application_id, target_state, assigned_to);
 
   // Send notifications for state transition
-  await sendStateTransitionNotifications(application_id, application.current_state, target_state, assigned_to);
+  await sendStateTransitionNotifications(application_id, application.current_state, target_state, authHeader, assigned_to);
 
   // Create audit log
   await logWorkflowEvent(application_id, application.current_state, target_state, userId, notes);
@@ -731,6 +731,7 @@ async function sendStateTransitionNotifications(
   applicationId: string, 
   fromState: string, 
   toState: string, 
+  authToken: string,
   assignedTo?: string
 ): Promise<void> {
   try {
@@ -767,7 +768,8 @@ async function sendStateTransitionNotifications(
             category: 'APPLICATION',
             type: 'assignment'
           }
-        }
+        },
+        headers: { Authorization: authToken }
       });
     }
 
@@ -788,7 +790,8 @@ async function sendStateTransitionNotifications(
           title: 'New Application Assignment',
           message: `Application ${application.application_number} (${applicantName}) is now ready for ${formatStateName(toState)}`,
           type: 'INFO'
-        }
+        },
+        headers: { Authorization: authToken }
       });
     }
 
