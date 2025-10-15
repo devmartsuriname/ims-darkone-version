@@ -59,17 +59,41 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
+    
+    // Parse body for action-based routing (used by integration tests)
+    let body: any = {};
+    if (req.method === 'POST' || req.method === 'PUT') {
+      try {
+        body = await req.json();
+      } catch {
+        // Body might be empty or invalid
+      }
+    }
+    
+    // Support both URL path routing and body-based action routing
+    const action = body.action || path;
 
     switch (req.method) {
       case 'POST':
-        if (path === 'create') {
+        // Health check endpoint for integration tests
+        if (action === 'health-check') {
+          return new Response(JSON.stringify({
+            status: 'healthy',
+            service: 'reference-data',
+            timestamp: new Date().toISOString()
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        
+        if (action === 'create' || path === 'create') {
           return await createReferenceData(req, user.id);
         }
         break;
       case 'GET':
-        if (path === 'list') {
+        if (action === 'list' || path === 'list') {
           return await listReferenceData(req);
-        } else if (path === 'categories') {
+        } else if (action === 'categories' || path === 'categories') {
           return await getCategories();
         } else if (path && path !== 'reference-data') {
           return await getReferenceData(path);

@@ -20,9 +20,29 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
+    
+    // Parse body for action-based routing (used by integration tests)
+    let body: any = {};
+    if (req.method === 'POST') {
+      try {
+        body = await req.json();
+      } catch {
+        // Body might be empty or invalid
+      }
+    }
+    
+    // Support both URL path routing and body-based action routing
+    const action = body.action || path;
+
+    if (req.method === 'POST') {
+      // Health check endpoint for integration tests
+      if (action === 'health-check') {
+        return await getFullHealthCheck();
+      }
+    }
 
     if (req.method === 'GET') {
-      switch (path) {
+      switch (action) {
         case 'health':
           return await checkSystemHealth();
         case 'database':
