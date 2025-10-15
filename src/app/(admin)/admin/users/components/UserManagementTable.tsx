@@ -39,7 +39,7 @@ const UserManagementTable: React.FC<UserManagementTableProps> = ({
         .from('profiles')
         .select(`
           *,
-          user_roles!profiles_user_roles_user_id_fkey (
+          user_roles (
             id,
             role,
             assigned_at,
