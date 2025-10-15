@@ -2,9 +2,11 @@ import avatar1 from '@/assets/images/users/avatar-1.jpg'
 import IconifyIcon from '@/components/wrapper/IconifyIcon'
 import { useAuthContext } from '@/context/useAuthContext'
 import { Dropdown, DropdownHeader, DropdownItem, DropdownMenu, DropdownToggle } from 'react-bootstrap'
+import { useNavigate } from 'react-router-dom'
 
 const ProfileDropdown = () => {
   const { signOut, profile } = useAuthContext()
+  const navigate = useNavigate()
 
   return (
     <Dropdown className=" topbar-item">
@@ -25,30 +27,24 @@ const ProfileDropdown = () => {
           />
         </span>
       </DropdownToggle>
-      <DropdownMenu className=" dropdown-menu-end">
+      <DropdownMenu className="dropdown-menu-end">
         <DropdownHeader>Welcome{profile?.first_name ? `, ${profile.first_name}` : ''}!</DropdownHeader>
-        <DropdownItem href="">
+        <DropdownItem onClick={() => navigate('/profile')}>
           <IconifyIcon icon="solar:user-outline" className="align-middle me-2 fs-18" />
           <span className="align-middle">My Account</span>
         </DropdownItem>
-        <DropdownItem href="">
-          <IconifyIcon icon="solar:wallet-outline" className="align-middle me-2 fs-18" />
-          <span className="align-middle">Pricing</span>
-        </DropdownItem>
-        <DropdownItem href="">
+        <DropdownItem onClick={() => navigate('/help')}>
           <IconifyIcon icon="solar:help-outline" className="align-middle me-2 fs-18" />
           <span className="align-middle">Help</span>
         </DropdownItem>
-        <DropdownItem href="/auth/lock-screen">
+        <DropdownItem onClick={() => navigate('/auth/lock-screen')}>
           <IconifyIcon icon="solar:lock-keyhole-outline" className="align-middle me-2 fs-18" />
           <span className="align-middle">Lock screen</span>
         </DropdownItem>
         <div className="dropdown-divider my-1" />
         <DropdownItem className="text-danger" onClick={signOut}>
           <IconifyIcon icon="solar:logout-3-outline" className="align-middle me-2 fs-18" />
-          <span className="align-middle">
-            Logout
-          </span>
+          <span className="align-middle">Logout</span>
         </DropdownItem>
       </DropdownMenu>
     </Dropdown>

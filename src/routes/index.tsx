@@ -23,6 +23,10 @@ const MinisterDecisionPage = lazy(() => import('@/app/(admin)/reviews/minister/p
 const UserManagementPage = lazy(() => import('@/app/(admin)/admin/users/page'))
 const SystemSettingsPage = lazy(() => import('@/app/(admin)/admin/settings/page'))
 
+// User Pages
+const UserProfilePage = lazy(() => import('@/app/(admin)/profile/page'))
+const HelpPage = lazy(() => import('@/app/(admin)/help/page'))
+
 // IMS Deployment Pages
 const ProductionReadinessPage = lazy(() => import('@/app/(admin)/deployment/readiness/page'))
 
@@ -177,6 +181,19 @@ const imsRoutes: RoutesProps[] = [
         <SystemSettingsPage />
       </RouteGuard>
     ),
+    exact: true,
+  },
+  // User Profile & Help
+  {
+    path: '/profile',
+    name: 'User Profile',
+    element: <UserProfilePage />,
+    exact: true,
+  },
+  {
+    path: '/help',
+    name: 'Help & Support',
+    element: <HelpPage />,
     exact: true,
   },
   // Testing
