@@ -99,6 +99,16 @@ serve(async (req) => {
     
     // Support both URL path routing and body-based action routing
     const action = body.action || path;
+    
+    console.log('Notification request received:', {
+      method: req.method,
+      action,
+      path,
+      bodyKeys: Object.keys(body),
+      hasRole: !!body.role,
+      hasRecipients: !!body.recipients,
+      hasType: !!body.type
+    });
 
     switch (req.method) {
       case 'POST':
@@ -149,6 +159,34 @@ serve(async (req) => {
 });
 
 async function sendNotification(notificationData: SendNotificationRequest, userId: string): Promise<Response> {
+  console.log('sendNotification called with:', {
+    type: notificationData.type,
+    hasRecipients: !!notificationData.recipients,
+    recipientCount: notificationData.recipients?.length,
+    isArray: Array.isArray(notificationData.recipients)
+  });
+
+  // Validate recipients array
+  if (!notificationData.recipients || !Array.isArray(notificationData.recipients)) {
+    console.error('Invalid notification data - recipients must be an array:', notificationData);
+    return new Response(JSON.stringify({ 
+      error: 'Invalid notification data: recipients must be an array',
+      received: typeof notificationData.recipients
+    }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (notificationData.recipients.length === 0) {
+    console.warn('No recipients provided for notification');
+    return new Response(JSON.stringify({ 
+      message: 'No recipients specified',
+      results: []
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 
   // Process each recipient
   const results = [];
