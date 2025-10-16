@@ -46,6 +46,72 @@ serve(async (req) => {
     }
 
     if (action === 'seed') {
+      // First, create test users with all required roles
+      const testUsers = [
+        { email: 'minister@test.sr', role: 'minister', firstName: 'Minister', lastName: 'Test' },
+        { email: 'director@test.sr', role: 'director', firstName: 'Director', lastName: 'Test' },
+        { email: 'control@test.sr', role: 'control', firstName: 'Control', lastName: 'Inspector' },
+        { email: 'staff@test.sr', role: 'staff', firstName: 'Staff', lastName: 'Member' },
+        { email: 'frontoffice@test.sr', role: 'front_office', firstName: 'Front', lastName: 'Office' }
+      ]
+
+      const createdUserIds: string[] = []
+      
+      for (const testUser of testUsers) {
+        // Check if user already exists
+        const { data: existingUser } = await supabaseClient.auth.admin.listUsers()
+        const userExists = existingUser?.users?.find(u => u.email === testUser.email)
+        
+        let userId: string
+        
+        if (userExists) {
+          userId = userExists.id
+          console.log(`User ${testUser.email} already exists`)
+        } else {
+          // Create auth user
+          const { data: newUser, error: userError } = await supabaseClient.auth.admin.createUser({
+            email: testUser.email,
+            password: 'Test123!@#',
+            email_confirm: true,
+            user_metadata: {
+              first_name: testUser.firstName,
+              last_name: testUser.lastName
+            }
+          })
+          
+          if (userError) {
+            console.error(`Error creating user ${testUser.email}:`, userError)
+            continue
+          }
+          
+          userId = newUser.user.id
+          console.log(`Created user ${testUser.email}`)
+        }
+        
+        createdUserIds.push(userId)
+        
+        // Ensure profile exists
+        await supabaseClient
+          .from('profiles')
+          .upsert({
+            id: userId,
+            email: testUser.email,
+            first_name: testUser.firstName,
+            last_name: testUser.lastName,
+            is_active: true
+          }, { onConflict: 'id' })
+        
+        // Assign role
+        await supabaseClient
+          .from('user_roles')
+          .upsert({
+            user_id: userId,
+            role: testUser.role,
+            assigned_by: user.id,
+            is_active: true
+          }, { onConflict: 'user_id,role' })
+      }
+
       // Create test applicants
       const testApplicants = [
         {
@@ -235,6 +301,7 @@ serve(async (req) => {
           success: true,
           message: 'Test data seeded successfully',
           data: {
+            users: createdUserIds.length,
             applicants: applicants.length,
             applications: applications.length,
             controlVisits: 1,

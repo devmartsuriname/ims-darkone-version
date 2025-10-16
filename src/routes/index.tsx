@@ -158,10 +158,20 @@ const imsRoutes: RoutesProps[] = [
     exact: true,
   },
   {
-    path: '/control/visit',
+    path: '/control/visit/:visitId?',
     name: 'Control Visit',
     element: (
       <RouteGuard allowedRoles={['control', 'admin', 'it']}>
+        <ControlVisitPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/control/visit/:visitId/view',
+    name: 'Control Visit View',
+    element: (
+      <RouteGuard allowedRoles={['control', 'admin', 'it', 'staff', 'director', 'minister']}>
         <ControlVisitPage />
       </RouteGuard>
     ),
