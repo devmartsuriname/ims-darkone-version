@@ -29,6 +29,24 @@ The Internal Management System (IMS) for Public Housing Suriname is built as a m
 - **Workflow Engine**: Custom Edge Functions for state machine
 - **Audit Logging**: Immutable audit trail with triggers
 
+### Edge Functions
+- **user-management**: User CRUD operations and role assignment
+- **application-service**: Application workflow management
+- **workflow-service**: State machine transitions and validations
+- **notification-service**: Multi-channel notification delivery
+- **document-service**: Document verification and storage
+- **reference-data**: System configuration and lookup data
+- **reporting-service**: Analytics and export capabilities
+- **email-service**: Email notifications via Resend
+- **health-check**: System health monitoring
+- **system-health**: Comprehensive health metrics
+- **test-data-seeding**: Development test data generation
+- **seed-uat-users**: UAT user account seeding
+  - **Purpose**: Create predefined test users for UAT and workflow validation
+  - **Actions**: seed (create 7 test accounts), cleanup (delete test accounts)
+  - **Authentication**: Requires admin/IT role
+  - **Key Features**: Idempotent user creation, bulk role assignment, detailed result logging
+
 ### Infrastructure
 - **Hosting**: Lovable deployment platform
 - **Database**: Supabase managed PostgreSQL

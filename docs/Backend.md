@@ -462,6 +462,39 @@ CREATE POLICY audit_logs_no_update ON audit_logs FOR UPDATE USING (false);
 CREATE POLICY audit_logs_no_delete ON audit_logs FOR DELETE USING (false);
 ```
 
+## UAT User Seeding
+
+The system includes a dedicated edge function for seeding test user accounts:
+
+**Edge Function:** `seed-uat-users`
+
+**Actions:**
+- `seed`: Creates 7 test users with predefined roles
+- `cleanup`: Deletes all UAT test users
+
+**Test Accounts:**
+| Email | Role | Password | Department |
+|-------|------|----------|------------|
+| maria.fernandes@ims.sr | applicant | Test@123 | Administration |
+| john.doe@ims.sr | front_office | Test@123 | Front Office |
+| leonie.wijnhard@ims.sr | control | Test@123 | Control Dept |
+| jason.pinas@ims.sr | it | Test@123 | ICT |
+| charlene.slooten@ims.sr | staff | Test@123 | Staff |
+| derrick.meye@ims.sr | director | Test@123 | Cabinet Office |
+| gregory.rusland@ims.sr | minister | Test@123 | Leadership |
+
+**Usage:**
+```typescript
+await supabase.functions.invoke('seed-uat-users', {
+  body: { action: 'seed' }
+});
+```
+
+**Security:**
+- Requires admin or IT role
+- Uses service role key for reliable seeding
+- Idempotent (safe to run multiple times)
+
 ## Storage Configuration
 
 ### Bucket Setup

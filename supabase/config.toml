@@ -3,6 +3,9 @@ project_id = "shwfzxpypygdxoqxutae"
 [functions.user-management]
 verify_jwt = false
 
+[functions.seed-uat-users]
+verify_jwt = false
+
 [functions.application-service]
 verify_jwt = true
 

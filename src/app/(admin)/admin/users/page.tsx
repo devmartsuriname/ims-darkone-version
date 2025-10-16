@@ -3,6 +3,7 @@ import { AdminGuard } from '@/components/auth/RoleGuards';
 import UserManagementTable from './components/UserManagementTable';
 import UserModal from './components/UserModal';
 import InitialSetupModal from './components/InitialSetupModal';
+import { UATUserSeeder } from './components/UATUserSeeder';
 import { EnhancedButton } from '@/components/ui/EnhancedButtons';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-toastify';
@@ -118,10 +119,17 @@ const UserManagementPage = () => {
     setRefreshKey(prev => prev + 1);
   };
 
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
   return (
     <AdminGuard>
       <div className="container-fluid">
         <PageTitle title="User Management" subName="Administration" />
+        
+        {/* UAT User Seeding */}
+        <UATUserSeeder onSuccess={handleRefresh} />
         
         <div className="row mb-3">
           <div className="col-12 text-end">
