@@ -280,7 +280,9 @@ export const useNotifications = () => {
 
   const fetchNotifications = React.useCallback(async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('notification-service/user-notifications');
+      const { data, error } = await supabase.functions.invoke('notification-service', {
+        body: { action: 'user-notifications' }
+      });
 
       if (error) {
         console.error('Notification service error:', error);
