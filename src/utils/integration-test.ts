@@ -468,16 +468,22 @@ export class IMSIntegrationTester {
    */
   static async testNotificationSystem(applicationId: string): Promise<WorkflowTestResult> {
     try {
-      // Test individual notification
+      // Test individual notification using new format
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (!userId) throw new Error('User not authenticated');
+      
       const { error: individualError } = await supabase.functions.invoke('notification-service', {
         body: {
           action: 'send',
-          recipient_id: (await supabase.auth.getUser()).data.user?.id,
-          title: 'Test Notification',
+          recipients: [userId],
+          subject: 'Test Notification',
           message: 'This is a test notification for integration testing',
-          type: 'INFO',
-          category: 'SYSTEM',
-          application_id: applicationId
+          type: 'in_app',
+          data: {
+            type: 'INFO',
+            category: 'SYSTEM',
+            application_id: applicationId
+          }
         }
       });
 

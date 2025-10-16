@@ -113,7 +113,36 @@ serve(async (req) => {
     switch (req.method) {
       case 'POST':
         if (action === 'send' || path === 'send') {
-          return await sendNotification(body, user.id);
+          // Handle both legacy format (recipient_id) and new format (recipients array)
+          let notificationData: SendNotificationRequest;
+          
+          if (body.recipient_id && !body.recipients) {
+            // Legacy format - convert single recipient_id to array
+            console.log('[notification-service] Converting legacy recipient_id to recipients array');
+            notificationData = {
+              type: body.type || 'in_app',
+              recipients: [body.recipient_id],
+              subject: body.title || body.subject,
+              message: body.message,
+              data: {
+                type: body.type,
+                category: body.category,
+                application_id: body.application_id
+              }
+            };
+          } else if (body.recipients && Array.isArray(body.recipients)) {
+            // New format - use as-is
+            notificationData = body as SendNotificationRequest;
+          } else {
+            return new Response(JSON.stringify({
+              error: 'Invalid request: must provide either recipient_id or recipients array'
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+          
+          return await sendNotification(notificationData, user.id);
         } else if (action === 'send_to_role' || path === 'send_to_role') {
           return await sendNotificationToRole(body, user.id);
         } else if (action === 'task-notification' || path === 'task-notification') {
