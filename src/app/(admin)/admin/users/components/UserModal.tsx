@@ -154,15 +154,19 @@ const UserModal: React.FC<UserModalProps> = ({
   });
 
   const createUser = async (values: any) => {
+    if (selectedRoles.length === 0) {
+      toast.error('Please select at least one role');
+      return;
+    }
+
     try {
-      const { error } = await supabase.functions.invoke('user-management', {
+      const { data, error } = await supabase.functions.invoke('user-management', {
         body: {
           action: 'create',
           email: values.email,
           password: values.password,
-          name: `${values.firstName} ${values.lastName}`,
-          firstName: values.firstName,
-          lastName: values.lastName,
+          first_name: values.firstName,
+          last_name: values.lastName,
           phone: values.phone,
           department: values.department,
           position: values.position,
@@ -171,13 +175,20 @@ const UserModal: React.FC<UserModalProps> = ({
       });
 
       if (error) {
-        throw error;
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to create user');
+      }
+
+      if (!data?.success) {
+        console.error('User creation failed:', data);
+        throw new Error(data?.error || 'Failed to create user');
       }
 
       toast.success('User created successfully');
       onSuccess();
       onClose();
     } catch (error: any) {
+      console.error('Create user error:', error);
       toast.error(error.message || 'Failed to create user');
     }
   };

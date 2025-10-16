@@ -40,12 +40,11 @@ interface AssignRoleRequest {
 }
 
 serve(async (req) => {
-  const origin = req.headers.get('Origin') ?? '';
+  const origin = req.headers.get('Origin');
   const corsHeaders = {
-    'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Origin': origin || '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Credentials': 'true'
   };
 
   // Handle CORS preflight requests
@@ -113,11 +112,17 @@ serve(async (req) => {
 
     // For non-initial setup, check if user has admin/IT role
     if (!isInitialSetup && user) {
-      const { data: hasPermission, error: permError } = await supabase
-        .rpc('is_admin_or_it');
+      // Use direct query instead of RPC to avoid auth context issues
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role, is_active')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
 
-      if (permError || !hasPermission) {
-        return new Response(JSON.stringify({ error: 'Insufficient permissions' }), {
+      const hasPermission = userRoles?.some(r => r.role === 'admin' || r.role === 'it');
+
+      if (!hasPermission) {
+        return new Response(JSON.stringify({ error: 'Insufficient permissions. Admin or IT role required.' }), {
           status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -187,14 +192,47 @@ serve(async (req) => {
   }
 });
 
-async function createUser(userData: CreateUserRequest, adminId: string | null): Promise<Response> {
+async function createUser(userData: any, adminId: string | null): Promise<Response> {
+  // Accept both camelCase and snake_case
+  const firstName = userData.firstName || userData.first_name;
+  const lastName = userData.lastName || userData.last_name;
+  const email = userData.email;
+  const password = userData.password;
+  const phone = userData.phone;
+  const department = userData.department;
+  const position = userData.position;
+
+  // Accept role or roles array
+  let rolesInput: string[] = [];
+  if (Array.isArray(userData.roles)) {
+    rolesInput = userData.roles;
+  } else if (userData.role) {
+    rolesInput = [userData.role];
+  }
+  
+  // Default to applicant if no roles specified
+  if (rolesInput.length === 0) {
+    rolesInput = ['applicant'];
+  }
+
+  // Validate roles
+  const validRoles = ['admin', 'it', 'staff', 'control', 'director', 'minister', 'front_office', 'applicant'];
+  const invalidRoles = rolesInput.filter(r => !validRoles.includes(r));
+  if (invalidRoles.length > 0) {
+    throw new Error(`Invalid roles: ${invalidRoles.join(', ')}. Valid roles are: ${validRoles.join(', ')}`);
+  }
+
+  if (!email || !password) {
+    throw new Error('Email and password are required');
+  }
+
   // Create auth user
   const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-    email: userData.email,
-    password: userData.password,
+    email,
+    password,
     user_metadata: {
-      first_name: userData.first_name,
-      last_name: userData.last_name
+      first_name: firstName,
+      last_name: lastName
     },
     email_confirm: true
   });
@@ -211,9 +249,9 @@ async function createUser(userData: CreateUserRequest, adminId: string | null): 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .update({
-      phone: userData.phone,
-      department: userData.department,
-      position: userData.position,
+      phone: phone || null,
+      department: department || null,
+      position: position || null,
     })
     .eq('id', authUser.user.id)
     .select('*')
@@ -225,31 +263,39 @@ async function createUser(userData: CreateUserRequest, adminId: string | null): 
     throw new Error(`Failed to update profile: ${profileError.message}`);
   }
 
-  // Assign role
-  const { error: roleError } = await supabase
+  // Deactivate any existing roles for this user
+  await supabase
     .from('user_roles')
     .update({ is_active: false })
     .eq('user_id', authUser.user.id);
 
+  // Assign roles
+  const roleInserts = rolesInput.map(role => ({
+    user_id: authUser.user.id,
+    role,
+    assigned_by: adminId || authUser.user.id,
+    is_active: true
+  }));
+
   const { error: newRoleError } = await supabase
     .from('user_roles')
-    .insert([{
-      user_id: authUser.user.id,
-      role: userData.role,
-      assigned_by: adminId || authUser.user.id,
-    }]);
+    .insert(roleInserts);
 
   if (newRoleError) {
-    console.error('Failed to assign role:', newRoleError);
+    console.error('Failed to assign roles:', newRoleError);
+    throw new Error(`Failed to assign roles: ${newRoleError.message}`);
   }
 
+  console.log(`User created successfully with roles: ${rolesInput.join(', ')}`);
+
   return new Response(JSON.stringify({
+    success: true,
     message: 'User created successfully',
     user: {
       id: authUser.user.id,
-      email: userData.email,
+      email,
       profile,
-      role: userData.role
+      roles: rolesInput
     }
   }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
