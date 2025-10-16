@@ -134,9 +134,10 @@ serve(async (req) => {
 
     switch (req.method) {
       case 'POST':
-        if (!path || path === 'user-management' || path === 'create') {
+        // Check body.action first, then fall back to path-based routing
+        if (body.action === 'create' || !path || path === 'user-management' || path === 'create') {
           return await createUser(body, user?.id || null);
-        } else if (path === 'assign-role') {
+        } else if (body.action === 'assign-role' || path === 'assign-role') {
           if (!user) {
             return new Response(JSON.stringify({ error: 'Authentication required' }), {
               status: 401,
@@ -144,7 +145,7 @@ serve(async (req) => {
             });
           }
           return await assignRole(body, user.id);
-        } else if (path === 'create_test_data') {
+        } else if (body.action === 'create_test_data' || path === 'create_test_data') {
           return await createTestData();
         }
         break;
