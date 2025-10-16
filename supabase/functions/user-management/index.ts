@@ -7,6 +7,13 @@ const allowedOrigins = [
   'http://localhost:5173'
 ];
 
+// Define CORS headers at module level to prevent scope issues
+const DEFAULT_CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+};
+
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -63,6 +70,17 @@ serve(async (req) => {
     } catch (err) {
       console.error('Failed to parse request body:', err);
     }
+
+    // Extract path for routing
+    const url = new URL(req.url);
+    const path = url.pathname.split('/').pop();
+    
+    // Debug logging
+    console.log('[user-management]', { 
+      method: req.method, 
+      path, 
+      action: body?.action 
+    });
 
     // Health check (supports both 'health_check' and 'health-check')
     if (body.action === 'health_check' || body.action === 'health-check') {
@@ -129,13 +147,11 @@ serve(async (req) => {
       }
     }
 
-    const url = new URL(req.url);
-    const path = url.pathname.split('/').pop();
-
     switch (req.method) {
       case 'POST':
         // Check body.action first, then fall back to path-based routing
         if (body.action === 'create' || !path || path === 'user-management' || path === 'create') {
+          console.log('[user-management] routing -> create');
           return await createUser(body, user?.id || null);
         } else if (body.action === 'assign-role' || path === 'assign-role') {
           if (!user) {
@@ -287,7 +303,10 @@ async function createUser(userData: any, adminId: string | null): Promise<Respon
     throw new Error(`Failed to assign roles: ${newRoleError.message}`);
   }
 
-  console.log(`User created successfully with roles: ${rolesInput.join(', ')}`);
+  console.log('[user-management] created user', { 
+    id: authUser.user.id, 
+    roles: rolesInput 
+  });
 
   return new Response(JSON.stringify({
     success: true,
@@ -299,7 +318,7 @@ async function createUser(userData: any, adminId: string | null): Promise<Respon
       roles: rolesInput
     }
   }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...DEFAULT_CORS_HEADERS, 'Content-Type': 'application/json' },
   });
 }
 
@@ -327,7 +346,7 @@ async function updateUser(updateData: UpdateUserRequest, userId: string, adminId
     message: 'User updated successfully',
     profile
   }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...DEFAULT_CORS_HEADERS, 'Content-Type': 'application/json' },
   });
 }
 
@@ -364,7 +383,7 @@ async function assignRole(roleData: AssignRoleRequest, adminId: string): Promise
     message: 'Role assigned successfully',
     user_role: userRole
   }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...DEFAULT_CORS_HEADERS, 'Content-Type': 'application/json' },
   });
 }
 
@@ -401,7 +420,7 @@ async function listUsers(url: URL): Promise<Response> {
     users: users || [],
     pagination: { page, limit, total: users?.length || 0 }
   }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...DEFAULT_CORS_HEADERS, 'Content-Type': 'application/json' },
   });
 }
 
@@ -420,7 +439,7 @@ async function getUser(userId: string): Promise<Response> {
   }
 
   return new Response(JSON.stringify({ user }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...DEFAULT_CORS_HEADERS, 'Content-Type': 'application/json' },
   });
 }
 
@@ -446,7 +465,7 @@ async function deactivateUser(userId: string, adminId: string): Promise<Response
   return new Response(JSON.stringify({
     message: 'User deactivated successfully'
   }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...DEFAULT_CORS_HEADERS, 'Content-Type': 'application/json' },
   });
 }
 

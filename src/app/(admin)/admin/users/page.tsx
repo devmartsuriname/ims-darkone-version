@@ -70,29 +70,25 @@ const UserManagementPage = () => {
 
   const fetchStats = async () => {
     try {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          is_active,
-          user_roles!profiles_user_roles_user_id_fkey (
-            role,
-            is_active
-          )
-        `);
+      // Use separate count queries to avoid the RLS embed issue
+      const [
+        { count: totalUsers }, 
+        { count: activeUsers }, 
+        { count: adminUsers }, 
+        { count: staffUsers }
+      ] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('user_roles').select('id', { count: 'exact', head: true }).eq('role', 'admin').eq('is_active', true),
+        supabase.from('user_roles').select('id', { count: 'exact', head: true }).in('role', ['staff', 'front_office']).eq('is_active', true),
+      ]);
 
-      if (profiles) {
-        const totalUsers = profiles.length;
-        const activeUsers = profiles.filter(p => p.is_active).length;
-        const adminUsers = profiles.filter(p => 
-          Array.isArray(p.user_roles) && p.user_roles.some((r: any) => r.role === 'admin' && r.is_active)
-        ).length;
-        const staffUsers = profiles.filter(p => 
-          Array.isArray(p.user_roles) && p.user_roles.some((r: any) => ['staff', 'front_office'].includes(r.role) && r.is_active)
-        ).length;
-
-        setStats({ totalUsers, activeUsers, adminUsers, staffUsers });
-      }
+      setStats({
+        totalUsers: totalUsers || 0,
+        activeUsers: activeUsers || 0,
+        adminUsers: adminUsers || 0,
+        staffUsers: staffUsers || 0,
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
     }

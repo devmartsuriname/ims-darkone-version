@@ -174,6 +174,9 @@ const UserModal: React.FC<UserModalProps> = ({
         }
       });
 
+      // Debug logging
+      console.log('CreateUser response', { data, error });
+
       if (error) {
         console.error('Edge function error:', error);
         throw new Error(error.message || 'Failed to create user');
@@ -189,7 +192,7 @@ const UserModal: React.FC<UserModalProps> = ({
       onClose();
     } catch (error: any) {
       console.error('Create user error:', error);
-      toast.error(error.message || 'Failed to create user');
+      toast.error(error.message || 'Failed to create user', { autoClose: 6000 });
     }
   };
 
