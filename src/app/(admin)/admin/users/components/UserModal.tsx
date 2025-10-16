@@ -263,166 +263,168 @@ const UserModal: React.FC<UserModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal fade show d-block" tabIndex={-1}>
-      <div className="modal-dialog modal-lg">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">
-              {isEditing ? 'Edit User' : 'Create New User'}
-            </h5>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={onClose}
-            ></button>
-          </div>
-          <form onSubmit={handleSubmitForm}>
-            <div className="modal-body">
-              <div className="row">
-                <div className="col-md-6">
-                  <TextFormInput
-                    control={control}
-                    name="firstName"
-                    label="First Name"
-                    placeholder="Enter first name"
-                    required
-                  />
-                </div>
-                <div className="col-md-6">
-                  <TextFormInput
-                    control={control}
-                    name="lastName"
-                    label="Last Name"
-                    placeholder="Enter last name"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-6">
-                  <TextFormInput
-                    control={control}
-                    name="email"
-                    label="Email Address"
-                    type="email"
-                    placeholder="Enter email address"
-                    required
-                    disabled={isEditing} // Can't change email for existing users
-                  />
-                </div>
-                <div className="col-md-6">
-                  <TextFormInput
-                    control={control}
-                    name="phone"
-                    label="Phone Number"
-                    placeholder="Enter phone number"
-                  />
-                </div>
-              </div>
-
-              {!isEditing && (
+    <>
+      <div className="modal-backdrop fade show" style={{ pointerEvents: 'none' }}></div>
+      <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="userModalTitle">
+        <div className="modal-dialog modal-lg">
+          <div className="modal-content" style={{ position: 'relative', zIndex: 1060 }}>
+            <div className="modal-header">
+              <h5 id="userModalTitle" className="modal-title">
+                {isEditing ? 'Edit User' : 'Create New User'}
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={onClose}
+              ></button>
+            </div>
+            <form onSubmit={handleSubmitForm}>
+              <div className="modal-body">
                 <div className="row">
-                  <div className="col-12">
+                  <div className="col-md-6">
                     <TextFormInput
                       control={control}
-                      name="password"
-                      label="Password"
-                      type="password"
-                      placeholder="Enter password (min 6 characters)"
+                      name="firstName"
+                      label="First Name"
+                      placeholder="Enter first name"
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <TextFormInput
+                      control={control}
+                      name="lastName"
+                      label="Last Name"
+                      placeholder="Enter last name"
                       required
                     />
                   </div>
                 </div>
-              )}
 
-              <div className="row">
-                <div className="col-md-6">
-                  <TextFormInput
-                    control={control}
-                    name="department"
-                    label="Department"
-                    placeholder="Enter department"
-                  />
-                </div>
-                <div className="col-md-6">
-                  <TextFormInput
-                    control={control}
-                    name="position"
-                    label="Position"
-                    placeholder="Enter position"
-                  />
-                </div>
-              </div>
-
-              {isEditing && (
                 <div className="row">
-                  <div className="col-12">
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="userActiveSwitch"
-                        checked={isActive}
-                        onChange={(e) => setIsActive(e.target.checked)}
+                  <div className="col-md-6">
+                    <TextFormInput
+                      control={control}
+                      name="email"
+                      label="Email Address"
+                      type="email"
+                      placeholder="Enter email address"
+                      required
+                      disabled={isEditing} // Can't change email for existing users
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <TextFormInput
+                      control={control}
+                      name="phone"
+                      label="Phone Number"
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+                </div>
+
+                {!isEditing && (
+                  <div className="row">
+                    <div className="col-12">
+                      <TextFormInput
+                        control={control}
+                        name="password"
+                        label="Password"
+                        type="password"
+                        placeholder="Enter password (min 6 characters)"
+                        required
                       />
-                      <label className="form-check-label" htmlFor="userActiveSwitch">
-                        User is active
-                      </label>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              <div className="row mt-3">
-                <div className="col-12">
-                  <label className="form-label">User Roles</label>
-                  <div className="row">
-                    {availableRoles.map((role) => (
-                      <div key={role.value} className="col-md-4 mb-2">
-                        <div className="form-check">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id={`role-${role.value}`}
-                            checked={selectedRoles.includes(role.value)}
-                            onChange={(e) => handleRoleChange(role.value, e.target.checked)}
-                          />
-                          <label className="form-check-label" htmlFor={`role-${role.value}`}>
-                            {role.label}
-                          </label>
-                        </div>
-                      </div>
-                    ))}
+                <div className="row">
+                  <div className="col-md-6">
+                    <TextFormInput
+                      control={control}
+                      name="department"
+                      label="Department"
+                      placeholder="Enter department"
+                    />
                   </div>
-                  {selectedRoles.length === 0 && (
-                    <small className="text-danger">Please select at least one role</small>
-                  )}
+                  <div className="col-md-6">
+                    <TextFormInput
+                      control={control}
+                      name="position"
+                      label="Position"
+                      placeholder="Enter position"
+                    />
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <div className="row">
+                    <div className="col-12">
+                      <div className="form-check form-switch">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id="userActiveSwitch"
+                          checked={isActive}
+                          onChange={(e) => setIsActive(e.target.checked)}
+                        />
+                        <label className="form-check-label" htmlFor="userActiveSwitch">
+                          User is active
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="row mt-3">
+                  <div className="col-12">
+                    <label className="form-label">User Roles</label>
+                    <div className="row">
+                      {availableRoles.map((role) => (
+                        <div key={role.value} className="col-md-4 mb-2">
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id={`role-${role.value}`}
+                              checked={selectedRoles.includes(role.value)}
+                              onChange={(e) => handleRoleChange(role.value, e.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor={`role-${role.value}`}>
+                              {role.label}
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {selectedRoles.length === 0 && (
+                      <small className="text-danger">Please select at least one role</small>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={onClose}
-              >
-                Cancel
-              </button>
-              <EnhancedButton
-                type="submit"
-                variant="primary"
-                loading={loading}
-                disabled={selectedRoles.length === 0}
-              >
-                {isEditing ? 'Update User' : 'Create User'}
-              </EnhancedButton>
-            </div>
-          </form>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={onClose}
+                >
+                  Cancel
+                </button>
+                <EnhancedButton
+                  type="submit"
+                  variant="primary"
+                  loading={loading}
+                  disabled={selectedRoles.length === 0}
+                >
+                  {isEditing ? 'Update User' : 'Create User'}
+                </EnhancedButton>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-      <div className="modal-backdrop fade show"></div>
-    </div>
+    </>
   );
 };
 

@@ -303,158 +303,164 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({
 
       {/* Assign Modal */}
       {showAssignModal && (
-        <div className="modal fade show d-block" tabIndex={-1}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Assign Applications</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowAssignModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>Assign {selectedApplications.length} selected application(s) to:</p>
-                <select
-                  className="form-select"
-                  value={selectedUser}
-                  onChange={(e) => setSelectedUser(e.target.value)}
-                >
-                  <option value="">Select a user...</option>
-                  {users.map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.first_name} {user.last_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowAssignModal(false)}
-                >
-                  Cancel
-                </button>
-                <EnhancedButton
-                  variant="primary"
-                  onClick={handleBulkAssign}
-                  disabled={!selectedUser || loading}
-                  loading={loading}
-                >
-                  Assign Applications
-                </EnhancedButton>
+        <>
+          <div className="modal-backdrop fade show" style={{ pointerEvents: 'none' }}></div>
+          <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true">
+            <div className="modal-dialog">
+              <div className="modal-content" style={{ position: 'relative', zIndex: 1060 }}>
+                <div className="modal-header">
+                  <h5 className="modal-title">Assign Applications</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowAssignModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>Assign {selectedApplications.length} selected application(s) to:</p>
+                  <select
+                    className="form-select"
+                    value={selectedUser}
+                    onChange={(e) => setSelectedUser(e.target.value)}
+                  >
+                    <option value="">Select a user...</option>
+                    {users.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.first_name} {user.last_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowAssignModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <EnhancedButton
+                    variant="primary"
+                    onClick={handleBulkAssign}
+                    disabled={!selectedUser || loading}
+                    loading={loading}
+                  >
+                    Assign Applications
+                  </EnhancedButton>
+                </div>
               </div>
             </div>
           </div>
-          <div className="modal-backdrop fade show"></div>
-        </div>
+        </>
       )}
 
       {/* Status Update Modal */}
       {showStatusModal && (
-        <div className="modal fade show d-block" tabIndex={-1}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Update Status</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowStatusModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>Update status for {selectedApplications.length} selected application(s) to:</p>
-                <select
-                  className="form-select"
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                >
-                  <option value="">Select a status...</option>
-                  {applicationStatuses.map(status => (
-                    <option key={status.value} value={status.value}>
-                      {status.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowStatusModal(false)}
-                >
-                  Cancel
-                </button>
-                <EnhancedButton
-                  variant="primary"
-                  onClick={handleBulkStatusUpdate}
-                  disabled={!selectedStatus || loading}
-                  loading={loading}
-                >
-                  Update Status
-                </EnhancedButton>
+        <>
+          <div className="modal-backdrop fade show" style={{ pointerEvents: 'none' }}></div>
+          <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true">
+            <div className="modal-dialog">
+              <div className="modal-content" style={{ position: 'relative', zIndex: 1060 }}>
+                <div className="modal-header">
+                  <h5 className="modal-title">Update Status</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowStatusModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>Update status for {selectedApplications.length} selected application(s) to:</p>
+                  <select
+                    className="form-select"
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                  >
+                    <option value="">Select a status...</option>
+                    {applicationStatuses.map(status => (
+                      <option key={status.value} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowStatusModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <EnhancedButton
+                    variant="primary"
+                    onClick={handleBulkStatusUpdate}
+                    disabled={!selectedStatus || loading}
+                    loading={loading}
+                  >
+                    Update Status
+                  </EnhancedButton>
+                </div>
               </div>
             </div>
           </div>
-          <div className="modal-backdrop fade show"></div>
-        </div>
+        </>
       )}
 
       {/* Export Format Modal */}
       {showExportModal && (
-        <div className="modal fade show d-block" tabIndex={-1}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Export Applications</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowExportModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>Select export format for {selectedApplications.length} selected application(s):</p>
-                <div className="d-grid gap-2">
-                  <EnhancedButton
-                    variant="outline-primary"
-                    onClick={() => handleBulkExport('csv')}
-                    disabled={loading}
-                  >
-                    <i className="bi bi-filetype-csv"></i> Export as CSV
-                  </EnhancedButton>
-                  <EnhancedButton
-                    variant="success"
-                    onClick={() => handleBulkExport('excel')}
-                    disabled={loading}
-                  >
-                    <i className="bi bi-file-earmark-excel"></i> Export as Excel
-                  </EnhancedButton>
-                  <EnhancedButton
-                    variant="danger"
-                    onClick={() => handleBulkExport('pdf')}
-                    disabled={loading}
-                  >
-                    <i className="bi bi-file-earmark-pdf"></i> Export as PDF
-                  </EnhancedButton>
+        <>
+          <div className="modal-backdrop fade show" style={{ pointerEvents: 'none' }}></div>
+          <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true">
+            <div className="modal-dialog">
+              <div className="modal-content" style={{ position: 'relative', zIndex: 1060 }}>
+                <div className="modal-header">
+                  <h5 className="modal-title">Export Applications</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowExportModal(false)}
+                  ></button>
                 </div>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowExportModal(false)}
-                >
-                  Cancel
-                </button>
+                <div className="modal-body">
+                  <p>Select export format for {selectedApplications.length} selected application(s):</p>
+                  <div className="d-grid gap-2">
+                    <EnhancedButton
+                      variant="outline-primary"
+                      onClick={() => handleBulkExport('csv')}
+                      disabled={loading}
+                    >
+                      <i className="bi bi-filetype-csv"></i> Export as CSV
+                    </EnhancedButton>
+                    <EnhancedButton
+                      variant="success"
+                      onClick={() => handleBulkExport('excel')}
+                      disabled={loading}
+                    >
+                      <i className="bi bi-file-earmark-excel"></i> Export as Excel
+                    </EnhancedButton>
+                    <EnhancedButton
+                      variant="danger"
+                      onClick={() => handleBulkExport('pdf')}
+                      disabled={loading}
+                    >
+                      <i className="bi bi-file-earmark-pdf"></i> Export as PDF
+                    </EnhancedButton>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowExportModal(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-          <div className="modal-backdrop fade show"></div>
-        </div>
+        </>
       )}
     </>
   );
