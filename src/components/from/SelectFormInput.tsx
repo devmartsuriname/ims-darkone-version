@@ -1,0 +1,57 @@
+import { Controller, FieldValues } from 'react-hook-form';
+import ChoicesFormInput from './ChoicesFormInput';
+import { FormInputProps } from '@/types/component-props';
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface SelectFormInputProps<TFieldValues extends FieldValues> extends FormInputProps<TFieldValues> {
+  options: SelectOption[];
+  placeholder?: string;
+  multiple?: boolean;
+}
+
+const SelectFormInput = <TFieldValues extends FieldValues>({
+  control,
+  name,
+  label,
+  options,
+  placeholder = 'Select an option',
+  containerClassName,
+  labelClassName,
+  multiple = false,
+  noValidate = false
+}: SelectFormInputProps<TFieldValues>) => {
+  return (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field, fieldState }) => (
+        <div className={containerClassName || 'mb-3'}>
+          {label && <label className={`form-label ${labelClassName || ''}`}>{label}</label>}
+          <ChoicesFormInput
+            className={`form-control ${fieldState.error ? 'is-invalid' : ''}`}
+            multiple={multiple}
+            onChange={(value) => field.onChange(value)}
+          >
+            <option value="">{placeholder}</option>
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </ChoicesFormInput>
+          {!noValidate && fieldState.error && (
+            <div className="invalid-feedback d-block">
+              {fieldState.error.message}
+            </div>
+          )}
+        </div>
+      )}
+    />
+  );
+};
+
+export default SelectFormInput;

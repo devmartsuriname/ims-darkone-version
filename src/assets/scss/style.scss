@@ -67,6 +67,75 @@
 // UI Enhancement Components
 @import "components/ui-enhancements";
 
+// Choices.js Dropdown Overrides
+.choices {
+  margin-bottom: 0;
+  
+  &__inner {
+    background-color: $input-bg;
+    border: $input-border-width solid $input-border-color;
+    border-radius: $input-border-radius;
+    min-height: $input-height;
+    padding: $input-padding-y $input-padding-x;
+    font-size: $input-font-size;
+    
+    &:focus {
+      border-color: $input-focus-border-color;
+      box-shadow: $input-btn-focus-box-shadow;
+    }
+  }
+  
+  &__list {
+    &--dropdown {
+      z-index: 1050 !important;
+      background-color: $dropdown-bg;
+      border: $dropdown-border-width solid $dropdown-border-color;
+      box-shadow: $dropdown-box-shadow;
+      border-radius: $dropdown-border-radius;
+      
+      .choices__item {
+        &--selectable {
+          padding: $dropdown-item-padding-y $dropdown-item-padding-x;
+          
+          &.is-highlighted {
+            background-color: $dropdown-link-hover-bg;
+            color: $dropdown-link-hover-color;
+          }
+        }
+      }
+    }
+  }
+  
+  &__placeholder {
+    opacity: 0.5;
+  }
+}
+
+// Dark mode support for Choices.js
+[data-bs-theme="dark"] {
+  .choices {
+    &__inner {
+      background-color: $input-bg;
+      border-color: $input-border-color;
+      color: $input-color;
+    }
+    
+    &__list--dropdown {
+      background-color: $dropdown-bg;
+      border-color: $dropdown-border-color;
+      
+      .choices__item--selectable {
+        color: $dropdown-link-color;
+        
+        &.is-highlighted {
+          background-color: $dropdown-link-hover-bg;
+          color: $dropdown-link-hover-color;
+        }
+      }
+    }
+  }
+}
+
 // Application List Enhancements
 .sortable {
   cursor: pointer;

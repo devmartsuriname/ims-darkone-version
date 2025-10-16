@@ -2,7 +2,7 @@ import React from 'react';
 import { Row, Col, Card } from 'react-bootstrap';
 import { useFormContext } from 'react-hook-form';
 import TextFormInput from '@/components/from/TextFormInput';
-import ChoicesFormInput from '@/components/from/ChoicesFormInput';
+import SelectFormInput from '@/components/from/SelectFormInput';
 import CustomFlatpickr from '@/components/CustomFlatpickr';
 import { HelpIcon } from '@/components/ui/EnhancedTooltip';
 
@@ -126,20 +126,13 @@ const ApplicantDetailsStep: React.FC = () => {
 
           <Row>
             <Col md={6}>
-              <div className="mb-3">
-                <label className="form-label">Marital Status *</label>
-                <ChoicesFormInput
-                  className="form-control"
-                  onChange={(value) => setValue('marital_status', value)}
-                >
-                  <option value="">Select marital status</option>
-                  {maritalStatusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </ChoicesFormInput>
-              </div>
+              <SelectFormInput
+                name="marital_status"
+                label="Marital Status *"
+                control={control}
+                options={maritalStatusOptions}
+                placeholder="Select marital status"
+              />
             </Col>
             <Col md={6}>
               <TextFormInput
@@ -192,20 +185,13 @@ const ApplicantDetailsStep: React.FC = () => {
               />
             </Col>
             <Col md={4}>
-              <div className="mb-3">
-                <label className="form-label">District *</label>
-                <ChoicesFormInput
-                  className="form-control"
-                  onChange={(value) => setValue('district', value)}
-                >
-                  <option value="">Select district</option>
-                  {districtOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </ChoicesFormInput>
-              </div>
+              <SelectFormInput
+                name="district"
+                label="District *"
+                control={control}
+                options={districtOptions}
+                placeholder="Select district"
+              />
             </Col>
           </Row>
         </Card.Body>
@@ -238,20 +224,13 @@ const ApplicantDetailsStep: React.FC = () => {
               />
             </Col>
             <Col md={6}>
-              <div className="mb-3">
-                <label className="form-label">Employment Status *</label>
-                <ChoicesFormInput
-                  className="form-control"
-                  onChange={(value) => setValue('employment_status', value)}
-                >
-                  <option value="">Select employment status</option>
-                  {employmentStatusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </ChoicesFormInput>
-              </div>
+              <SelectFormInput
+                name="employment_status"
+                label="Employment Status *"
+                control={control}
+                options={employmentStatusOptions}
+                placeholder="Select employment status"
+              />
             </Col>
           </Row>
 

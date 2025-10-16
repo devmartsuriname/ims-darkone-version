@@ -3,7 +3,7 @@ import { Row, Col, Card } from 'react-bootstrap';
 import { useFormContext } from 'react-hook-form';
 import TextFormInput from '@/components/from/TextFormInput';
 import TextAreaFormInput from '@/components/from/TextAreaFormInput';
-import ChoicesFormInput from '@/components/from/ChoicesFormInput';
+import SelectFormInput from '@/components/from/SelectFormInput';
 
 const PropertyDetailsStep: React.FC = () => {
   const { control, setValue } = useFormContext();
@@ -65,39 +65,25 @@ const PropertyDetailsStep: React.FC = () => {
               />
             </Col>
             <Col md={4}>
-              <div className="mb-3">
-                <label className="form-label">Property District *</label>
-                <ChoicesFormInput
-                  className="form-control"
-                  onChange={(value) => setValue('property_district', value)}
-                >
-                  <option value="">Select district</option>
-                  {districtOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </ChoicesFormInput>
-              </div>
+              <SelectFormInput
+                name="property_district"
+                label="Property District *"
+                control={control}
+                options={districtOptions}
+                placeholder="Select district"
+              />
             </Col>
           </Row>
 
           <Row>
             <Col md={6}>
-              <div className="mb-3">
-                <label className="form-label">Property Type *</label>
-                <ChoicesFormInput
-                  className="form-control"
-                  onChange={(value) => setValue('property_type', value)}
-                >
-                  <option value="">Select property type</option>
-                  {propertyTypeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </ChoicesFormInput>
-              </div>
+              <SelectFormInput
+                name="property_type"
+                label="Property Type *"
+                control={control}
+                options={propertyTypeOptions}
+                placeholder="Select property type"
+              />
             </Col>
             <Col md={6}>
               <TextFormInput
@@ -114,36 +100,22 @@ const PropertyDetailsStep: React.FC = () => {
 
           <Row>
             <Col md={6}>
-              <div className="mb-3">
-                <label className="form-label">Title Type *</label>
-                <ChoicesFormInput
-                  className="form-control"
-                  onChange={(value) => setValue('title_type', value)}
-                >
-                  <option value="">Select title type</option>
-                  {titleTypeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </ChoicesFormInput>
-              </div>
+              <SelectFormInput
+                name="title_type"
+                label="Title Type *"
+                control={control}
+                options={titleTypeOptions}
+                placeholder="Select title type"
+              />
             </Col>
             <Col md={6}>
-              <div className="mb-3">
-                <label className="form-label">Ownership Status *</label>
-                <ChoicesFormInput
-                  className="form-control"
-                  onChange={(value) => setValue('ownership_status', value)}
-                >
-                  <option value="">Select ownership status</option>
-                  {ownershipStatusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </ChoicesFormInput>
-              </div>
+              <SelectFormInput
+                name="ownership_status"
+                label="Ownership Status *"
+                control={control}
+                options={ownershipStatusOptions}
+                placeholder="Select ownership status"
+              />
             </Col>
           </Row>
         </Card.Body>
