@@ -133,6 +133,63 @@ Streamline and secure the **end-to-end application workflow** for housing servic
 | Minister decision   |       |    |    |       |          | ✓        |             |           |
 | Manage users/roles  | ✓     | ✓  |    |       |          |          |             |           |
 
+## Form Validation Rules
+
+### Applicant Details (Step 1)
+
+**Required Text Fields:**
+- National ID (min 1 character)
+- First Name (min 1 character)
+- Last Name (min 1 character)
+- Date of Birth (valid date)
+- Phone Number (min 1 character)
+- Email (valid email format)
+- Address (min 1 character)
+
+**Required Dropdown Fields:**
+- Marital Status: Single, Married, Divorced, Widowed, Common Law
+- District: Paramaribo, Wanica, Nickerie, Coronie, Saramacca, Commewijne, Marowijne, Para, Brokopondo, Sipaliwini
+- Employment Status: Employed, Self-Employed, Unemployed, Retired, Student, Disabled
+
+**Conditional Fields:**
+- Spouse Name (required if marital_status = "married" or "common_law")
+- Spouse Income (required if marital_status = "married" or "common_law")
+
+**Optional Fields:**
+- Nationality (default: "Surinamese")
+- Household Size (default: 1)
+- Children Count (default: 0)
+- Monthly Income (default: 0)
+- Employer Name
+
+### Property Details (Step 2)
+
+**Required Text Fields:**
+- Property Address (min 1 character)
+- Requested Amount (min 1)
+- Reason for Request (min 10 characters)
+
+**Optional Dropdown Fields:**
+- Property Type: Residential House, Apartment, Land, Commercial, Mixed Use
+- Property District: (same as applicant district options)
+- Title Type: Eigendom, Erfpacht, Grondhuur, None
+- Ownership Status: Owner, Co-owner, Tenant, Family Property, Other
+- Priority Level: High (1), Medium-High (2), Normal (3), Low (4) - default: Normal
+
+**Optional Fields:**
+- Property Surface Area (m²)
+- Special Circumstances
+
+### Document Upload (Step 3)
+
+**Required Documents:** Minimum 1 document uploaded
+
+### Review & Submit (Step 4)
+
+**Final Validation:** All required fields from Steps 1-3 must be valid before submission.
+
+---
+
 ## Required Documents (12 Items)
 
 1. Nationale verklaring + uittreksel

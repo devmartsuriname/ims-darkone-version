@@ -6,7 +6,7 @@ import TextAreaFormInput from '@/components/from/TextAreaFormInput';
 import SelectFormInput from '@/components/from/SelectFormInput';
 
 const PropertyDetailsStep: React.FC = () => {
-  const { control, setValue } = useFormContext();
+  const { control } = useFormContext();
 
   const propertyTypeOptions = [
     { value: 'single_family', label: 'Single Family House' },
@@ -139,19 +139,18 @@ const PropertyDetailsStep: React.FC = () => {
               />
             </Col>
             <Col md={6}>
-              <div className="mb-3">
-                <label className="form-label">Priority Level</label>
-                <select
-                  className="form-control"
-                  onChange={(e) => setValue('priority_level', parseInt(e.target.value))}
-                  defaultValue="3"
-                >
-                  <option value="1">1 - Urgent</option>
-                  <option value="2">2 - High</option>
-                  <option value="3">3 - Normal</option>
-                  <option value="4">4 - Low</option>
-                </select>
-              </div>
+              <SelectFormInput
+                name="priority_level"
+                label="Priority Level"
+                control={control}
+                options={[
+                  { value: '1', label: '1 - Urgent' },
+                  { value: '2', label: '2 - High' },
+                  { value: '3', label: '3 - Normal' },
+                  { value: '4', label: '4 - Low' },
+                ]}
+                placeholder="Select priority level"
+              />
             </Col>
           </Row>
 

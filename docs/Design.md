@@ -1,5 +1,59 @@
 # IMS Design Guidelines - Darkone Theme Integration
 
+## Form Components
+
+### SelectFormInput
+
+A reusable dropdown component that integrates Choices.js with React Hook Form for enhanced select inputs.
+
+**Location:** `src/components/from/SelectFormInput.tsx`
+
+**Features:**
+- Searchable dropdowns with keyboard navigation
+- Consistent Bootstrap 5 styling
+- Dark mode support
+- Form validation integration
+- High z-index (1050) for proper layering
+- Mobile-responsive
+
+**Usage:**
+```typescript
+import SelectFormInput from '@/components/from/SelectFormInput';
+
+<SelectFormInput
+  name="district"
+  label="District *"
+  control={control}
+  options={[
+    { value: 'Paramaribo', label: 'Paramaribo' },
+    { value: 'Wanica', label: 'Wanica' },
+  ]}
+  placeholder="Select district"
+/>
+```
+
+**Props:**
+- `control`: React Hook Form control object
+- `name`: Field name in form schema
+- `label`: Display label (optional)
+- `options`: Array of `{ value, label }` objects
+- `placeholder`: Placeholder text
+- `multiple`: Enable multi-select (default: false)
+- `containerClassName`: Custom container classes
+- `labelClassName`: Custom label classes
+- `noValidate`: Disable validation error display
+
+**Styling:**
+Dropdowns use semantic color tokens from the design system:
+- Background: `$input-bg`
+- Border: `$input-border-color`
+- Focus: `$input-focus-border-color`
+- Dropdown menu: `$dropdown-bg` with `$dropdown-box-shadow`
+
+See `src/assets/scss/style.scss` for complete Choices.js overrides.
+
+---
+
 ## Core Design Principles
 
 ### ⚠️ Critical Rule: NO VISUAL MODIFICATIONS
