@@ -61,7 +61,7 @@ const PropertyDetailsStep: React.FC = () => {
                 name="property_address"
                 label="Property Address *"
                 control={control}
-                placeholder="Enter complete property address"
+                placeholder="Complete address including street and number"
               />
             </Col>
             <Col md={4}>
@@ -91,7 +91,7 @@ const PropertyDetailsStep: React.FC = () => {
                 type="number"
                 label="Surface Area (m²) *"
                 control={control}
-                placeholder="0"
+                placeholder="Property size in m² (e.g., 150.5)"
                 min="1"
                 step="0.01"
               />
@@ -133,7 +133,7 @@ const PropertyDetailsStep: React.FC = () => {
                 type="number"
                 label="Requested Subsidy Amount (SRD) *"
                 control={control}
-                placeholder="0.00"
+                placeholder="Amount needed in SRD (minimum 100.00)"
                 min="100"
                 step="0.01"
               />
@@ -161,7 +161,7 @@ const PropertyDetailsStep: React.FC = () => {
                 label="Reason for Subsidy Request *"
                 control={control}
                 rows={4}
-                placeholder="Please provide a detailed explanation of why you need housing subsidy assistance (minimum 20 characters)"
+                placeholder="Explain why you need housing subsidy. Include details about your current housing situation, repairs needed, or construction plans. (Minimum 20 characters)"
               />
             </Col>
           </Row>

@@ -54,7 +54,7 @@ const ApplicantDetailsStep: React.FC = () => {
                 name="first_name"
                 label="First Name *"
                 control={control}
-                placeholder="Enter first name"
+                placeholder="E.g., John"
               />
             </Col>
             <Col md={6}>
@@ -62,7 +62,7 @@ const ApplicantDetailsStep: React.FC = () => {
                 name="last_name"
                 label="Last Name *"
                 control={control}
-                placeholder="Enter last name"
+                placeholder="E.g., Doe"
               />
             </Col>
           </Row>
@@ -80,7 +80,7 @@ const ApplicantDetailsStep: React.FC = () => {
                 <TextFormInput
                   name="national_id"
                   control={control}
-                  placeholder="Enter national ID"
+                  placeholder="E.g., F0069623 or A1234567"
                 />
               </div>
             </Col>
@@ -89,9 +89,11 @@ const ApplicantDetailsStep: React.FC = () => {
                 name="date_of_birth"
                 label="Date of Birth"
                 control={control}
-                placeholder="Select date of birth"
+                placeholder="DD-MM-YYYY or use calendar"
                 maxDate={new Date()}
                 required
+                allowFreeInput={true}
+                showFormatHint={true}
               />
             </Col>
           </Row>
@@ -103,7 +105,7 @@ const ApplicantDetailsStep: React.FC = () => {
                 type="email"
                 label="Email Address"
                 control={control}
-                placeholder="Enter email address"
+                placeholder="your.email@example.com"
               />
             </Col>
             <Col md={6}>
@@ -111,7 +113,7 @@ const ApplicantDetailsStep: React.FC = () => {
                 name="phone"
                 label="Phone Number *"
                 control={control}
-                placeholder="Enter phone number"
+                placeholder="E.g., 7455565 or +597-7455565"
               />
             </Col>
           </Row>
@@ -131,8 +133,7 @@ const ApplicantDetailsStep: React.FC = () => {
                 name="nationality"
                 label="Nationality"
                 control={control}
-                placeholder="Nationality"
-                defaultValue="Surinamese"
+                placeholder="E.g., Surinamese"
               />
             </Col>
           </Row>
@@ -144,7 +145,7 @@ const ApplicantDetailsStep: React.FC = () => {
                   name="spouse_name"
                   label="Spouse/Partner Name"
                   control={control}
-                  placeholder="Enter spouse/partner name"
+                  placeholder="Full name of spouse/partner"
                 />
               </Col>
               <Col md={6}>
@@ -153,7 +154,7 @@ const ApplicantDetailsStep: React.FC = () => {
                   type="number"
                   label="Spouse/Partner Monthly Income (SRD)"
                   control={control}
-                  placeholder="0.00"
+                  placeholder="E.g., 15000.00"
                   step="0.01"
                 />
               </Col>
@@ -173,7 +174,7 @@ const ApplicantDetailsStep: React.FC = () => {
                 name="address"
                 label="Full Address *"
                 control={control}
-                placeholder="Enter complete address"
+                placeholder="Street name, house number, district (e.g., Cricket 27, Paramaribo)"
               />
             </Col>
             <Col md={4}>
@@ -201,7 +202,7 @@ const ApplicantDetailsStep: React.FC = () => {
                 type="number"
                 label="Household Size *"
                 control={control}
-                placeholder="1"
+                placeholder="Total number of people (e.g., 4)"
                 min="1"
               />
             </Col>
@@ -240,7 +241,7 @@ const ApplicantDetailsStep: React.FC = () => {
                   name="monthly_income"
                   type="number"
                   control={control}
-                  placeholder="0.00"
+                  placeholder="Enter monthly income in SRD (e.g., 20000.00)"
                   step="0.01"
                   min="0"
                 />
@@ -251,7 +252,7 @@ const ApplicantDetailsStep: React.FC = () => {
                 name="employer_name"
                 label="Employer Name"
                 control={control}
-                placeholder="Enter employer name (if employed)"
+                placeholder="Company or organization name (e.g., AMBTENAAR)"
               />
             </Col>
           </Row>

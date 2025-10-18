@@ -9,8 +9,9 @@ import ApplicantDetailsStep from './ApplicantDetailsStep';
 import PropertyDetailsStep from './PropertyDetailsStep';
 import DocumentUploadStep from './DocumentUploadStep';
 import ReviewSubmitStep from './ReviewSubmitStep';
-import { applicationService } from '@/services/edgeFunctionServices'
-import IconifyIcon from '@/components/wrapper/IconifyIcon'
+import { applicationService } from '@/services/edgeFunctionServices';
+import IconifyIcon from '@/components/wrapper/IconifyIcon';
+import { groupErrorsByStep } from '@/utils/form-helpers';
 
 // Validation schemas for each step
 const applicantSchema = z.object({
@@ -144,18 +145,28 @@ const ApplicationIntakeForm: React.FC = () => {
     const isValid = await validateCurrentStep();
     
     if (!isValid) {
-      // Collect and display validation errors
+      // Collect and display validation errors grouped by step
       const errors = methods.formState.errors;
+      const groupedErrors = groupErrorsByStep(errors);
       const errorMessages: string[] = [];
       
-      Object.entries(errors).forEach(([field, error]) => {
-        if (error?.message) {
-          errorMessages.push(`${field.replace(/_/g, ' ')}: ${error.message as string}`);
+      Object.entries(groupedErrors).forEach(([, messages]) => {
+        if (messages.length > 0) {
+          errorMessages.push(...messages);
         }
       });
       
       setValidationErrors(errorMessages);
-      toast.error('Please correct the highlighted errors before proceeding');
+      
+      // Scroll to first error field
+      const firstErrorField = document.querySelector('.is-invalid');
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      
+      toast.error(`Please correct ${errorMessages.length} error${errorMessages.length > 1 ? 's' : ''} before proceeding`, {
+        autoClose: 5000,
+      });
       return;
     }
     

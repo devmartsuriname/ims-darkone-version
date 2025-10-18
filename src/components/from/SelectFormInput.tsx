@@ -30,15 +30,20 @@ const SelectFormInput = <TFieldValues extends FieldValues>({
       name={name}
       render={({ field, fieldState }) => (
         <div className={containerClassName || 'mb-3'}>
-          {label && <label className={`form-label ${labelClassName || ''}`}>{label}</label>}
+          {label && (
+            <label className={`form-label ${labelClassName || ''}`}>
+              {label}
+              {!noValidate && <span className="text-danger ms-1">*</span>}
+            </label>
+          )}
           <ChoicesFormInput
             className={`form-control ${fieldState.error ? 'is-invalid' : ''}`}
             multiple={multiple}
             onChange={(value) => field.onChange(value)}
           >
-            <option value="">{placeholder}</option>
+            <option value="" disabled>{placeholder}</option>
             {options.map((option) => (
-              <option key={option.value} value={option.value}>
+              <option key={option.value} value={option.value} selected={field.value === option.value}>
                 {option.label}
               </option>
             ))}
