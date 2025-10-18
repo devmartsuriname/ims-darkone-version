@@ -19,7 +19,22 @@ const applicantSchema = z.object({
   national_id: z.string().min(6, 'National ID is required'),
   email: z.string().email('Valid email is required').optional().or(z.literal('')),
   phone: z.string().min(7, 'Phone number is required'),
-  date_of_birth: z.date(),
+  date_of_birth: z.date({
+    message: 'Date of birth is required',
+  })
+    .refine((date) => date < new Date(), {
+      message: 'Date of birth must be in the past',
+    })
+    .refine((date) => {
+      const today = new Date();
+      const age = today.getFullYear() - date.getFullYear();
+      const monthDiff = today.getMonth() - date.getMonth();
+      const dayDiff = today.getDate() - date.getDate();
+      const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+      return actualAge >= 18;
+    }, {
+      message: 'Applicant must be at least 18 years old',
+    }),
   marital_status: z.string().min(1, 'Please select marital status'),
   nationality: z.string().default('Surinamese'),
   address: z.string().min(10, 'Complete address is required'),

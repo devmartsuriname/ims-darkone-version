@@ -3,11 +3,11 @@ import { Row, Col, Card } from 'react-bootstrap';
 import { useFormContext } from 'react-hook-form';
 import TextFormInput from '@/components/from/TextFormInput';
 import SelectFormInput from '@/components/from/SelectFormInput';
-import CustomFlatpickr from '@/components/CustomFlatpickr';
+import DateFormInput from '@/components/from/DateFormInput';
 import { HelpIcon } from '@/components/ui/EnhancedTooltip';
 
 const ApplicantDetailsStep: React.FC = () => {
-  const { control, setValue, watch } = useFormContext();
+  const { control, watch } = useFormContext();
   const maritalStatus = watch('marital_status');
 
   const maritalStatusOptions = [
@@ -85,22 +85,14 @@ const ApplicantDetailsStep: React.FC = () => {
               </div>
             </Col>
             <Col md={6}>
-              <div className="mb-3">
-                <label className="form-label">Date of Birth *</label>
-                <CustomFlatpickr
-                  className="form-control"
-                  placeholder="Select date of birth"
-                  options={{
-                    dateFormat: 'Y-m-d',
-                    maxDate: new Date(),
-                    onChange: (dates: Date[]) => {
-                      if (dates.length > 0) {
-                        setValue('date_of_birth', dates[0]);
-                      }
-                    },
-                  }}
-                />
-              </div>
+              <DateFormInput
+                name="date_of_birth"
+                label="Date of Birth"
+                control={control}
+                placeholder="Select date of birth"
+                maxDate={new Date()}
+                required
+              />
             </Col>
           </Row>
 
