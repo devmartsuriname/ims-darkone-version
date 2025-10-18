@@ -31,7 +31,21 @@ const TextFormInput = <TFieldValues extends FieldValues = FieldValues, TName ext
             ) : (
               <>{label}</>
             ))}
-          <FormControl id={id ?? name} {...other} {...field} isInvalid={Boolean(fieldState.error?.message)} />
+          <FormControl 
+            id={id ?? name} 
+            {...other} 
+            {...field}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Transform to number if type is "number"
+              if (other.type === 'number') {
+                field.onChange(value === '' ? undefined : Number(value));
+              } else {
+                field.onChange(value);
+              }
+            }}
+            isInvalid={Boolean(fieldState.error?.message)} 
+          />
           {!noValidate && fieldState.error?.message && <Feedback type="invalid">{fieldState.error?.message}</Feedback>}
         </FormGroup>
       )}

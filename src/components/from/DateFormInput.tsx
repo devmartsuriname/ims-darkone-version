@@ -41,6 +41,14 @@ const DateFormInput = <TFieldValues extends FieldValues = FieldValues>({
 }: DateFormInputProps<TFieldValues>) => {
   const minDateStr = minDate ? formatDateForInput(minDate) : undefined;
   const maxDateStr = maxDate ? formatDateForInput(maxDate) : undefined;
+  
+  const calculateAge = (birthDate: Date): number => {
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+    return monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+  };
 
   return (
     <Controller
@@ -75,6 +83,11 @@ const DateFormInput = <TFieldValues extends FieldValues = FieldValues>({
             isInvalid={!!error}
             aria-label={label || placeholder}
           />
+          {!error && value && label?.includes('Birth') && (
+            <Form.Text className="text-muted">
+              Age: {calculateAge(value)} years old
+            </Form.Text>
+          )}
           {error && (
             <Form.Control.Feedback type="invalid" className="d-block">
               {error.message}

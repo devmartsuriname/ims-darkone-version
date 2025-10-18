@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, Col, Row, ProgressBar, Button } from 'react-bootstrap';
+import { Card, Col, Row, ProgressBar, Button, Alert } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
 
@@ -77,6 +77,7 @@ const ApplicationIntakeForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const methods = useForm<ApplicationFormData>({
     resolver: zodResolver(fullApplicationSchema),
@@ -97,6 +98,9 @@ const ApplicationIntakeForm: React.FC = () => {
       property_type: '',
       title_type: '',
       ownership_status: '',
+      property_address: '',
+      reason_for_request: '',
+      special_circumstances: '',
     },
   });
 
@@ -138,7 +142,25 @@ const ApplicationIntakeForm: React.FC = () => {
 
   const nextStep = async () => {
     const isValid = await validateCurrentStep();
-    if (isValid && currentStep < 4) {
+    
+    if (!isValid) {
+      // Collect and display validation errors
+      const errors = methods.formState.errors;
+      const errorMessages: string[] = [];
+      
+      Object.entries(errors).forEach(([field, error]) => {
+        if (error?.message) {
+          errorMessages.push(`${field.replace(/_/g, ' ')}: ${error.message as string}`);
+        }
+      });
+      
+      setValidationErrors(errorMessages);
+      toast.error('Please correct the highlighted errors before proceeding');
+      return;
+    }
+    
+    setValidationErrors([]);
+    if (currentStep < 4) {
       await autoSave();
       setCurrentStep(currentStep + 1);
     }
@@ -283,6 +305,18 @@ const ApplicationIntakeForm: React.FC = () => {
                     />
                   </Col>
                 </Row>
+
+                {/* Validation Errors Display */}
+                {validationErrors.length > 0 && (
+                  <Alert variant="danger" className="mb-3" dismissible onClose={() => setValidationErrors([])}>
+                    <Alert.Heading>Please fix the following errors:</Alert.Heading>
+                    <ul className="mb-0">
+                      {validationErrors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </Alert>
+                )}
 
                 {/* Form Content */}
                 <form onSubmit={methods.handleSubmit(onSubmit)}>
