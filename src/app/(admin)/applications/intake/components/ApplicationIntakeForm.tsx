@@ -82,7 +82,8 @@ const ApplicationIntakeForm: React.FC = () => {
 
   const methods = useForm<ApplicationFormData>({
     resolver: zodResolver(fullApplicationSchema),
-    mode: 'onChange',
+    mode: 'onSubmit', // ✅ FIX #2: Only validate when Next/Submit is clicked
+    reValidateMode: 'onChange', // ✅ Re-validate on change after first submit attempt
     defaultValues: {
       nationality: 'Surinamese',
       household_size: 1,
@@ -102,6 +103,7 @@ const ApplicationIntakeForm: React.FC = () => {
       property_address: '',
       reason_for_request: '',
       special_circumstances: '',
+      date_of_birth: undefined, // ✅ FIX #4: Explicitly set to undefined
     },
   });
 

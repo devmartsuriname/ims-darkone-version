@@ -285,7 +285,17 @@ export const useNotifications = () => {
       });
 
       if (error) {
+        // ✅ FIX #3: Gracefully handle 404 or other errors
+        if (error.message?.includes('404') || error.message?.includes('Invalid endpoint')) {
+          console.warn('Notification service not fully configured - using empty state');
+          setNotifications([]);
+          setUnreadCount(0);
+          return;
+        }
+        
         console.error('Notification service error:', error);
+        setNotifications([]);
+        setUnreadCount(0);
         return;
       }
 
@@ -295,6 +305,9 @@ export const useNotifications = () => {
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
+      // ✅ Set empty state on error
+      setNotifications([]);
+      setUnreadCount(0);
     }
   }, []);
 

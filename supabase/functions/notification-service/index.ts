@@ -150,6 +150,9 @@ serve(async (req) => {
           return await createApplicationNotification(body, user.id);
         } else if (action === 'sla-reminders' || path === 'sla-reminders') {
           return await sendSLAReminders();
+        } else if (action === 'user-notifications' || path === 'user-notifications') {
+          // ✅ FIX #1: Handle user-notifications action
+          return await getUserNotifications(req, user.id);
         } else {
           // Handle POST requests with body-based routing for backwards compatibility
           if (body.role && body.title && body.message) {
