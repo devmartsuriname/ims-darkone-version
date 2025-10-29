@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthContext } from '@/context/useAuthContext'
 import Preloader from '@/components/Preloader'
@@ -16,20 +16,22 @@ const ProtectedRoute = ({
   requiredRoles = [], 
   requireAny = true 
 }: ProtectedRouteProps) => {
-  const { isAuthenticated, loading, roles, session, signOut } = useAuthContext()
+  const { isAuthenticated, loading, roles, session, profile, signOut } = useAuthContext()
   const navigate = useNavigate()
   const location = useLocation()
-  const [sessionValidated, setSessionValidated] = useState(false)
 
-  // ✅ PRIORITY 2: Session validation on protected routes
+  // ✅ v0.14.7: Navigation Stability - Session validation on protected routes
   useEffect(() => {
     const checkSession = async () => {
+      console.info(`🛡️ [ROUTE] ProtectedRoute check - Path: ${location.pathname}`)
+      console.info(`🛡️ [ROUTE] Loading: ${loading}, Authenticated: ${isAuthenticated}, Profile: ${!!profile}, Roles: ${roles.length}`)
+      
       if (!loading && isAuthenticated && session) {
         // Validate session on critical routes
         const validSession = await validateSession()
         
         if (!validSession) {
-          console.error('❌ Session validation failed, forcing logout')
+          console.error('❌ [ROUTE] Session validation failed, forcing logout')
           toast.error('Your session has expired. Please sign in again.', {
             position: 'top-center',
             autoClose: 5000
@@ -38,23 +40,34 @@ const ProtectedRoute = ({
           return
         }
         
-        setSessionValidated(true)
+        console.info('✅ [ROUTE] Session validated successfully')
       } else if (!loading && !isAuthenticated) {
+        console.info('🔄 [ROUTE] Not authenticated, redirecting to sign-in')
         // Redirect to sign-in with current location as redirect target
         navigate(`/auth/sign-in?redirectTo=${encodeURIComponent(location.pathname + location.search)}`)
       }
     }
     
     checkSession()
-  }, [isAuthenticated, loading, session, navigate, location, signOut])
+  }, [isAuthenticated, loading, session, navigate, location, signOut, profile, roles])
 
-  // Show loading while checking authentication and validating session
-  if (loading || (isAuthenticated && !sessionValidated)) {
+  // ✅ FIXED: Simplified loading logic - wait for auth check AND user data
+  // Show loading while:
+  // 1. Auth context is still loading
+  // 2. User is authenticated but profile/roles haven't loaded yet
+  if (loading) {
+    console.info('⏳ [ROUTE] Auth context still loading...')
+    return <Preloader />
+  }
+
+  if (isAuthenticated && (!profile || roles.length === 0)) {
+    console.info('⏳ [ROUTE] Waiting for profile and roles to load...')
     return <Preloader />
   }
 
   // Not authenticated
   if (!isAuthenticated) {
+    console.info('🚫 [ROUTE] Not authenticated, will redirect')
     return null // Will be redirected by useEffect
   }
 

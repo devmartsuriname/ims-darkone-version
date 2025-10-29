@@ -103,26 +103,30 @@ export function AuthProvider({ children }: ChildrenType) {
     }
   }
 
-  // ✅ PRIORITY 2: Enhanced auth initialization with session validation
+  // ✅ v0.14.7: Navigation Stability - Enhanced auth initialization with session validation
   useEffect(() => {
+    console.info('🔐 [AUTH] Initializing authentication context')
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.info(`🔐 Auth state changed: ${event}`)
+        console.info(`🔐 [AUTH] State changed: ${event}`)
         
         setSession(session)
         
         if (session?.user) {
+          console.info('🔐 [AUTH] Session active, fetching user data')
           setUser(session.user as AuthUser)
           
-          // ✅ Increased delay from 0ms to 100ms to prevent race conditions
-          setTimeout(async () => {
-            const success = await fetchUserData(session.user.id)
-            if (!success) {
-              console.error('❌ Failed to fetch user data after retries')
-            }
-          }, 100)
+          // ✅ FIXED: Removed setTimeout delay to prevent race conditions
+          const success = await fetchUserData(session.user.id)
+          if (!success) {
+            console.error('❌ [AUTH] Failed to fetch user data after retries')
+          } else {
+            console.info('✅ [AUTH] User data loaded successfully')
+          }
         } else {
+          console.info('🔐 [AUTH] No session, clearing user data')
           setUser(null)
           setProfile(null)
           setRoles([])
@@ -135,18 +139,21 @@ export function AuthProvider({ children }: ChildrenType) {
     // Check for existing session with validation
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) {
-        console.error('❌ Session retrieval error:', error)
+        console.error('❌ [AUTH] Session retrieval error:', error)
         setLoading(false)
         return
       }
       
+      console.info('🔐 [AUTH] Initial session check:', session ? 'Session found' : 'No session')
       setSession(session)
       
       if (session?.user) {
         setUser(session.user as AuthUser)
         const success = await fetchUserData(session.user.id)
         if (!success) {
-          console.error('❌ Failed to fetch user data on initialization')
+          console.error('❌ [AUTH] Failed to fetch user data on initialization')
+        } else {
+          console.info('✅ [AUTH] Initial user data loaded')
         }
       }
       

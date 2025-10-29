@@ -6,6 +6,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import PublicRoute from '@/components/auth/PublicRoute'
 import InitialSystemSetup from '@/components/auth/InitialSystemSetup'
 import SetupRouteGuard from '@/components/auth/SetupRouteGuard'
+import { ErrorBoundary } from '@/components/dashboard/ErrorBoundary'
 
 const AppRouter = (props: RouteProps) => {
   return (
@@ -36,9 +37,11 @@ const AppRouter = (props: RouteProps) => {
           key={idx + route.name}
           path={route.path}
           element={
-            <ProtectedRoute>
-              <AdminLayout {...props}>{route.element}</AdminLayout>
-            </ProtectedRoute>
+            <ErrorBoundary>
+              <ProtectedRoute>
+                <AdminLayout {...props}>{route.element}</AdminLayout>
+              </ProtectedRoute>
+            </ErrorBoundary>
           }
         />
       ))}
