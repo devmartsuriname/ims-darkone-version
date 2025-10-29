@@ -208,12 +208,15 @@ export class IMSIntegrationTester {
    */
   static async testWorkflowTransition(applicationId: string, targetState: string): Promise<WorkflowTestResult> {
     try {
-      // Call workflow service
-      const { error } = await supabase.functions.invoke('workflow-service', {
+      // Get auth session for proper authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session');
+
+      // Call workflow service with correct format (snake_case parameters)
+      const { error } = await supabase.functions.invoke('workflow-service/transition', {
         body: {
-          action: 'transition',
-          applicationId,
-          targetState,
+          application_id: applicationId,
+          target_state: targetState,
           notes: 'Integration test transition'
         }
       });
