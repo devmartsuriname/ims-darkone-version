@@ -19,4 +19,20 @@ export default defineConfig(({ mode }) => ({
     },
   },
   base: "",
+  // ✅ PRIORITY 1: Cache-busting strategy with hash-based file names
+  build: {
+    rollupOptions: {
+      output: {
+        entryFileNames: `assets/[name]-[hash].js`,
+        chunkFileNames: `assets/[name]-[hash].js`,
+        assetFileNames: `assets/[name]-[hash].[ext]`
+      }
+    }
+  },
+  // Define build version for cache management
+  define: {
+    'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(
+      process.env.VITE_BUILD_VERSION || `v${Date.now()}`
+    )
+  }
 }))
