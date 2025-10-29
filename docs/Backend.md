@@ -32,21 +32,26 @@ CREATE TABLE profiles (
 CREATE TABLE applicants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   national_id TEXT UNIQUE NOT NULL,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  date_of_birth DATE NOT NULL,
-  nationality TEXT NOT NULL,
-  marital_status TEXT CHECK (marital_status IN ('Single', 'Married', 'Divorced', 'Widowed')),
-  phone TEXT,
-  email TEXT,
-  address TEXT NOT NULL,
-  municipality TEXT NOT NULL,
-  emergency_contact JSONB,
-  household_composition JSONB, -- Array of household members
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
+- **notification-service**: Multi-channel notification delivery (v0.14.4 enhanced)
+  - **Purpose**: Send and retrieve notifications for users
+  - **Actions**: 
+    - `send-role-notification`: Send to all users with specific role
+    - `user-notifications`: Fetch notifications by recipient ID (NEW in v0.14.4)
+    - `sla-reminders`: Send SLA reminder notifications
+  - **Authentication**: Requires authenticated user
+  - **Key Features**: 
+    - Role-based broadcasting
+    - Personal notification retrieval with unread count
+    - Toast, email, and system notification support
+    - Notification status tracking
+- **document-service**: Document verification and storage
+- **reference-data**: System configuration and lookup data
+- **reporting-service**: Analytics and export capabilities
+- **email-service**: Email notifications via Resend
+- **health-check**: System health monitoring
+- **system-health**: Comprehensive health metrics
+- **test-data-seeding**: Development test data generation
+- **seed-uat-users**: UAT user account seeding
 
 #### applications
 ```sql

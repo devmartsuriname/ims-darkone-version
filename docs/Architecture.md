@@ -421,6 +421,63 @@ export class OutboxService {
 - Pagination for large datasets
 
 ### Caching Strategy
+
+#### Browser Cache Management (v0.14.4)
+```typescript
+// Cache cleaner utility - src/utils/cache-cleaner.ts
+// Automatically clears cache on new build detection
+const BUILD_VERSION = import.meta.env.VITE_BUILD_VERSION || `build-${Date.now()}`;
+
+export const checkAndClearCache = async (): Promise<void> => {
+  const storedVersion = localStorage.getItem('app_build_version');
+  
+  if (storedVersion && storedVersion !== BUILD_VERSION) {
+    // Clear all caches except auth token
+    const authToken = localStorage.getItem('sb-shwfzxpypygdxoqxutae-auth-token');
+    
+    // Clear browser caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+    
+    // Clear storage
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Restore auth token
+    if (authToken) localStorage.setItem('sb-shwfzxpypygdxoqxutae-auth-token', authToken);
+    
+    // Update version and reload
+    localStorage.setItem('app_build_version', BUILD_VERSION);
+    window.location.reload();
+  }
+};
+```
+
+**Cache Control Headers:**
+```html
+<!-- index.html -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+```
+
+**Build Versioning:**
+```typescript
+// vite.config.ts
+build: {
+  rollupOptions: {
+    output: {
+      entryFileNames: `assets/[name]-[hash].js`,
+      chunkFileNames: `assets/[name]-[hash].js`,
+      assetFileNames: `assets/[name]-[hash].[ext]`
+    }
+  }
+}
+```
+
+#### React Query Configuration
 ```typescript
 // React Query configuration
 const queryClient = new QueryClient({
@@ -444,6 +501,7 @@ export const applicationQueries = {
   detail: (id: string) => [...applicationQueries.details(), id] as const
 }
 ```
+
 
 ## Monitoring & Observability
 
