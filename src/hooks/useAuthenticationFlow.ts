@@ -16,7 +16,31 @@ export const useAuthenticationFlow = () => {
   });
 
   useEffect(() => {
-    // Phase 4: Check for bypass flag
+    // Guard against React 18 StrictMode double-invocation in dev/editor
+    const alreadyChecked = sessionStorage.getItem('ims_setup_checked') === 'true';
+    if (alreadyChecked) {
+      setAuthFlow(prev => ({ ...prev, loading: false }));
+      return;
+    }
+    sessionStorage.setItem('ims_setup_checked', 'true');
+
+    // Auto-bypass in Lovable editor preview / embedded iframe to avoid CORS/timeouts
+    try {
+      const host = window.location.hostname;
+      const isEmbedded = window.self !== window.top;
+      const isLovablePreviewHost = host.includes('lovableproject.com') || host.includes('lovable.app');
+      if (isEmbedded || isLovablePreviewHost) {
+        console.warn('🧪 Editor preview detected - skipping admin_user_exists RPC');
+        setAuthFlow({
+          showInitialSetup: false,
+          isFirstTimeSetup: false,
+          loading: false
+        });
+        return;
+      }
+    } catch {}
+
+    // Phase 4: Check for bypass flag (manual recovery)
     const skipCheck = localStorage.getItem('skip_setup_check') === 'true';
     if (skipCheck) {
       console.warn('⚠️ Setup check bypassed by user');
