@@ -142,30 +142,34 @@ serve(async (req) => {
       });
     }
 
+    // Route handling - support both path-based (HTTP) and action-based (JS client) routing
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
+    const action = body.action; // Fallback for JS client invocations
+
+    console.log(`🔀 [WORKFLOW] Method: ${req.method}, Path: ${path}, Action: ${action || 'none'}`);
 
     switch (req.method) {
       case 'POST':
-        if (path === 'transition') {
+        if (path === 'transition' || action === 'transition') {
           return await transitionState(body, user.id);
-        } else if (path === 'create-task') {
+        } else if (path === 'create-task' || action === 'create-task') {
           return await createTask(body, user.id);
-        } else if (path === 'validate-transition') {
+        } else if (path === 'validate-transition' || action === 'validate-transition') {
           return await validateTransition(body, user.id);
         }
         break;
       case 'GET':
-        if (path === 'available-transitions') {
+        if (path === 'available-transitions' || action === 'available-transitions') {
           return await getAvailableTransitions(url, user.id);
-        } else if (path === 'workflow-status') {
+        } else if (path === 'workflow-status' || action === 'workflow-status') {
           return await getWorkflowStatus(url, user.id);
-        } else if (path === 'tasks') {
+        } else if (path === 'tasks' || action === 'tasks') {
           return await getTasks(url, user.id);
         }
         break;
       case 'PUT':
-        if (path === 'complete-task') {
+        if (path === 'complete-task' || action === 'complete-task') {
           return await completeTask(body, user.id);
         }
         break;

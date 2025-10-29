@@ -212,9 +212,10 @@ export class IMSIntegrationTester {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 
-      // Call workflow service with correct format (snake_case parameters)
-      const { error } = await supabase.functions.invoke('workflow-service/transition', {
+      // Call workflow service with action-based routing (JS client pattern)
+      const { error } = await supabase.functions.invoke('workflow-service', {
         body: {
+          action: 'transition',
           application_id: applicationId,
           target_state: targetState,
           notes: 'Integration test transition'
