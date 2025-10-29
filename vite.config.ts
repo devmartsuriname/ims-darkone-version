@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => ({
   // Define build version for cache management
   define: {
     'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(
-      process.env.VITE_BUILD_VERSION || `v${Date.now()}`
+      process.env.VITE_BUILD_VERSION || 'dev'
     )
   }
 }))
