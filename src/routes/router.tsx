@@ -24,9 +24,11 @@ const AppRouter = (props: RouteProps) => {
           key={idx + route.name} 
           path={route.path} 
           element={
-            <PublicRoute>
-              <AuthLayout {...props}>{route.element}</AuthLayout>
-            </PublicRoute>
+            <ErrorBoundary>
+              <PublicRoute>
+                <AuthLayout {...props}>{route.element}</AuthLayout>
+              </PublicRoute>
+            </ErrorBoundary>
           } 
         />
       ))}

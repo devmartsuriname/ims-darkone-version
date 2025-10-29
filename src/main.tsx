@@ -6,6 +6,11 @@ import { basePath } from './context/constants.ts'
 import { checkAndClearCache } from './utils/cache-cleaner'
 import { QueryProvider } from './components/QueryProvider'
 import { initWebVitals } from './utils/web-vitals'
+import { installChunkRecovery } from './utils/chunk-recovery'
+
+// ✅ PRIORITY 0: Chunk Load Error Recovery
+// Must be first to catch any dynamic import failures
+installChunkRecovery()
 
 // ✅ Initialize Web Vitals Monitoring
 initWebVitals()
