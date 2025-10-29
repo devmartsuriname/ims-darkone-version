@@ -30,12 +30,18 @@ function isChunkLoadError(err: any): boolean {
 export function installChunkRecovery() {
   console.info('🛡️ [CHUNK-RECOVERY] Installing chunk load error recovery')
 
-  // Handle synchronous script loading errors
+  // Handle synchronous script/stylesheet loading errors
   window.addEventListener('error', (event) => {
-    if (isChunkLoadError(event?.error)) {
-      console.warn('⚠️ [CHUNK-RECOVERY] Chunk load error detected. Recovering...', {
+    const target = event?.target as HTMLElement
+    const isStylesheet = target?.tagName === 'LINK' && (target as HTMLLinkElement)?.rel === 'stylesheet'
+    const isScript = target?.tagName === 'SCRIPT'
+    
+    if (isChunkLoadError(event?.error) || isStylesheet || isScript) {
+      console.warn('⚠️ [CHUNK-RECOVERY] Asset load error detected. Recovering...', {
         message: event.error?.message,
-        filename: event.filename
+        filename: event.filename,
+        tagName: target?.tagName,
+        href: (target as HTMLLinkElement)?.href || (target as HTMLScriptElement)?.src
       })
       
       // Redirect to base path to clear stale state
@@ -43,7 +49,7 @@ export function installChunkRecovery() {
       console.info('🔄 [CHUNK-RECOVERY] Redirecting to:', targetUrl)
       window.location.href = targetUrl
     }
-  })
+  }, true) // Use capture phase to catch link/script errors
 
   // Handle unhandled promise rejections (async dynamic imports)
   window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {

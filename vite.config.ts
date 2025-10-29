@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
       "@": resolve(__dirname, "./src"),
     },
   },
-  base: "",
+  base: "/",
   // ✅ PRIORITY 1: Cache-busting strategy with hash-based file names
   build: {
     rollupOptions: {
