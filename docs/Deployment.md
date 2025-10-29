@@ -64,40 +64,128 @@ This guide provides comprehensive instructions for deploying the Internal Manage
 
 ## Cache Strategy & Browser Management
 
-### Build Version Tracking
+### Version Management & Cache Synchronization
 
-The IMS uses a sophisticated cache management system to ensure users always have the latest version:
+The IMS uses a multi-layer cache management system to ensure users always receive the latest updates without stale cached assets.
 
-**Implementation:**
-```typescript
-// src/utils/cache-cleaner.ts
-export const checkAndClearCache = () => {
-  const currentVersion = import.meta.env.VITE_APP_VERSION || 'dev';
-  const storedVersion = localStorage.getItem('app_version');
-  
-  if (storedVersion !== currentVersion) {
-    // Clear all caches except auth tokens
-    clearAppCache();
-    localStorage.setItem('app_version', currentVersion);
-  }
-};
+**Key Components:**
+
+1. **Static Build Versioning** (Priority 1)
+   ```bash
+   # .env
+   VITE_BUILD_VERSION=0.14.6  # Bump on each deployment
+   ```
+
+2. **Hash-Based Filenames** (Priority 2)
+   ```typescript
+   // vite.config.ts
+   build: {
+     rollupOptions: {
+       output: {
+         entryFileNames: `assets/[name]-[hash].js`,
+         chunkFileNames: `assets/[name]-[hash].js`,
+         assetFileNames: `assets/[name]-[hash].[ext]`
+       }
+     }
+   }
+   ```
+
+3. **Automatic Cache Invalidation** (Priority 3)
+   ```typescript
+   // src/utils/cache-cleaner.ts
+   const BUILD_VERSION = import.meta.env.VITE_BUILD_VERSION || 'dev';
+   
+   export const checkAndClearCache = async () => {
+     const storedVersion = localStorage.getItem('app_build_version');
+     
+     // Only clear cache if version actually changed (not on every load)
+     if (storedVersion !== BUILD_VERSION && BUILD_VERSION !== 'dev') {
+       console.info(`🧹 New version deployed (${storedVersion} → ${BUILD_VERSION})`);
+       
+       // Preserve auth tokens before clearing
+       const authToken = localStorage.getItem('sb-*-auth-token');
+       
+       // Clear all caches
+       if ('caches' in window) {
+         const cacheNames = await caches.keys();
+         await Promise.all(cacheNames.map(name => caches.delete(name)));
+       }
+       
+       localStorage.clear();
+       sessionStorage.clear();
+       
+       // Restore auth token
+       if (authToken) localStorage.setItem('sb-*-auth-token', authToken);
+       
+       // Update version and reload
+       localStorage.setItem('app_build_version', BUILD_VERSION);
+       window.location.reload();
+     }
+   };
+   ```
+
+### Version Bump Workflow (CRITICAL)
+
+**Before Each Production Deployment:**
+
+1. **Update Build Version**
+   ```bash
+   # Edit .env
+   VITE_BUILD_VERSION=0.14.7  # Increment appropriately
+   ```
+
+2. **Document Changes**
+   ```bash
+   # Update docs/Changelog.md with new version entry
+   ```
+
+3. **Rebuild Application**
+   ```bash
+   npm run build
+   ```
+
+4. **Verify Version in Build**
+   - Check console logs after deployment
+   - Should see: `✅ Version current: 0.14.7`
+   - No constant "New build detected" messages
+
+**Version Increment Rules:**
+- **PATCH** (0.14.6 → 0.14.7): Bug fixes, hotfixes
+- **MINOR** (0.14.7 → 0.15.0): New features, non-breaking changes
+- **MAJOR** (0.15.0 → 1.0.0): Breaking changes, major releases
+
+**⚠️ CRITICAL:** Never use timestamp-based versions (`Date.now()`) in production. This causes constant cache clearing and page reloads.
+
+### Cache Troubleshooting
+
+**Issue: Users Not Receiving Updates**
+```bash
+# Solution 1: Verify version is set
+cat .env | grep VITE_BUILD_VERSION
+
+# Solution 2: Rebuild with static version
+VITE_BUILD_VERSION=0.14.7 npm run build
+
+# Solution 3: Clear CDN cache (if using Cloudflare/Vercel)
 ```
 
-**Vite Configuration:**
-```typescript
-// vite.config.ts
-export default defineConfig({
-  build: {
-    rollupOptions: {
-      output: {
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
-      }
-    }
-  }
-});
+**Issue: Constant Cache Clearing**
+```bash
+# Check if version is dynamic (wrong)
+# vite.config.ts should NOT have:
+# VITE_BUILD_VERSION: Date.now()  ❌
+
+# Should have static version from .env:
+# VITE_BUILD_VERSION=0.14.7  ✅
 ```
+
+**Manual Cache Clear (For Debugging)**
+```javascript
+// In browser console
+window.__forceClearCache()
+```
+
+For detailed version management, see: [Version-Management.md](./Version-Management.md)
 
 ### Cache Control Headers
 

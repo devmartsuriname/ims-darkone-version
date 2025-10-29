@@ -159,9 +159,12 @@ async function getFullHealthCheck(): Promise<Response> {
   const responseTime = Date.now() - startTime;
 
   return new Response(JSON.stringify({
+    version: '0.14.6',
     status: overallStatus,
     timestamp: new Date().toISOString(),
     response_time_ms: responseTime,
+    cache_strategy: 'hash-based-filenames',
+    rls_enabled: true,
     services: results,
     system_info: {
       deno_version: Deno.version.deno,

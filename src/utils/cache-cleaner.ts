@@ -4,8 +4,8 @@
  * Preserves authentication tokens to prevent forced logout
  */
 
-// Build version from environment or timestamp
-const BUILD_VERSION = import.meta.env.VITE_BUILD_VERSION || `build-${Date.now()}`;
+// Build version from environment - use static version, not timestamp
+const BUILD_VERSION = import.meta.env.VITE_BUILD_VERSION || 'dev';
 const STORAGE_KEY = 'app_build_version';
 const AUTH_TOKEN_KEY = 'sb-shwfzxpypygdxoqxutae-auth-token';
 
@@ -13,9 +13,10 @@ export const checkAndClearCache = async (): Promise<void> => {
   try {
     const storedVersion = localStorage.getItem(STORAGE_KEY);
     
-    // If version has changed, clear cache
-    if (storedVersion && storedVersion !== BUILD_VERSION) {
-      console.info(`🧹 New build detected (${storedVersion} → ${BUILD_VERSION}), clearing cache...`);
+    // Only clear cache if version string actually changed (not on every load)
+    // Skip cache clearing in dev mode to prevent constant reloads
+    if (storedVersion && storedVersion !== BUILD_VERSION && BUILD_VERSION !== 'dev') {
+      console.info(`🧹 New version deployed (${storedVersion} → ${BUILD_VERSION}), clearing cache...`);
       
       // Preserve auth tokens before clearing
       const authToken = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -48,9 +49,9 @@ export const checkAndClearCache = async (): Promise<void> => {
     } else if (!storedVersion) {
       // First time - just set version
       localStorage.setItem(STORAGE_KEY, BUILD_VERSION);
-      console.info(`🎯 Build version initialized: ${BUILD_VERSION}`);
+      console.info(`🎯 Version initialized: ${BUILD_VERSION}`);
     } else {
-      console.info(`✅ Build version current: ${BUILD_VERSION}`);
+      console.info(`✅ Version current: ${BUILD_VERSION} (no cache clear needed)`);
     }
   } catch (error) {
     console.error('❌ Cache cleanup failed:', error);
