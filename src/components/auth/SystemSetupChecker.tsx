@@ -9,20 +9,21 @@ interface SystemSetupCheckerProps {
 
 const SystemSetupChecker: React.FC<SystemSetupCheckerProps> = ({ children }) => {
   const { showInitialSetup, isFirstTimeSetup, loading } = useAuthenticationFlow();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, loading: authLoading } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     console.log('SystemSetupChecker state:', {
-      loading,
+      setupLoading: loading,
+      authLoading: authLoading,
       showInitialSetup,
       isFirstTimeSetup,
       isAuthenticated,
       pathname: location.pathname
     });
 
-    if (loading) return;
+    if (loading || authLoading) return;
 
     // If system needs initial setup and not on setup page, redirect to setup
     if (showInitialSetup && isFirstTimeSetup && location.pathname !== '/setup') {
@@ -36,17 +37,19 @@ const SystemSetupChecker: React.FC<SystemSetupCheckerProps> = ({ children }) => 
       console.log('Setup disabled - redirecting to sign-in');
       navigate('/auth/sign-in', { replace: true });
     }
-  }, [showInitialSetup, isFirstTimeSetup, isAuthenticated, loading, navigate, location.pathname]);
+  }, [showInitialSetup, isFirstTimeSetup, isAuthenticated, loading, authLoading, navigate, location.pathname]);
 
-  // Show loading while checking system state
-  if (loading) {
+  // Show loading while checking system state or authentication
+  if (loading || authLoading) {
     return (
       <div className="min-vh-100 d-flex align-items-center justify-content-center">
         <div className="text-center">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-          <p className="mt-3 text-muted">Checking system setup...</p>
+          <p className="mt-3 text-muted">
+            {loading ? 'Checking system setup...' : 'Loading authentication...'}
+          </p>
         </div>
       </div>
     );
