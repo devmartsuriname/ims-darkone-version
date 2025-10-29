@@ -16,18 +16,49 @@ export const useAuthenticationFlow = () => {
   });
 
   useEffect(() => {
+    // Phase 4: Check for bypass flag
+    const skipCheck = localStorage.getItem('skip_setup_check') === 'true';
+    if (skipCheck) {
+      console.warn('⚠️ Setup check bypassed by user');
+      localStorage.removeItem('skip_setup_check'); // Clear flag after use
+      setAuthFlow({
+        showInitialSetup: false,
+        isFirstTimeSetup: false,
+        loading: false
+      });
+      return;
+    }
+    
     checkSystemSetup();
   }, []);
 
-  const checkSystemSetup = async () => {
+  const checkSystemSetup = async (retryCount = 0) => {
     try {
       setAuthFlow(prev => ({ ...prev, loading: true }));
 
-      // Use SECURITY DEFINER RPC to check admin existence without RLS issues
-      const { data: hasAdminUsers, error } = await supabase.rpc('admin_user_exists');
+      // Phase 1: Add timeout wrapper for RPC call
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('RPC timeout after 10 seconds')), 10000)
+      );
+
+      const rpcPromise = supabase.rpc('admin_user_exists');
+
+      // Race between RPC and timeout
+      const { data: hasAdminUsers, error } = await Promise.race([
+        rpcPromise,
+        timeoutPromise
+      ]) as any;
 
       if (error) {
         console.error('Error in admin_user_exists RPC:', error);
+        
+        // Retry once if first attempt
+        if (retryCount === 0) {
+          console.log('Retrying RPC call in 2 seconds...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          return checkSystemSetup(1);
+        }
+        
         // Fail-safe: do NOT force setup to avoid lock-in
         setAuthFlow({
           showInitialSetup: false,
