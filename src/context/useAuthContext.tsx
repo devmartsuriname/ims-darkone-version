@@ -40,23 +40,35 @@ export function AuthProvider({ children }: ChildrenType) {
   const [roles, setRoles] = useState<UserRole[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch user profile and roles
-  const fetchUserData = async (userId: string) => {
+  // ✅ PRIORITY 2: Enhanced session stability with retry logic
+  const fetchUserData = async (userId: string, retries: number = 3): Promise<boolean> => {
     try {
-      // Fetch profile
+      // Fetch profile with retry logic
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Error fetching profile:', profileError)
+      if (profileError) {
+        if (profileError.code === 'PGRST116') {
+          console.warn('⚠️ Profile not found for user:', userId)
+        } else {
+          console.error('❌ Error fetching profile:', profileError)
+          
+          // ✅ Retry on failure
+          if (retries > 0) {
+            console.warn(`🔄 Retrying profile fetch (${retries} attempts left)`)
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            return fetchUserData(userId, retries - 1)
+          }
+          return false
+        }
       } else if (profileData) {
         setProfile(profileData)
       }
 
-      // Fetch roles
+      // Fetch roles with retry logic
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('*')
@@ -64,28 +76,52 @@ export function AuthProvider({ children }: ChildrenType) {
         .eq('is_active', true)
 
       if (rolesError) {
-        console.error('Error fetching roles:', rolesError)
+        console.error('❌ Error fetching roles:', rolesError)
+        
+        // ✅ Retry on failure
+        if (retries > 0) {
+          console.warn(`🔄 Retrying roles fetch (${retries} attempts left)`)
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          return fetchUserData(userId, retries - 1)
+        }
+        return false
       } else if (rolesData) {
         setRoles(rolesData)
       }
+      
+      return true
     } catch (error) {
-      console.error('Error fetching user data:', error)
+      console.error('❌ Critical error fetching user data:', error)
+      
+      // ✅ Retry on exception
+      if (retries > 0) {
+        console.warn(`🔄 Retrying after exception (${retries} attempts left)`)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        return fetchUserData(userId, retries - 1)
+      }
+      return false
     }
   }
 
-  // Initialize auth state
+  // ✅ PRIORITY 2: Enhanced auth initialization with session validation
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        console.info(`🔐 Auth state changed: ${event}`)
+        
         setSession(session)
         
         if (session?.user) {
           setUser(session.user as AuthUser)
-          // Fetch additional user data after auth state changes
-          setTimeout(() => {
-            fetchUserData(session.user.id)
-          }, 0)
+          
+          // ✅ Increased delay from 0ms to 100ms to prevent race conditions
+          setTimeout(async () => {
+            const success = await fetchUserData(session.user.id)
+            if (!success) {
+              console.error('❌ Failed to fetch user data after retries')
+            }
+          }, 100)
         } else {
           setUser(null)
           setProfile(null)
@@ -96,13 +132,24 @@ export function AuthProvider({ children }: ChildrenType) {
       }
     )
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check for existing session with validation
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+      if (error) {
+        console.error('❌ Session retrieval error:', error)
+        setLoading(false)
+        return
+      }
+      
       setSession(session)
+      
       if (session?.user) {
         setUser(session.user as AuthUser)
-        fetchUserData(session.user.id)
+        const success = await fetchUserData(session.user.id)
+        if (!success) {
+          console.error('❌ Failed to fetch user data on initialization')
+        }
       }
+      
       setLoading(false)
     })
 

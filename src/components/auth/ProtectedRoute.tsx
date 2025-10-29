@@ -1,7 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthContext } from '@/context/useAuthContext'
 import Preloader from '@/components/Preloader'
+import { validateSession } from '@/utils/session-validator'
+import { toast } from 'react-toastify'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -14,19 +16,40 @@ const ProtectedRoute = ({
   requiredRoles = [], 
   requireAny = true 
 }: ProtectedRouteProps) => {
-  const { isAuthenticated, loading, roles } = useAuthContext()
+  const { isAuthenticated, loading, roles, session, signOut } = useAuthContext()
   const navigate = useNavigate()
   const location = useLocation()
+  const [sessionValidated, setSessionValidated] = useState(false)
 
+  // ✅ PRIORITY 2: Session validation on protected routes
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      // Redirect to sign-in with current location as redirect target
-      navigate(`/auth/sign-in?redirectTo=${encodeURIComponent(location.pathname + location.search)}`)
+    const checkSession = async () => {
+      if (!loading && isAuthenticated && session) {
+        // Validate session on critical routes
+        const validSession = await validateSession()
+        
+        if (!validSession) {
+          console.error('❌ Session validation failed, forcing logout')
+          toast.error('Your session has expired. Please sign in again.', {
+            position: 'top-center',
+            autoClose: 5000
+          })
+          await signOut()
+          return
+        }
+        
+        setSessionValidated(true)
+      } else if (!loading && !isAuthenticated) {
+        // Redirect to sign-in with current location as redirect target
+        navigate(`/auth/sign-in?redirectTo=${encodeURIComponent(location.pathname + location.search)}`)
+      }
     }
-  }, [isAuthenticated, loading, navigate, location])
+    
+    checkSession()
+  }, [isAuthenticated, loading, session, navigate, location, signOut])
 
-  // Show loading while checking authentication
-  if (loading) {
+  // Show loading while checking authentication and validating session
+  if (loading || (isAuthenticated && !sessionValidated)) {
     return <Preloader />
   }
 
