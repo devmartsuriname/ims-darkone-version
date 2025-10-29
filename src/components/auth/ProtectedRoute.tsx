@@ -43,8 +43,8 @@ const ProtectedRoute = ({
         console.info('✅ [ROUTE] Session validated successfully')
       } else if (!loading && !isAuthenticated) {
         console.info('🔄 [ROUTE] Not authenticated, redirecting to sign-in')
-        // Redirect to sign-in with current location as redirect target
-        navigate(`/auth/sign-in?redirectTo=${encodeURIComponent(location.pathname + location.search)}`)
+        // ✅ v0.15.2: Use replace to prevent back navigation to protected routes
+        navigate(`/auth/sign-in?redirectTo=${encodeURIComponent(location.pathname + location.search)}`, { replace: true })
       }
     }
     

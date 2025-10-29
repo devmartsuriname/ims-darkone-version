@@ -132,6 +132,12 @@ export function AuthProvider({ children }: ChildrenType) {
           setRoles([])
         }
         
+        // ✅ v0.15.2: Handle explicit logout event
+        if (event === 'SIGNED_OUT') {
+          console.info('👋 [AUTH] User signed out, redirecting to sign-in')
+          navigate('/auth/sign-in', { replace: true })
+        }
+        
         setLoading(false)
       }
     )
@@ -194,13 +200,15 @@ export function AuthProvider({ children }: ChildrenType) {
 
   const signOut = async () => {
     setLoading(true)
+    
+    // ✅ v0.15.2: Explicitly clear Supabase session from localStorage
+    localStorage.removeItem('sb-shwfzxpypygdxoqxutae-auth-token')
+    
+    // Let Supabase handle the signout and trigger SIGNED_OUT event
     await supabase.auth.signOut()
-    setUser(null)
-    setSession(null)
-    setProfile(null)
-    setRoles([])
+    
+    // Note: State clearing and navigation handled by onAuthStateChange listener
     setLoading(false)
-    navigate('/auth/sign-in')
   }
 
   // Role checking helper functions
