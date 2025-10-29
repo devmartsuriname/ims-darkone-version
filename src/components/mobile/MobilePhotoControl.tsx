@@ -4,6 +4,7 @@ import { useDropzone } from 'react-dropzone'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'react-toastify'
 import IconifyIcon from '@/components/wrapper/IconifyIcon'
+import { compressImage } from '@/utils/image-compression'
 
 interface MobilePhotoControlProps {
   visitId: string
@@ -229,15 +230,18 @@ export const MobilePhotoControl: React.FC<MobilePhotoControlProps> = ({
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('User not authenticated')
 
+      // Compress image before upload
+      const compressedFile = await compressImage(file)
+      
       // Generate file path
-      const fileExt = file.name.split('.').pop()
+      const fileExt = compressedFile.name.split('.').pop()
       const fileName = `${visitId}_${selectedCategory}_${Date.now()}.${fileExt}`
       const filePath = `${user.id}/${new Date().getFullYear()}/${new Date().getMonth() + 1}/${fileName}`
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('control-photos')
-        .upload(filePath, file)
+        .upload(filePath, compressedFile)
 
       if (uploadError) throw uploadError
 

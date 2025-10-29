@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-toastify';
+import { compressImage } from '@/utils/image-compression';
 
 interface Photo {
   id: string;
@@ -103,15 +104,18 @@ export const PhotoCaptureSystem = ({ visitId, applicationId }: PhotoCaptureSyste
 
   const uploadPhoto = async (file: File) => {
     try {
+      // Compress image before upload
+      const compressedFile = await compressImage(file)
+      
       // Generate file path
-      const fileExtension = file.name.split('.').pop();
+      const fileExtension = compressedFile.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
       const filePath = `control-visits/${visitId}/${fileName}`;
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('control-photos')
-        .upload(filePath, file);
+        .upload(filePath, compressedFile);
 
       if (uploadError) throw uploadError;
 

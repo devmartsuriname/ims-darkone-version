@@ -271,3 +271,32 @@ export function getPerformanceSummary(): {
     return { averages: {}, ratings: {} }
   }
 }
+
+/**
+ * Initialize Web Vitals tracking
+ */
+export const initWebVitals = () => {
+  if (import.meta.env.PROD) {
+    const metrics: PerformanceMetric[] = []
+    
+    reportWebVitals((metric) => {
+      logMetric(metric)
+      metrics.push(metric)
+    })
+    
+    measurePageLoadTime((metric) => {
+      logMetric(metric)
+      metrics.push(metric)
+    })
+    
+    measureTimeToInteractive((metric) => {
+      logMetric(metric)
+      metrics.push(metric)
+    })
+    
+    // Send metrics after all are collected
+    setTimeout(() => {
+      sendMetricsToAnalytics(metrics)
+    }, 10000) // 10 seconds after page load
+  }
+}
