@@ -297,7 +297,7 @@ export type Database = {
       audit_logs: {
         Row: {
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           operation: string
@@ -310,7 +310,7 @@ export type Database = {
         }
         Insert: {
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           operation: string
@@ -323,7 +323,7 @@ export type Database = {
         }
         Update: {
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           operation?: string
@@ -1148,22 +1148,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_user_exists: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      can_control_inspect: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      can_manage_applications: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      can_review_applications: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      admin_user_exists: { Args: never; Returns: boolean }
+      can_control_inspect: { Args: never; Returns: boolean }
+      can_manage_applications: { Args: never; Returns: boolean }
+      can_review_applications: { Args: never; Returns: boolean }
       generate_file_path: {
         Args: {
           application_id: string
@@ -1174,7 +1162,7 @@ export type Database = {
         Returns: string
       }
       get_current_user_role: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
       get_file_signed_url: {
@@ -1185,10 +1173,7 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
-      is_admin_or_it: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_admin_or_it: { Args: never; Returns: boolean }
       validate_file_upload: {
         Args: {
           bucket_name: string
