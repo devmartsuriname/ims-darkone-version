@@ -1,8 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
 import { LoadingSpinner } from '@/components/ui/LoadingStates';
 import { PerformanceMonitor } from '@/components/performance/PerformanceMonitor';
+import { useSystemHealthChartData } from '@/hooks/useSystemHealthChartData';
+
+// Lazy load chart components for better performance
+const ResponseTimeTrendChart = lazy(() => import('@/components/monitoring/charts/ResponseTimeTrendChart').then(m => ({ default: m.ResponseTimeTrendChart })));
+const ServiceAvailabilityChart = lazy(() => import('@/components/monitoring/charts/ServiceAvailabilityChart').then(m => ({ default: m.ServiceAvailabilityChart })));
+const AlertFrequencyChart = lazy(() => import('@/components/monitoring/charts/AlertFrequencyChart').then(m => ({ default: m.AlertFrequencyChart })));
 
 interface SystemStats {
   applications: {
@@ -32,6 +38,8 @@ export const SystemMetricsDashboard: React.FC = () => {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showPerformance, setShowPerformance] = useState(false);
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
+  const { data: chartData, isLoading: chartsLoading } = useSystemHealthChartData(timeRange);
 
   useEffect(() => {
     fetchSystemStats();
@@ -328,6 +336,61 @@ export const SystemMetricsDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* System Health Charts */}
+      {stats && chartData && (
+        <div className="mt-4">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="mb-0">System Health Trends</h6>
+            <div className="btn-group btn-group-sm" role="group">
+              <button
+                type="button"
+                className={`btn ${timeRange === '24h' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setTimeRange('24h')}
+              >
+                24H
+              </button>
+              <button
+                type="button"
+                className={`btn ${timeRange === '7d' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setTimeRange('7d')}
+              >
+                7D
+              </button>
+              <button
+                type="button"
+                className={`btn ${timeRange === '30d' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setTimeRange('30d')}
+              >
+                30D
+              </button>
+            </div>
+          </div>
+
+          <Suspense fallback={<div className="text-center py-4"><LoadingSpinner /></div>}>
+            <div className="row g-3">
+              <div className="col-lg-6 col-md-12">
+                <ResponseTimeTrendChart 
+                  data={chartData.responseTime} 
+                  isLoading={chartsLoading} 
+                />
+              </div>
+              <div className="col-lg-6 col-md-12">
+                <ServiceAvailabilityChart 
+                  data={chartData.availability} 
+                  isLoading={chartsLoading} 
+                />
+              </div>
+              <div className="col-lg-12">
+                <AlertFrequencyChart 
+                  data={chartData.alerts} 
+                  isLoading={chartsLoading} 
+                />
+              </div>
+            </div>
+          </Suspense>
         </div>
       )}
     </div>
