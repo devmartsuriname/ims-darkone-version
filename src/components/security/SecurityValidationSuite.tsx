@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
 import { LoadingSpinner } from '@/components/ui/LoadingStates';
 import { useToastNotifications } from '@/components/ui/NotificationToasts';
+import { SecurityScanTrendChart } from '../monitoring/charts/SecurityScanTrendChart';
+import { useSecurityChartData } from '@/hooks/useSecurityChartData';
 
 interface SecurityCheck {
   id: string;
@@ -34,7 +36,9 @@ export const SecurityValidationSuite: React.FC = () => {
   const [scanResult, setScanResult] = useState<SecurityScanResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScanTime, setLastScanTime] = useState<Date | null>(null);
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('7d');
   const { success, error, warning } = useToastNotifications();
+  const { data: chartData, isLoading: chartsLoading } = useSecurityChartData(timeRange);
 
   useEffect(() => {
     // Auto-run security scan on component mount
@@ -656,6 +660,39 @@ export const SecurityValidationSuite: React.FC = () => {
               );
             })}
           </Accordion>
+
+          {/* Security Trend Chart */}
+          <div className="mt-4">
+            <div className="d-flex justify-content-end mb-3">
+              <div className="btn-group" role="group">
+                <button
+                  type="button"
+                  className={`btn btn-sm ${timeRange === '24h' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => setTimeRange('24h')}
+                >
+                  24H
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${timeRange === '7d' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => setTimeRange('7d')}
+                >
+                  7D
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${timeRange === '30d' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => setTimeRange('30d')}
+                >
+                  30D
+                </button>
+              </div>
+            </div>
+            <SecurityScanTrendChart 
+              data={chartData?.scanTrends || { timestamps: [], criticalIssues: [], highIssues: [], mediumIssues: [], lowIssues: [] }} 
+              isLoading={chartsLoading} 
+            />
+          </div>
 
           {lastScanTime && (
             <div className="text-center mt-4 text-muted small">

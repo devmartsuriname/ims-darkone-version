@@ -3,6 +3,9 @@ import { Card, Row, Col, Alert, Badge, Button, ProgressBar, Tab, Tabs } from 're
 import { supabase } from '@/integrations/supabase/client';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
 import { LoadingSpinner } from '@/components/ui/LoadingStates';
+import { ResourceUsageTrendChart } from '../monitoring/charts/ResourceUsageTrendChart';
+import { DatabasePerformanceChart } from '../monitoring/charts/DatabasePerformanceChart';
+import { usePerformanceChartData } from '@/hooks/usePerformanceChartData';
 
 interface PerformanceMetric {
   name: string;
@@ -27,6 +30,8 @@ export const PerformanceMonitorSuite: React.FC = () => {
   const [report, setReport] = useState<PerformanceReport | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [realTimeMetrics, setRealTimeMetrics] = useState<any>(null);
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
+  const { data: chartData, isLoading: chartsLoading } = usePerformanceChartData(timeRange);
 
   useEffect(() => {
     startPerformanceMonitoring();
@@ -313,6 +318,48 @@ export const PerformanceMonitorSuite: React.FC = () => {
 
       <Tabs defaultActiveKey="overview" className="mb-4">
         <Tab eventKey="overview" title="Overview">
+          {/* Performance Charts */}
+          <div className="d-flex justify-content-end mb-3">
+            <div className="btn-group" role="group">
+              <button
+                type="button"
+                className={`btn btn-sm ${timeRange === '24h' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setTimeRange('24h')}
+              >
+                24H
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${timeRange === '7d' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setTimeRange('7d')}
+              >
+                7D
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${timeRange === '30d' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setTimeRange('30d')}
+              >
+                30D
+              </button>
+            </div>
+          </div>
+
+          <Row className="mb-4">
+            <Col lg={6}>
+              <ResourceUsageTrendChart 
+                data={chartData?.resourceUsage || { timestamps: [], cpuUsage: [], memoryUsage: [], diskUsage: [] }} 
+                isLoading={chartsLoading} 
+              />
+            </Col>
+            <Col lg={6}>
+              <DatabasePerformanceChart 
+                data={chartData?.databasePerformance || { timestamps: [], simpleQueries: [], complexQueries: [], insertOperations: [] }} 
+                isLoading={chartsLoading} 
+              />
+            </Col>
+          </Row>
+
           {report && (
             <>
               {/* Performance Score */}

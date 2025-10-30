@@ -4,6 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
 import { LoadingSpinner } from '@/components/ui/LoadingStates';
 import { useToastNotifications } from '@/components/ui/NotificationToasts';
+import { ResponseTimeTrendChart } from './charts/ResponseTimeTrendChart';
+import { ServiceAvailabilityChart } from './charts/ServiceAvailabilityChart';
+import { AlertFrequencyChart } from './charts/AlertFrequencyChart';
+import { useSystemHealthChartData } from '@/hooks/useSystemHealthChartData';
 
 interface SystemHealthData {
   overall: 'healthy' | 'degraded' | 'critical';
@@ -55,6 +59,53 @@ interface SystemHealthData {
     timestamp: string;
   }>;
 }
+
+const SystemHealthCharts: React.FC = () => {
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
+  const { data: chartData, isLoading } = useSystemHealthChartData(timeRange);
+
+  return (
+    <>
+      <div className="d-flex justify-content-end mb-3">
+        <div className="btn-group" role="group">
+          <button
+            type="button"
+            className={`btn btn-sm ${timeRange === '24h' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => setTimeRange('24h')}
+          >
+            24H
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${timeRange === '7d' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => setTimeRange('7d')}
+          >
+            7D
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${timeRange === '30d' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => setTimeRange('30d')}
+          >
+            30D
+          </button>
+        </div>
+      </div>
+      
+      <Row>
+        <Col lg={6} className="mb-4">
+          <ResponseTimeTrendChart data={chartData?.responseTime || { timestamps: [], authTimes: [], storageTimes: [], databaseTimes: [] }} isLoading={isLoading} />
+        </Col>
+        <Col lg={6} className="mb-4">
+          <ServiceAvailabilityChart data={chartData?.availability || { timestamps: [], authUptime: [], storageUptime: [], databaseUptime: [] }} isLoading={isLoading} />
+        </Col>
+        <Col lg={12} className="mb-4">
+          <AlertFrequencyChart data={chartData?.alerts || { timestamps: [], criticalAlerts: [], warningAlerts: [], infoAlerts: [] }} isLoading={isLoading} />
+        </Col>
+      </Row>
+    </>
+  );
+};
 
 export const SystemHealthMonitor: React.FC = () => {
   const [healthData, setHealthData] = useState<SystemHealthData | null>(null);
@@ -278,6 +329,13 @@ export const SystemHealthMonitor: React.FC = () => {
           {/* Detailed Health Metrics */}
           <Tabs defaultActiveKey="services" className="mb-4">
             <Tab eventKey="services" title="Services">
+              {/* Add Charts */}
+              <Row className="mb-4">
+                <Col lg={12}>
+                  <SystemHealthCharts />
+                </Col>
+              </Row>
+
               <Row>
                 {/* Authentication Service */}
                 <Col md={6} className="mb-3">
