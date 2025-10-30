@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuthContext } from '@/context/useAuthContext'
 import Preloader from '@/components/Preloader'
+import { log } from '@/utils/log'
 
 interface AuthLoadingBoundaryProps {
   children: React.ReactNode
@@ -19,10 +20,10 @@ export const AuthLoadingBoundary = ({ children }: AuthLoadingBoundaryProps) => {
 
   useEffect(() => {
     if (loading) {
-      console.info('⏳ [AUTH-BOUNDARY] Loading detected, starting 12s timeout')
+      log.system.info('Loading detected, starting 12s timeout')
       
       const timeout = setTimeout(() => {
-        console.error('❌ [AUTH-BOUNDARY] Force-stopping loading after 12 seconds')
+        log.system.error('Force-stopping loading after 12 seconds')
         setForceRender(true)
         setShowRecovery(true)
       }, 12000)
@@ -81,7 +82,7 @@ export const AuthLoadingBoundary = ({ children }: AuthLoadingBoundaryProps) => {
                   <button 
                     className="btn btn-primary w-100"
                     onClick={() => {
-                      console.info('🔄 [AUTH-BOUNDARY] User triggered reload')
+                      log.system.info('User triggered reload')
                       window.location.reload()
                     }}
                   >
@@ -92,7 +93,7 @@ export const AuthLoadingBoundary = ({ children }: AuthLoadingBoundaryProps) => {
                   <button 
                     className="btn btn-outline-secondary w-100 mt-2"
                     onClick={() => {
-                      console.info('⏭️ [AUTH-BOUNDARY] User forced skip')
+                      log.system.info('User forced skip')
                       setShowRecovery(false)
                       setForceRender(false)
                     }}

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { ChildrenType } from '../types/component-props'
+import { log } from '@/utils/log'
 
 export type AuthContextType = {
   user: AuthUser | null
@@ -72,7 +73,7 @@ export function AuthProvider({ children }: ChildrenType) {
               
               // ✅ Retry on failure
               if (retries > 0) {
-                console.warn(`🔄 Retrying profile fetch (${retries} attempts left)`)
+                log.auth.warn(`Retrying profile fetch (${retries} attempts left)`)
                 await new Promise(resolve => setTimeout(resolve, 1000))
                 return fetchUserData(userId, retries - 1)
               }
@@ -90,11 +91,11 @@ export function AuthProvider({ children }: ChildrenType) {
             .eq('is_active', true)
 
           if (rolesError) {
-            console.error('❌ Error fetching roles:', rolesError)
+            log.auth.error('Error fetching roles', rolesError)
             
             // ✅ Retry on failure
             if (retries > 0) {
-              console.warn(`🔄 Retrying roles fetch (${retries} attempts left)`)
+              log.auth.warn(`Retrying roles fetch (${retries} attempts left)`)
               await new Promise(resolve => setTimeout(resolve, 1000))
               return fetchUserData(userId, retries - 1)
             }
@@ -109,11 +110,11 @@ export function AuthProvider({ children }: ChildrenType) {
       )
     } catch (error) {
       if (error instanceof Error && error.message === 'Timeout') {
-        console.error('⏱️ [AUTH] fetchUserData timeout after 8 seconds')
+        log.auth.error('fetchUserData timeout after 8 seconds')
         return false
       }
       
-      console.error('❌ Critical error fetching user data:', error)
+      log.auth.error('Critical error fetching user data', error)
       
       // ✅ Retry on exception
       if (retries > 0) {
@@ -133,14 +134,14 @@ export function AuthProvider({ children }: ChildrenType) {
 
   // ✅ Phase 1: Single initialization with race-free loading and 10s timeout guarantee
   useEffect(() => {
-    console.info('🔐 [AUTH] Initializing authentication context')
+    log.auth.info('Initializing authentication context')
     
     let loadingTimeoutId: NodeJS.Timeout | null = null
     
     // ✅ Phase 1: Guarantee loading completes within 10 seconds maximum
     loadingTimeoutId = setTimeout(() => {
       if (loading && !initialized) {
-        console.error('⏱️ [AUTH] Force-stopping loading after 10 seconds')
+        log.auth.error('Force-stopping loading after 10 seconds')
         setLoading(false)
         setInitialized(true)
       }
@@ -149,17 +150,17 @@ export function AuthProvider({ children }: ChildrenType) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.info(`🔐 [AUTH] State changed: ${event}`)
+        log.auth.info(`State changed: ${event}`)
         
         setSession(session)
         
         if (session?.user) {
-          console.info('🔐 [AUTH] Session active, fetching user data')
+          log.auth.info('Session active, fetching user data')
           setUser(session.user as AuthUser)
           
           // ✅ Phase 4: Editor bypass - use mock data for instant loading
           if (isEditorPreview) {
-            console.warn('🧪 [AUTH] Editor preview detected - using mock profile/roles for instant loading')
+            log.auth.warn('Editor preview detected - using mock profile/roles')
             setProfile({ 
               id: session.user.id, 
               email: session.user.email ?? null,
@@ -183,13 +184,13 @@ export function AuthProvider({ children }: ChildrenType) {
           } else {
             const success = await fetchUserData(session.user.id)
             if (!success) {
-              console.error('❌ [AUTH] Failed to fetch user data after retries')
+              log.auth.error('Failed to fetch user data after retries')
             } else {
-              console.info('✅ [AUTH] User data loaded successfully')
+              log.auth.info('User data loaded successfully')
             }
           }
         } else {
-          console.info('🔐 [AUTH] No session, clearing user data')
+          log.auth.info('No session, clearing user data')
           setUser(null)
           setProfile(null)
           setRoles([])
@@ -197,7 +198,7 @@ export function AuthProvider({ children }: ChildrenType) {
         
         // ✅ v0.15.2: Handle explicit logout event
         if (event === 'SIGNED_OUT') {
-          console.info('👋 [AUTH] User signed out, redirecting to sign-in')
+          log.auth.info('User signed out, redirecting to sign-in')
           navigate('/auth/sign-in', { replace: true })
         }
         
@@ -213,7 +214,7 @@ export function AuthProvider({ children }: ChildrenType) {
     // ✅ Phase 1: Combined initialization - check session only once on mount
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) {
-        console.error('❌ [AUTH] Session retrieval error:', error)
+        log.auth.error('Session retrieval error', error)
         if (!initialized) {
           setLoading(false)
           setInitialized(true)
@@ -222,7 +223,7 @@ export function AuthProvider({ children }: ChildrenType) {
         return
       }
       
-      console.info('🔐 [AUTH] Initial session check:', session ? 'Session found' : 'No session')
+      log.auth.info(`Initial session check: ${session ? 'Session found' : 'No session'}`)
       
       // Only process if subscription hasn't already handled it
       if (!initialized) {
@@ -233,7 +234,7 @@ export function AuthProvider({ children }: ChildrenType) {
           
           // ✅ Phase 4: Editor bypass on initial session check
           if (isEditorPreview) {
-            console.warn('🧪 [AUTH] Editor preview (initial) - using mock profile/roles')
+            log.auth.warn('Editor preview (initial) - using mock profile/roles')
             setProfile({ 
               id: session.user.id, 
               email: session.user.email ?? null,
@@ -257,9 +258,9 @@ export function AuthProvider({ children }: ChildrenType) {
           } else {
             const success = await fetchUserData(session.user.id)
             if (!success) {
-              console.error('❌ [AUTH] Failed to fetch user data on initialization')
+              log.auth.error('Failed to fetch user data on initialization')
             } else {
-              console.info('✅ [AUTH] Initial user data loaded')
+              log.auth.info('Initial user data loaded')
             }
           }
         }
