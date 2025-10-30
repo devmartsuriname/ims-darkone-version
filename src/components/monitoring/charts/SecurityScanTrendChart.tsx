@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ApexOptions } from 'apexcharts';
 import ReactApexChart from 'react-apexcharts';
 import { Card } from 'react-bootstrap';
@@ -16,7 +16,7 @@ interface SecurityScanTrendChartProps {
 }
 
 export const SecurityScanTrendChart: React.FC<SecurityScanTrendChartProps> = ({ data, isLoading }) => {
-  const chartOptions: ApexOptions = {
+  const chartOptions: ApexOptions = useMemo(() => ({
     chart: {
       type: 'bar',
       height: 320,
@@ -25,11 +25,11 @@ export const SecurityScanTrendChart: React.FC<SecurityScanTrendChartProps> = ({ 
         show: true
       }
     },
-    colors: ['hsl(var(--danger))', 'hsl(var(--warning))', 'hsl(var(--info))', 'hsl(var(--secondary))'],
+    colors: ['hsl(var(--danger))', 'hsl(var(--warning))', 'hsl(var(--info))', 'hsl(var(--success))'],
     plotOptions: {
       bar: {
         horizontal: false,
-        columnWidth: '55%',
+        columnWidth: '65%',
         borderRadius: 3
       }
     },
@@ -53,10 +53,9 @@ export const SecurityScanTrendChart: React.FC<SecurityScanTrendChartProps> = ({ 
     ],
     xaxis: {
       categories: data.timestamps,
-      type: 'datetime',
       labels: {
-        datetimeUTC: false,
-        format: 'dd MMM'
+        rotate: -45,
+        rotateAlways: false
       }
     },
     yaxis: {
@@ -86,7 +85,7 @@ export const SecurityScanTrendChart: React.FC<SecurityScanTrendChartProps> = ({ 
     dataLabels: {
       enabled: false
     }
-  };
+  }), [data]);
 
   if (isLoading) {
     return (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ApexOptions } from 'apexcharts';
 import ReactApexChart from 'react-apexcharts';
 import { Card } from 'react-bootstrap';
@@ -15,7 +15,7 @@ interface DatabasePerformanceChartProps {
 }
 
 export const DatabasePerformanceChart: React.FC<DatabasePerformanceChartProps> = ({ data, isLoading }) => {
-  const chartOptions: ApexOptions = {
+  const chartOptions: ApexOptions = useMemo(() => ({
     chart: {
       type: 'area',
       height: 320,
@@ -24,18 +24,16 @@ export const DatabasePerformanceChart: React.FC<DatabasePerformanceChartProps> =
         show: true
       }
     },
-    colors: ['hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--danger))'],
     stroke: {
       width: [2, 2, 2],
       curve: 'smooth'
     },
+    colors: ['hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--primary))'],
     fill: {
       type: 'gradient',
       gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.5,
-        opacityTo: 0.1,
-        stops: [0, 90, 100]
+        opacityFrom: 0.3,
+        opacityTo: 0.05
       }
     },
     series: [
@@ -48,7 +46,7 @@ export const DatabasePerformanceChart: React.FC<DatabasePerformanceChartProps> =
         data: data.complexQueries
       },
       {
-        name: 'Insert Operation',
+        name: 'Insert Operations',
         data: data.insertOperations
       }
     ],
@@ -73,7 +71,10 @@ export const DatabasePerformanceChart: React.FC<DatabasePerformanceChartProps> =
       strokeDashArray: 4
     },
     markers: {
-      size: 0
+      size: 0,
+      hover: {
+        size: 5
+      }
     },
     legend: {
       show: true,
@@ -102,8 +103,11 @@ export const DatabasePerformanceChart: React.FC<DatabasePerformanceChartProps> =
           }
         }
       ]
+    },
+    dataLabels: {
+      enabled: false
     }
-  };
+  }), [data]);
 
   if (isLoading) {
     return (

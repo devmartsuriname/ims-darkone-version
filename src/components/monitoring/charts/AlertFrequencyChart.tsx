@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ApexOptions } from 'apexcharts';
 import ReactApexChart from 'react-apexcharts';
 import { Card } from 'react-bootstrap';
@@ -15,7 +15,7 @@ interface AlertFrequencyChartProps {
 }
 
 export const AlertFrequencyChart: React.FC<AlertFrequencyChartProps> = ({ data, isLoading }) => {
-  const chartOptions: ApexOptions = {
+  const chartOptions: ApexOptions = useMemo(() => ({
     chart: {
       type: 'bar',
       height: 320,
@@ -81,7 +81,7 @@ export const AlertFrequencyChart: React.FC<AlertFrequencyChartProps> = ({ data, 
     dataLabels: {
       enabled: false
     }
-  };
+  }), [data]);
 
   if (isLoading) {
     return (

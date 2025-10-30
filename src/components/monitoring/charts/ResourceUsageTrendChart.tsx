@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ApexOptions } from 'apexcharts';
 import ReactApexChart from 'react-apexcharts';
 import { Card } from 'react-bootstrap';
@@ -15,26 +15,27 @@ interface ResourceUsageTrendChartProps {
 }
 
 export const ResourceUsageTrendChart: React.FC<ResourceUsageTrendChartProps> = ({ data, isLoading }) => {
-  const chartOptions: ApexOptions = {
+  const chartOptions: ApexOptions = useMemo(() => ({
     chart: {
       type: 'area',
       height: 320,
       toolbar: {
         show: true
+      },
+      zoom: {
+        enabled: true
       }
     },
-    colors: ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))'],
     stroke: {
       width: [2, 2, 2],
       curve: 'smooth'
     },
+    colors: ['hsl(var(--primary))', 'hsl(var(--warning))', 'hsl(var(--danger))'],
     fill: {
       type: 'gradient',
       gradient: {
-        shadeIntensity: 1,
         opacityFrom: 0.4,
-        opacityTo: 0.1,
-        stops: [0, 90, 100]
+        opacityTo: 0.1
       }
     },
     series: [
@@ -63,7 +64,7 @@ export const ResourceUsageTrendChart: React.FC<ResourceUsageTrendChartProps> = (
       min: 0,
       max: 100,
       title: {
-        text: 'Usage (%)'
+        text: 'Usage %'
       },
       labels: {
         formatter: (value) => `${value.toFixed(0)}%`
@@ -119,7 +120,7 @@ export const ResourceUsageTrendChart: React.FC<ResourceUsageTrendChartProps> = (
         }
       ]
     }
-  };
+  }), [data]);
 
   if (isLoading) {
     return (

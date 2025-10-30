@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Card, Row, Col, Alert, Badge, Button, ProgressBar, Tab, Tabs } from 'react-bootstrap';
 import { supabase } from '@/integrations/supabase/client';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
 import { LoadingSpinner } from '@/components/ui/LoadingStates';
-import { ResourceUsageTrendChart } from '../monitoring/charts/ResourceUsageTrendChart';
-import { DatabasePerformanceChart } from '../monitoring/charts/DatabasePerformanceChart';
 import { usePerformanceChartData } from '@/hooks/usePerformanceChartData';
+
+// Lazy load chart components for better performance
+const ResourceUsageTrendChart = lazy(() => import('../monitoring/charts/ResourceUsageTrendChart').then(m => ({ default: m.ResourceUsageTrendChart })));
+const DatabasePerformanceChart = lazy(() => import('../monitoring/charts/DatabasePerformanceChart').then(m => ({ default: m.DatabasePerformanceChart })));
 
 interface PerformanceMetric {
   name: string;
@@ -345,20 +347,22 @@ export const PerformanceMonitorSuite: React.FC = () => {
             </div>
           </div>
 
-          <Row className="mb-4">
-            <Col lg={6}>
-              <ResourceUsageTrendChart 
-                data={chartData?.resourceUsage || { timestamps: [], cpuUsage: [], memoryUsage: [], diskUsage: [] }} 
-                isLoading={chartsLoading} 
-              />
-            </Col>
-            <Col lg={6}>
-              <DatabasePerformanceChart 
-                data={chartData?.databasePerformance || { timestamps: [], simpleQueries: [], complexQueries: [], insertOperations: [] }} 
-                isLoading={chartsLoading} 
-              />
-            </Col>
-          </Row>
+          <Suspense fallback={<div className="text-center py-4"><LoadingSpinner /></div>}>
+            <Row className="mb-4">
+              <Col lg={6}>
+                <ResourceUsageTrendChart 
+                  data={chartData?.resourceUsage || { timestamps: [], cpuUsage: [], memoryUsage: [], diskUsage: [] }} 
+                  isLoading={chartsLoading} 
+                />
+              </Col>
+              <Col lg={6}>
+                <DatabasePerformanceChart 
+                  data={chartData?.databasePerformance || { timestamps: [], simpleQueries: [], complexQueries: [], insertOperations: [] }} 
+                  isLoading={chartsLoading} 
+                />
+              </Col>
+            </Row>
+          </Suspense>
 
           {report && (
             <>

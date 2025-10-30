@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Card, Row, Col, Alert, Badge, Button, ProgressBar, ListGroup, Tab, Tabs } from 'react-bootstrap';
 import { supabase } from '@/integrations/supabase/client';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
 import { LoadingSpinner } from '@/components/ui/LoadingStates';
 import { useToastNotifications } from '@/components/ui/NotificationToasts';
-import { ResponseTimeTrendChart } from './charts/ResponseTimeTrendChart';
-import { ServiceAvailabilityChart } from './charts/ServiceAvailabilityChart';
-import { AlertFrequencyChart } from './charts/AlertFrequencyChart';
 import { useSystemHealthChartData } from '@/hooks/useSystemHealthChartData';
+
+// Lazy load chart components for better performance
+const ResponseTimeTrendChart = lazy(() => import('./charts/ResponseTimeTrendChart').then(m => ({ default: m.ResponseTimeTrendChart })));
+const ServiceAvailabilityChart = lazy(() => import('./charts/ServiceAvailabilityChart').then(m => ({ default: m.ServiceAvailabilityChart })));
+const AlertFrequencyChart = lazy(() => import('./charts/AlertFrequencyChart').then(m => ({ default: m.AlertFrequencyChart })));
 
 interface SystemHealthData {
   overall: 'healthy' | 'degraded' | 'critical';
@@ -65,7 +67,7 @@ const SystemHealthCharts: React.FC = () => {
   const { data: chartData, isLoading } = useSystemHealthChartData(timeRange);
 
   return (
-    <>
+    <Suspense fallback={<div className="text-center py-4"><LoadingSpinner /></div>}>
       <div className="d-flex justify-content-end mb-3">
         <div className="btn-group" role="group">
           <button
@@ -103,7 +105,7 @@ const SystemHealthCharts: React.FC = () => {
           <AlertFrequencyChart data={chartData?.alerts || { timestamps: [], criticalAlerts: [], warningAlerts: [], infoAlerts: [] }} isLoading={isLoading} />
         </Col>
       </Row>
-    </>
+    </Suspense>
   );
 };
 

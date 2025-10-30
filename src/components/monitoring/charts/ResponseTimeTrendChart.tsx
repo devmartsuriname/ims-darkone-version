@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ApexOptions } from 'apexcharts';
 import ReactApexChart from 'react-apexcharts';
 import { Card } from 'react-bootstrap';
@@ -15,7 +15,7 @@ interface ResponseTimeTrendChartProps {
 }
 
 export const ResponseTimeTrendChart: React.FC<ResponseTimeTrendChartProps> = ({ data, isLoading }) => {
-  const chartOptions: ApexOptions = {
+  const chartOptions: ApexOptions = useMemo(() => ({
     chart: {
       type: 'line',
       height: 320,
@@ -119,7 +119,7 @@ export const ResponseTimeTrendChart: React.FC<ResponseTimeTrendChartProps> = ({ 
         }
       ]
     }
-  };
+  }), [data]);
 
   if (isLoading) {
     return (

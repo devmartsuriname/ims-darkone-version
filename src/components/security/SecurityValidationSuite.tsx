@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Card, Row, Col, Alert, Badge, Button, ProgressBar, Accordion } from 'react-bootstrap';
 import { supabase } from '@/integrations/supabase/client';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
 import { LoadingSpinner } from '@/components/ui/LoadingStates';
 import { useToastNotifications } from '@/components/ui/NotificationToasts';
-import { SecurityScanTrendChart } from '../monitoring/charts/SecurityScanTrendChart';
 import { useSecurityChartData } from '@/hooks/useSecurityChartData';
+
+// Lazy load chart component for better performance
+const SecurityScanTrendChart = lazy(() => import('../monitoring/charts/SecurityScanTrendChart').then(m => ({ default: m.SecurityScanTrendChart })));
 
 interface SecurityCheck {
   id: string;
@@ -688,10 +690,12 @@ export const SecurityValidationSuite: React.FC = () => {
                 </button>
               </div>
             </div>
-            <SecurityScanTrendChart 
-              data={chartData?.scanTrends || { timestamps: [], criticalIssues: [], highIssues: [], mediumIssues: [], lowIssues: [] }} 
-              isLoading={chartsLoading} 
-            />
+            <Suspense fallback={<div className="text-center py-4"><LoadingSpinner /></div>}>
+              <SecurityScanTrendChart 
+                data={chartData?.scanTrends || { timestamps: [], criticalIssues: [], highIssues: [], mediumIssues: [], lowIssues: [] }} 
+                isLoading={chartsLoading} 
+              />
+            </Suspense>
           </div>
 
           {lastScanTime && (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ApexOptions } from 'apexcharts';
 import ReactApexChart from 'react-apexcharts';
 import { Card } from 'react-bootstrap';
@@ -15,27 +15,28 @@ interface ServiceAvailabilityChartProps {
 }
 
 export const ServiceAvailabilityChart: React.FC<ServiceAvailabilityChartProps> = ({ data, isLoading }) => {
-  const chartOptions: ApexOptions = {
+  const chartOptions: ApexOptions = useMemo(() => ({
     chart: {
       type: 'area',
       height: 320,
-      stacked: false,
+      stacked: true,
       toolbar: {
         show: true
+      },
+      zoom: {
+        enabled: false
       }
     },
     colors: ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))'],
     stroke: {
-      width: [2, 2, 2],
-      curve: 'smooth'
+      curve: 'smooth',
+      width: 2
     },
     fill: {
       type: 'gradient',
       gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.5,
-        opacityTo: 0.1,
-        stops: [0, 90, 100]
+        opacityFrom: 0.6,
+        opacityTo: 0.1
       }
     },
     series: [
@@ -61,10 +62,10 @@ export const ServiceAvailabilityChart: React.FC<ServiceAvailabilityChartProps> =
       }
     },
     yaxis: {
-      min: 90,
+      min: 95,
       max: 100,
       title: {
-        text: 'Availability (%)'
+        text: 'Uptime %'
       },
       labels: {
         formatter: (value) => `${value.toFixed(1)}%`
@@ -73,9 +74,6 @@ export const ServiceAvailabilityChart: React.FC<ServiceAvailabilityChartProps> =
     grid: {
       borderColor: '#e7eef7',
       strokeDashArray: 4
-    },
-    markers: {
-      size: 0
     },
     legend: {
       show: true,
@@ -104,8 +102,11 @@ export const ServiceAvailabilityChart: React.FC<ServiceAvailabilityChartProps> =
           }
         }
       ]
+    },
+    dataLabels: {
+      enabled: false
     }
-  };
+  }), [data]);
 
   if (isLoading) {
     return (
