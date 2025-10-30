@@ -104,9 +104,73 @@ SELECT admin_user_exists();
 
 ### 2. Dashboard & UI Issues
 
+#### Issue: Stuck on Loading Screen / Infinite Spinner
+**Symptoms:**
+- Loading spinner never disappears
+- Blank white screen with spinner for >30 seconds
+- Page never finishes loading
+- Browser tab shows loading indicator indefinitely
+
+**Quick Diagnostic:**
+```javascript
+// Open DevTools (F12) → Console
+// Check for auth timeout warnings
+// Should see one of:
+"⚠️ [AUTH] Timeout after 8s, forcing continue"
+"⚠️ [AUTH] Force-stopping loading after 10 seconds"
+"⛔ [SYSTEM] Force-stopping loading after 12 seconds"
+```
+
+**Immediate Solutions:**
+
+1. **Wait for Recovery UI (12 seconds):**
+   - If loading exceeds 12 seconds, automatic recovery UI appears
+   - Click "Reload Application" button to refresh
+   - Or click "Continue Anyway" to force render
+
+2. **Manual Recovery:**
+   ```javascript
+   // In DevTools console
+   localStorage.clear();
+   sessionStorage.clear();
+   location.reload();
+   ```
+
+3. **Check Network Connection:**
+   - DevTools → Network tab → Check for failed requests
+   - Look for red/failed requests to `supabase.co`
+   - Verify internet connectivity
+
+4. **Verify Supabase Status:**
+   - Check https://status.supabase.com
+   - Verify project is not paused/suspended
+   - Test Supabase connection:
+     ```javascript
+     const { data, error } = await supabase.auth.getSession();
+     console.log('Session:', data, 'Error:', error);
+     ```
+
+**Root Causes:**
+- Slow/unstable network connection
+- Supabase service delays
+- RLS policy performance issues
+- Browser extension conflicts
+
+**Prevention (Implemented in v0.15.6):**
+- ✅ 8-second timeout on user data fetch
+- ✅ 10-second global auth loading limit
+- ✅ 12-second recovery UI trigger
+- ✅ Automatic fallback mechanisms
+
+**Related Documentation:**
+- See [Auth Stabilization Guide](./AuthStabilization.md) for technical details
+- See [Session Stability Testing](./testing/Session-Stability-Testing.md) for test procedures
+
+---
+
 #### Issue: Dashboard Not Loading / Blank Screen
 **Symptoms:**
-- White screen after successful login
+- White screen after successful login (but no spinner)
 - Console shows "Module not found" errors
 - Dashboard components don't render
 
@@ -140,7 +204,7 @@ console.log('Can manage:', canManage);
    // In browser console
    const appVersion = localStorage.getItem('app_version');
    console.log('Stored version:', appVersion);
-   console.log('Current version:', import.meta.env.VITE_APP_VERSION);
+   console.log('Current version:', import.meta.env.VITE_BUILD_VERSION);
    
    // Force cache clear
    localStorage.removeItem('app_version');
