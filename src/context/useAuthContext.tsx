@@ -39,58 +39,80 @@ export function AuthProvider({ children }: ChildrenType) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [roles, setRoles] = useState<UserRole[]>([])
   const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false)
 
-  // ✅ PRIORITY 2: Enhanced session stability with retry logic
+  // ✅ Phase 1: Timeout protection for fetchUserData (8 seconds max)
+  const fetchWithTimeout = <T,>(promise: Promise<T>, timeout: number = 8000): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), timeout)
+      )
+    ])
+  }
+
+  // ✅ PRIORITY 2: Enhanced session stability with retry logic + timeout protection
   const fetchUserData = async (userId: string, retries: number = 3): Promise<boolean> => {
     try {
-      // Fetch profile with retry logic
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
+      // Wrap the entire fetch operation in a timeout
+      return await fetchWithTimeout(
+        (async () => {
+          // Fetch profile with retry logic
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single()
 
-      if (profileError) {
-        if (profileError.code === 'PGRST116') {
-          console.warn('⚠️ Profile not found for user:', userId)
-        } else {
-          console.error('❌ Error fetching profile:', profileError)
-          
-          // ✅ Retry on failure
-          if (retries > 0) {
-            console.warn(`🔄 Retrying profile fetch (${retries} attempts left)`)
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            return fetchUserData(userId, retries - 1)
+          if (profileError) {
+            if (profileError.code === 'PGRST116') {
+              console.warn('⚠️ Profile not found for user:', userId)
+            } else {
+              console.error('❌ Error fetching profile:', profileError)
+              
+              // ✅ Retry on failure
+              if (retries > 0) {
+                console.warn(`🔄 Retrying profile fetch (${retries} attempts left)`)
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                return fetchUserData(userId, retries - 1)
+              }
+              return false
+            }
+          } else if (profileData) {
+            setProfile(profileData)
           }
-          return false
-        }
-      } else if (profileData) {
-        setProfile(profileData)
-      }
 
-      // Fetch roles with retry logic
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true)
+          // Fetch roles with retry logic
+          const { data: rolesData, error: rolesError } = await supabase
+            .from('user_roles')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('is_active', true)
 
-      if (rolesError) {
-        console.error('❌ Error fetching roles:', rolesError)
-        
-        // ✅ Retry on failure
-        if (retries > 0) {
-          console.warn(`🔄 Retrying roles fetch (${retries} attempts left)`)
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          return fetchUserData(userId, retries - 1)
-        }
+          if (rolesError) {
+            console.error('❌ Error fetching roles:', rolesError)
+            
+            // ✅ Retry on failure
+            if (retries > 0) {
+              console.warn(`🔄 Retrying roles fetch (${retries} attempts left)`)
+              await new Promise(resolve => setTimeout(resolve, 1000))
+              return fetchUserData(userId, retries - 1)
+            }
+            return false
+          } else if (rolesData) {
+            setRoles(rolesData)
+          }
+          
+          return true
+        })(),
+        8000
+      )
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Timeout') {
+        console.error('⏱️ [AUTH] fetchUserData timeout after 8 seconds')
         return false
-      } else if (rolesData) {
-        setRoles(rolesData)
       }
       
-      return true
-    } catch (error) {
       console.error('❌ Critical error fetching user data:', error)
       
       // ✅ Retry on exception
@@ -103,9 +125,20 @@ export function AuthProvider({ children }: ChildrenType) {
     }
   }
 
-  // ✅ v0.14.7: Navigation Stability - Enhanced auth initialization with session validation
+  // ✅ Phase 1: Single initialization with race-free loading and 10s timeout guarantee
   useEffect(() => {
     console.info('🔐 [AUTH] Initializing authentication context')
+    
+    let loadingTimeoutId: NodeJS.Timeout | null = null
+    
+    // ✅ Phase 1: Guarantee loading completes within 10 seconds maximum
+    loadingTimeoutId = setTimeout(() => {
+      if (loading && !initialized) {
+        console.error('⏱️ [AUTH] Force-stopping loading after 10 seconds')
+        setLoading(false)
+        setInitialized(true)
+      }
+    }, 10000)
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -118,7 +151,6 @@ export function AuthProvider({ children }: ChildrenType) {
           console.info('🔐 [AUTH] Session active, fetching user data')
           setUser(session.user as AuthUser)
           
-          // ✅ FIXED: Removed setTimeout delay to prevent race conditions
           const success = await fetchUserData(session.user.id)
           if (!success) {
             console.error('❌ [AUTH] Failed to fetch user data after retries')
@@ -138,35 +170,53 @@ export function AuthProvider({ children }: ChildrenType) {
           navigate('/auth/sign-in', { replace: true })
         }
         
-        setLoading(false)
+        // ✅ Phase 1: Only set loading false once, after auth state is handled
+        if (!initialized) {
+          setLoading(false)
+          setInitialized(true)
+          if (loadingTimeoutId) clearTimeout(loadingTimeoutId)
+        }
       }
     )
 
-    // Check for existing session with validation
+    // ✅ Phase 1: Combined initialization - check session only once on mount
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) {
         console.error('❌ [AUTH] Session retrieval error:', error)
-        setLoading(false)
+        if (!initialized) {
+          setLoading(false)
+          setInitialized(true)
+          if (loadingTimeoutId) clearTimeout(loadingTimeoutId)
+        }
         return
       }
       
       console.info('🔐 [AUTH] Initial session check:', session ? 'Session found' : 'No session')
-      setSession(session)
       
-      if (session?.user) {
-        setUser(session.user as AuthUser)
-        const success = await fetchUserData(session.user.id)
-        if (!success) {
-          console.error('❌ [AUTH] Failed to fetch user data on initialization')
-        } else {
-          console.info('✅ [AUTH] Initial user data loaded')
+      // Only process if subscription hasn't already handled it
+      if (!initialized) {
+        setSession(session)
+        
+        if (session?.user) {
+          setUser(session.user as AuthUser)
+          const success = await fetchUserData(session.user.id)
+          if (!success) {
+            console.error('❌ [AUTH] Failed to fetch user data on initialization')
+          } else {
+            console.info('✅ [AUTH] Initial user data loaded')
+          }
         }
+        
+        setLoading(false)
+        setInitialized(true)
+        if (loadingTimeoutId) clearTimeout(loadingTimeoutId)
       }
-      
-      setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+      if (loadingTimeoutId) clearTimeout(loadingTimeoutId)
+    }
   }, [])
 
   const signIn = async (email: string, password: string) => {
