@@ -494,15 +494,24 @@ async function validateStateTransition(currentState: string, targetState: string
     return { valid: false, reason: `Transition from ${currentState} to ${targetState} is not allowed` };
   }
 
-  const { data: userRole, error: roleError } = await supabase
-    .rpc('get_current_user_role');
+  // Get all user roles (a user can have multiple roles)
+  const { data: userRoles, error: roleError } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .eq('is_active', true);
 
-  if (roleError || !userRole) {
+  if (roleError || !userRoles || userRoles.length === 0) {
     return { valid: false, reason: 'Unable to determine user role' };
   }
 
-  if (!(WORKFLOW_STATES as any)[targetState].roles.includes(userRole)) {
-    return { valid: false, reason: `User role ${userRole} is not authorized for this transition` };
+  // Check if user has any of the required roles for the target state
+  const userRolesList = userRoles.map((r: any) => r.role);
+  const allowedRoles = (WORKFLOW_STATES as any)[targetState].roles;
+  const hasRequiredRole = userRolesList.some((role: string) => allowedRoles.includes(role));
+
+  if (!hasRequiredRole) {
+    return { valid: false, reason: `User roles [${userRolesList.join(', ')}] are not authorized for this transition. Required: [${allowedRoles.join(', ')}]` };
   }
 
   return { valid: true, reason: '' };

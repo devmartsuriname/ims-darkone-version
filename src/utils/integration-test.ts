@@ -64,15 +64,18 @@ export class IMSIntegrationTester {
           // Step 2: Test Document Upload
           results.push(await this.testDocumentUpload(applicationId));
           
-          // Step 3: Test Workflow Transitions
+          // Step 3: Test Workflow Transitions (following valid workflow path)
           results.push(await this.testWorkflowTransition(applicationId, 'INTAKE_REVIEW'));
           results.push(await this.testWorkflowTransition(applicationId, 'CONTROL_ASSIGN'));
+          results.push(await this.testWorkflowTransition(applicationId, 'CONTROL_VISIT_SCHEDULED'));
+          results.push(await this.testWorkflowTransition(applicationId, 'CONTROL_IN_PROGRESS'));
           
           // Step 4: Test Control Process
           results.push(await this.testControlAssignment(applicationId));
           results.push(await this.testControlVisit(applicationId));
           
-          // Step 5: Test Review Process
+          // Step 5: Complete technical and social reviews
+          results.push(await this.testWorkflowTransition(applicationId, 'TECHNICAL_REVIEW'));
           results.push(await this.testReviewProcess(applicationId));
           
           // Step 6: Test Decision Workflow
