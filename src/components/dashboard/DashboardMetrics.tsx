@@ -1,12 +1,21 @@
-import React, { memo, useMemo } from 'react';
-import { Row, Col } from 'react-bootstrap';
+import React, { memo, useMemo, useState, lazy, Suspense } from 'react';
+import { Row, Col, Card } from 'react-bootstrap';
 import { StatCard } from '@/components/ui/EnhancedCards';
-import { Skeleton } from '@/components/ui/LoadingStates';
+import { Skeleton, LoadingSpinner } from '@/components/ui/LoadingStates';
 import { ErrorBoundary, DashboardErrorFallback } from './ErrorBoundary';
 import { useRealTimeApplicationStats } from '@/hooks/useRealTimeData';
 import { useAuthContext } from '@/context/useAuthContext';
 import RoleCheck from '@/components/auth/RoleCheck';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
+import { usePerformanceMetricsData } from '@/hooks/usePerformanceMetricsData';
+
+// Lazy load chart components
+const PerformanceMetricsChart = lazy(() => 
+  import('@/app/(admin)/dashboards/components/PerformanceMetricsChart').then(m => ({ default: m.PerformanceMetricsChart }))
+);
+const StatusDistributionChart = lazy(() => 
+  import('@/app/(admin)/dashboards/components/StatusDistributionChart').then(m => ({ default: m.StatusDistributionChart }))
+);
 
 interface MetricCardProps {
   title: string;
@@ -96,6 +105,7 @@ ConnectionStatus.displayName = 'ConnectionStatus';
 
 export const DashboardMetrics: React.FC = memo(() => {
   const { roles } = useAuthContext();
+  const [timeRange, setTimeRange] = useState<'7d' | '14d' | '30d'>('7d');
   
   const getUserRole = () => {
     if (!roles || roles.length === 0) return null;
@@ -105,6 +115,7 @@ export const DashboardMetrics: React.FC = memo(() => {
   
   const userRole = getUserRole();
   const { data: stats, isLoading, error, lastUpdated, isConnected } = useRealTimeApplicationStats();
+  const { data: metricsData, isLoading: metricsLoading } = usePerformanceMetricsData(timeRange);
 
   const metricsConfig = useMemo(() => [
     {
@@ -193,6 +204,42 @@ export const DashboardMetrics: React.FC = memo(() => {
             </Col>
           ))}
         </Row>
+
+        {/* Performance Charts Section */}
+        {metricsData && (
+          <Row className="g-4 mt-3">
+            <Col lg={8} md={12}>
+              <Suspense fallback={
+                <Card>
+                  <Card.Body className="text-center py-5">
+                    <LoadingSpinner />
+                  </Card.Body>
+                </Card>
+              }>
+                <PerformanceMetricsChart
+                  data={metricsData.trends}
+                  isLoading={metricsLoading}
+                  timeRange={timeRange}
+                  onTimeRangeChange={setTimeRange}
+                />
+              </Suspense>
+            </Col>
+            <Col lg={4} md={12}>
+              <Suspense fallback={
+                <Card>
+                  <Card.Body className="text-center py-5">
+                    <LoadingSpinner />
+                  </Card.Body>
+                </Card>
+              }>
+                <StatusDistributionChart
+                  data={metricsData.statusDistribution}
+                  isLoading={metricsLoading}
+                />
+              </Suspense>
+            </Col>
+          </Row>
+        )}
       </div>
     </ErrorBoundary>
   );
