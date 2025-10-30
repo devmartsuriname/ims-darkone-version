@@ -1169,6 +1169,12 @@ export type Database = {
         Args: { bucket_name: string; expires_in?: number; file_path: string }
         Returns: string
       }
+      get_user_roles_cached: {
+        Args: { user_id_param: string }
+        Returns: {
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
       has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
