@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react'
 import { Card, CardBody, CardHeader } from 'react-bootstrap'
 import { LoadingSpinner } from './LoadingStates'
+import IconifyIcon from '@/components/wrapper/IconifyIcon'
 
 interface EnhancedCardProps {
   title?: string
@@ -146,31 +147,42 @@ export const StatCard: React.FC<StatCardProps> = ({
     }
   }
 
+  if (loading) {
+    return (
+      <Card className={`h-100 card-animate ${className}`}>
+        <CardBody className="d-flex align-items-center justify-content-center">
+          <LoadingSpinner text="Loading..." />
+        </CardBody>
+      </Card>
+    )
+  }
+
   return (
-    <EnhancedCard 
-      className={className}
-      variant="elevated"
-      hoverable
-      loading={loading}
-    >
-      <div className="d-flex align-items-center justify-content-between">
-        <div className="flex-grow-1">
-          <p className="text-muted mb-1 small text-uppercase fw-bold">{title}</p>
-          <h3 className="mb-0 fw-bold">{value}</h3>
-          {change && (
-            <div className={`small mt-1 ${getChangeColor()}`}>
-              <span className="me-1">{getChangeIcon()}</span>
-              {Math.abs(change.value)}% from last period
+    <Card className={`h-100 card-animate ${className}`}>
+      <CardBody>
+        <div className="d-flex align-items-center">
+          <div className="flex-shrink-0">
+            <div className="avatar-md">
+              <span className={`avatar-title bg-${color}-subtle text-${color} rounded-3`}>
+                {icon && <IconifyIcon icon={icon} className="fs-1" />}
+              </span>
             </div>
-          )}
-        </div>
-        {icon && (
-          <div className={`ms-3 text-${color} opacity-75`}>
-            <i className={`${icon} fs-1`}></i>
           </div>
-        )}
-      </div>
-    </EnhancedCard>
+          <div className="flex-grow-1 ms-3">
+            <p className="text-uppercase text-muted fw-semibold mb-1 small">
+              {title}
+            </p>
+            <h4 className="mb-0 fw-bold">{value}</h4>
+            {change && (
+              <p className={`small mb-0 mt-1 ${getChangeColor()}`}>
+                <span className="me-1">{getChangeIcon()}</span>
+                {Math.abs(change.value)}% from last period
+              </p>
+            )}
+          </div>
+        </div>
+      </CardBody>
+    </Card>
   )
 }
 
