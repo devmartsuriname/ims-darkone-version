@@ -127,13 +127,21 @@ export function AuthProvider({ children }: ChildrenType) {
   }
 
   // ✅ Phase 4: Detect editor environment for fast-path loading
-  const isEditorPreview = 
-    window.self !== window.top && // Must be in iframe
-    (
-      window.location.hostname.includes('lovableproject.com') ||
-      window.parent?.location?.hostname?.includes('lovable.dev') ||
-      document.referrer.includes('lovable.dev')
-    )
+  const isEditorPreview = (() => {
+    try {
+      return (
+        window.self !== window.top && // Must be in iframe
+        (
+          window.location.hostname.includes('lovableproject.com') ||
+          window.location.hostname.includes('lovable.app') ||
+          document.referrer.includes('lovable.dev')
+        )
+      )
+    } catch (e) {
+      // Cross-origin access blocked - assume we're in an embedded preview
+      return window.self !== window.top
+    }
+  })()
 
   // ✅ Phase 1: Single initialization with race-free loading and 10s timeout guarantee
   useEffect(() => {
