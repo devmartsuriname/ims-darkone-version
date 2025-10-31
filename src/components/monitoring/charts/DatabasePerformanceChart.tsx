@@ -52,10 +52,10 @@ export const DatabasePerformanceChart: React.FC<DatabasePerformanceChartProps> =
     ],
     xaxis: {
       categories: data.timestamps,
-      type: 'datetime',
+      type: 'category',
       labels: {
-        datetimeUTC: false,
-        format: 'HH:mm'
+        rotate: -45,
+        rotateAlways: false
       }
     },
     yaxis: {
