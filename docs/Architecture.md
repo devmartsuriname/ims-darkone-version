@@ -54,6 +54,22 @@ The Internal Management System (IMS) for Public Housing Suriname is built as a m
 - **Monitoring**: Supabase Analytics + Custom metrics
 - **Backups**: Automated daily backups via Supabase
 
+### Debug Mode Toggle (v0.15.13+)
+
+The `VITE_DEBUG_MODE` environment variable controls whether admin and IT users can see applicant-specific menu items.
+
+**Configuration:**
+- `VITE_DEBUG_MODE=false` (default): Clean production UI, admins don't see applicant menus
+- `VITE_DEBUG_MODE=true`: Developer mode, admins can access applicant menus for testing
+
+**Use Cases:**
+- **Production**: Set to `false` for clean, role-specific sidebar experience
+- **Development**: Set to `true` to test applicant workflows without switching accounts
+- **Support**: Enable temporarily when assisting applicants with issues
+
+**Security Note:**  
+Debug mode only affects menu visibility. Page-level guards (`ApplicantGuard`) still enforce access control regardless of this setting.
+
 ## Project Structure
 
 ```

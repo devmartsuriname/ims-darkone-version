@@ -5,6 +5,61 @@ This changelog tracks the implementation progress of the Internal Management Sys
 
 ---
 
+## [0.15.13] - 2025-10-31 - Enhancement: Hybrid Role Filtering
+
+### Status: Production Ready ✅
+
+**Priority:** 🟢 Enhancement (UI/UX Improvement)  
+**Implementation:** ✅ Complete  
+**Testing:** ⏳ Pending UAT Verification
+
+### Enhancement Overview
+- ✅ **Added `VITE_DEBUG_MODE` environment variable**
+  - Controls applicant menu visibility for admin/IT roles
+  - Default: `false` (clean production UI)
+  - Debug mode: `true` (enables applicant menu visibility for testing)
+
+### Problem Solved
+- Admin sidebar showed applicant-only menus by default (cluttered UI)
+- While page guards enforced security, UI was confusing for admins
+- Testing applicant workflows required account switching
+
+### Solution Implemented
+1. **Environment Toggle** - Added `VITE_DEBUG_MODE` variable
+2. **Conditional Filtering** - Admin/IT users no longer see applicant menus by default
+3. **Debug Access** - Setting `VITE_DEBUG_MODE=true` enables testing without switching accounts
+4. **Console Feedback** - Added debug mode status logging
+
+### Technical Implementation
+- **Files Modified:**
+  - `.env` - Added `VITE_DEBUG_MODE=false` + version bump to 0.15.13
+  - `.env.example` - Added debug mode documentation
+  - `src/components/layout/VerticalNavigationBar/components/RoleAwareAppMenu.tsx` - Hybrid filtering logic
+  - `docs/Changelog.md` - This changelog entry
+
+### Behavior Matrix
+
+| VITE_DEBUG_MODE | User Role | MY APPLICATIONS Section |
+|-----------------|-----------|------------------------|
+| `false` | applicant | ✅ Visible |
+| `false` | admin/IT | ❌ Hidden |
+| `true` | applicant | ✅ Visible |
+| `true` | admin/IT | ✅ Visible (for testing) |
+| Any | staff/control/director/minister | ❌ Hidden |
+
+### Security Note
+- ✅ No security impact - page guards remain enforced
+- ✅ Applicant routes protected by `ApplicantGuard` regardless of menu visibility
+- ✅ Debug mode only affects UI, not authorization
+
+### Console Verification
+```
+🧭 Debug Mode: DISABLED  (when VITE_DEBUG_MODE=false)
+🧭 Debug Mode: ENABLED   (when VITE_DEBUG_MODE=true)
+```
+
+---
+
 ## [0.15.9] - 2025-10-31 - UI Fix: Role-Based Menu Visibility Enforcement
 
 ### Status: Production Ready ✅

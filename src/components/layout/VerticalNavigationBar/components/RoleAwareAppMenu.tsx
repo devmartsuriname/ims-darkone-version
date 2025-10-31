@@ -10,8 +10,10 @@ type RoleAwareAppMenuProps = {
 const RoleAwareAppMenu = ({ menuItems }: RoleAwareAppMenuProps) => {
   const { roles } = useAuthContext()
 
-  // ✅ DEBUG: Log current user roles for troubleshooting
+  // ✅ DEBUG: Log current user roles and debug mode status
   useEffect(() => {
+    console.log(`🧭 Debug Mode: ${import.meta.env.VITE_DEBUG_MODE === 'true' ? 'ENABLED' : 'DISABLED'}`)
+    
     if (roles && roles.length > 0) {
       const activeRoles = roles.filter(r => r.is_active).map(r => r.role)
       console.log('🔐 RoleAwareAppMenu - Active user roles:', activeRoles)
@@ -42,9 +44,18 @@ const RoleAwareAppMenu = ({ menuItems }: RoleAwareAppMenuProps) => {
     // Get user's active roles
     const userRoles = roles.filter(r => r.is_active).map(r => r.role)
 
-    // Admin and IT roles always have access
+    // ✅ DEBUG MODE: Control applicant menu visibility for admins
+    const showApplicantMenusForAdmin = import.meta.env.VITE_DEBUG_MODE === 'true'
+
+    // Admin and IT roles have conditional access
     if (userRoles.includes('admin') || userRoles.includes('it')) {
-      return true
+      // Hide applicant-only menus unless debug mode is active
+      if (item.allowedRoles?.includes('applicant') && 
+          item.allowedRoles.length === 1 && 
+          !showApplicantMenusForAdmin) {
+        return false // Deny access to pure applicant menus in production
+      }
+      return true // Allow access to all other menus
     }
 
     // Check if user has any of the required roles
