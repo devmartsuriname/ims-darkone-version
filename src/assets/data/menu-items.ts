@@ -12,6 +12,36 @@ export const MENU_ITEMS: MenuItemType[] = [
     isTitle: false,
     icon: 'mdi:view-dashboard-outline',
     url: '/dashboards',
+    allowedRoles: ['admin', 'it', 'staff', 'front_office', 'control', 'director', 'minister'],
+  },
+
+  // ==================== APPLICANT SECTION ===============
+  {
+    key: 'my-applications-section',
+    label: 'MY APPLICATIONS',
+    isTitle: true,
+    allowedRoles: ['applicant'],
+  },
+  {
+    key: 'applicant-dashboard',
+    label: 'My Dashboard',
+    icon: 'mingcute:home-line',
+    url: '/applicant/dashboard',
+    allowedRoles: ['applicant'],
+  },
+  {
+    key: 'my-applications-list',
+    label: 'My Applications',
+    icon: 'mingcute:file-line',
+    url: '/applicant/applications',
+    allowedRoles: ['applicant'],
+  },
+  {
+    key: 'submit-application',
+    label: 'Submit New Application',
+    icon: 'mingcute:add-circle-line',
+    url: '/applicant/submit',
+    allowedRoles: ['applicant'],
   },
 
   // ==================== APPLICATIONS ===============
@@ -24,18 +54,21 @@ export const MENU_ITEMS: MenuItemType[] = [
     key: 'application-management',
     label: 'Application Management',
     icon: 'mingcute:file-line',
+    allowedRoles: ['admin', 'it', 'staff', 'front_office'],
     children: [
       {
         key: 'application-intake',
         label: 'Application Intake',
         url: '/applications/intake',
         parentKey: 'application-management',
+        allowedRoles: ['admin', 'it', 'staff', 'front_office'],
       },
       {
         key: 'application-list',
         label: 'Application List',
         url: '/applications/list',
         parentKey: 'application-management',
+        allowedRoles: ['admin', 'it', 'staff', 'front_office', 'director', 'minister'],
       },
     ],
   },
@@ -79,18 +112,21 @@ export const MENU_ITEMS: MenuItemType[] = [
     key: 'reviews',
     label: 'Reviews & Decisions',
     icon: 'mingcute:check-circle-line',
+    allowedRoles: ['admin', 'it', 'staff', 'control', 'director', 'minister'],
     children: [
       {
         key: 'technical-review',
         label: 'Technical Review',
         url: '/reviews/technical',
         parentKey: 'reviews',
+        allowedRoles: ['admin', 'it', 'staff', 'control'],
       },
       {
         key: 'social-review',
         label: 'Social Review',
         url: '/reviews/social',
         parentKey: 'reviews',
+        allowedRoles: ['admin', 'it', 'staff'],
       },
       {
         key: 'director-review',
@@ -111,6 +147,7 @@ export const MENU_ITEMS: MenuItemType[] = [
         label: 'Review Archive',
         url: '/reviews/archive',
         parentKey: 'reviews',
+        allowedRoles: ['admin', 'it', 'director', 'minister'],
       },
     ],
   },
@@ -139,6 +176,7 @@ export const MENU_ITEMS: MenuItemType[] = [
         label: 'Notification Preferences',
         url: '/admin/notification-preferences',
         parentKey: 'user-management',
+        allowedRoles: ['admin', 'it'],
       },
     ],
   },

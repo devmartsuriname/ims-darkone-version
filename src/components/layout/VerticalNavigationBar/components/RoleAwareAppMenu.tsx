@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { MenuItemType } from '@/types/menu'
 import { useAuthContext } from '@/context/useAuthContext'
 import AppMenu from './AppMenu'
@@ -9,11 +10,28 @@ type RoleAwareAppMenuProps = {
 const RoleAwareAppMenu = ({ menuItems }: RoleAwareAppMenuProps) => {
   const { roles } = useAuthContext()
 
+  // ✅ DEBUG: Log current user roles for troubleshooting
+  useEffect(() => {
+    if (roles && roles.length > 0) {
+      const activeRoles = roles.filter(r => r.is_active).map(r => r.role)
+      console.log('🔐 RoleAwareAppMenu - Active user roles:', activeRoles)
+      console.log('📋 RoleAwareAppMenu - Total menu items:', menuItems.length)
+    }
+  }, [roles, menuItems])
+
   // Function to check if user has required roles for menu item
   const hasMenuAccess = (item: MenuItemType): boolean => {
-    // If no roles specified, item is accessible to all
+    // ✅ SECURITY FIX: If no roles specified, deny access by default
+    // This prevents accidental exposure of menu items
     if (!item.allowedRoles || item.allowedRoles.length === 0) {
-      return true
+      // Only titles can have no roles (section headers)
+      if (item.isTitle) {
+        return true
+      }
+      
+      // For all other items, require explicit role definition
+      console.warn(`⚠️ Menu item "${item.label}" has no allowedRoles - denying access`)
+      return false
     }
 
     // If user has no roles, deny access
@@ -58,6 +76,13 @@ const RoleAwareAppMenu = ({ menuItems }: RoleAwareAppMenuProps) => {
   }
 
   const filteredMenuItems = filterMenuByRole(menuItems)
+
+  // ✅ DEBUG: Log filtered result
+  useEffect(() => {
+    if (roles && roles.length > 0) {
+      console.log('📋 RoleAwareAppMenu - Filtered items:', filteredMenuItems.length)
+    }
+  }, [filteredMenuItems, roles])
 
   return <AppMenu menuItems={filteredMenuItems} />
 }
