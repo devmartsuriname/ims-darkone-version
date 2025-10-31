@@ -149,7 +149,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   if (loading) {
     return (
-      <Card className={`h-100 card-animate ${className}`}>
+      <Card className={`h-100 stat-card border-${color} card-animate ${className}`}>
         <CardBody className="d-flex align-items-center justify-content-center">
           <LoadingSpinner text="Loading..." />
         </CardBody>
@@ -158,28 +158,28 @@ export const StatCard: React.FC<StatCardProps> = ({
   }
 
   return (
-    <Card className={`h-100 card-animate ${className}`}>
-      <CardBody>
-        <div className="d-flex align-items-center">
-          <div className="flex-shrink-0">
-            <div className="avatar-md">
-              <span className={`avatar-title bg-${color}-subtle text-${color} rounded-3`}>
-                {icon && <IconifyIcon icon={icon} className="fs-1" />}
-              </span>
-            </div>
-          </div>
-          <div className="flex-grow-1 ms-3">
-            <p className="text-uppercase text-muted fw-semibold mb-1 small">
+    <Card className={`h-100 stat-card border-${color} card-animate ${className}`}>
+      <CardBody className="p-3">
+        <div className="d-flex align-items-start justify-content-between">
+          <div className="flex-grow-1">
+            <p className="text-uppercase text-muted fw-semibold mb-2 small">
               {title}
             </p>
-            <h4 className="mb-0 fw-bold">{value}</h4>
+            <h3 className="mb-1 fw-bold">{value}</h3>
             {change && (
-              <p className={`small mb-0 mt-1 ${getChangeColor()}`}>
+              <p className={`small mb-0 ${getChangeColor()}`}>
                 <span className="me-1">{getChangeIcon()}</span>
                 {Math.abs(change.value)}% from last period
               </p>
             )}
           </div>
+          {icon && (
+            <div className="flex-shrink-0 ms-3">
+              <div className={`stat-card-icon bg-${color}-subtle text-${color}`}>
+                <IconifyIcon icon={icon} />
+              </div>
+            </div>
+          )}
         </div>
       </CardBody>
     </Card>

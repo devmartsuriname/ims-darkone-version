@@ -47,6 +47,46 @@
     color: $text-muted;
 }
 
+// Stat Card Styles
+.stat-card {
+    border-left: 4px solid hsl(var(--primary));
+    transition: all 0.3s ease;
+    
+    &:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    &.border-primary { border-left-color: hsl(var(--primary)); }
+    &.border-success { border-left-color: hsl(var(--success)); }
+    &.border-warning { border-left-color: hsl(var(--warning)); }
+    &.border-danger { border-left-color: hsl(var(--danger)); }
+    &.border-info { border-left-color: hsl(var(--info)); }
+    &.border-secondary { border-left-color: hsl(var(--secondary)); }
+    
+    .stat-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    // Responsive adjustments
+    @media (max-width: 768px) {
+        border-left-width: 3px;
+        
+        .stat-card-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.25rem;
+        }
+    }
+}
+
 // Chart Card Styles
 .chart-card {
     border-left: 4px solid hsl(var(--primary));
