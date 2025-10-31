@@ -43,7 +43,7 @@ export const ControlQueueTable = () => {
           priority_level,
           property_address,
           service_type,
-          applicants!inner (
+          applicants (
             first_name,
             last_name,
             address,

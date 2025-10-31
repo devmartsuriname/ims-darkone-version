@@ -5,6 +5,85 @@ This changelog tracks the implementation progress of the Internal Management Sys
 
 ---
 
+## [0.15.16] - 2025-10-31 - Control Queue RLS Policy Fix
+
+### 🎯 Summary
+Restored **Control Queue visibility** by granting Control role SELECT access to the `applicants` table. This resolves the issue where Control users saw "No applications in control queue" despite applications existing in INTAKE_REVIEW and CONTROL_ASSIGN states.
+
+### 🔧 Changes Made
+
+#### Database RLS Policies
+1. **`applicants` table SELECT policy**:
+   - **Dropped** old policy: `"Staff can view all applicants"`
+   - **Created** new policy: `"Staff and Control can view applicants"`
+   - **Added** `can_control_inspect()` to USING clause
+   - Control users now have read-only access to applicant data
+
+2. **`applications` table SELECT policy** (from v0.15.15):
+   - Already includes `can_control_inspect()` for Control visibility
+
+#### UI Components (`src/app/(admin)/control/queue/components/ControlQueueTable.tsx`)
+- **Changed** `applicants!inner` to `applicants` (INNER JOIN → LEFT JOIN)
+- Improves resilience if applicant data is missing
+- Maintains existing fallback logic for null applicant records
+
+#### Version & Documentation
+- **Version**: Bumped to `0.15.16` in `.env`
+- **Changelog**: Added detailed migration notes
+
+### ✅ Expected Results
+**Test User**: `leonie.wijnhard@ims.sr` (Control role)
+
+| Test Case | Expected | Status |
+|-----------|----------|--------|
+| Control Queue shows applications | ✅ 2 applications visible | To verify |
+| Applicant names displayed | ✅ First/Last name shown | To verify |
+| Applicant phone displayed | ✅ Phone number shown | To verify |
+| "Assign to Me" button works | ✅ Functional | To verify |
+| "Schedule Visit" button works | ✅ Navigates to schedule | To verify |
+| Admin account unaffected | ✅ No change | To verify |
+| Staff account unaffected | ✅ No change | To verify |
+
+### 🔒 Security Impact
+- **Control users**: Granted **SELECT-only** access to `applicants` table
+- **No write permissions**: Control cannot INSERT/UPDATE/DELETE applicant records
+- **Other roles unaffected**: Admin, IT, Staff, Director, Minister, Applicant access unchanged
+- **RLS policies**: All existing policies remain intact
+
+### 📋 Root Cause
+The Control Queue table performs an INNER JOIN between `applications` and `applicants`:
+```typescript
+applicants!inner (first_name, last_name, phone)
+```
+
+When Control users queried this join:
+1. ✅ `applications` table allowed SELECT (via `can_control_inspect()`)
+2. ❌ `applicants` table denied SELECT (missing `can_control_inspect()`)
+3. Result: INNER JOIN returned 0 rows due to RLS filtering
+
+### 🔍 Migration Details
+```sql
+-- Drop existing policy
+DROP POLICY IF EXISTS "Staff can view all applicants" ON applicants;
+
+-- Create updated policy with Control access
+CREATE POLICY "Staff and Control can view applicants"
+ON applicants
+FOR SELECT
+TO authenticated
+USING (
+  can_manage_applications()  -- admin, it, staff, front_office
+  OR can_control_inspect()   -- ✅ control
+);
+```
+
+### 📝 Related Issues
+- Fixes: Control Queue showing "No applications in control queue"
+- Builds on: v0.15.15 (applications table RLS fix)
+- Completes: Phase 1 Control Queue RLS Policy Fix Checklist
+
+---
+
 ## [0.15.15-p1] - 2025-10-31 - Critical Fix: Technical Review Access Restoration
 
 ### 🎯 Summary
