@@ -46,3 +46,81 @@
     margin-bottom: $spacer;
     color: $text-muted;
 }
+
+// Chart Card Styles
+.chart-card {
+    border-left: 4px solid hsl(var(--primary));
+    transition: all 0.3s ease;
+    
+    &:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    &.border-primary { border-left-color: hsl(var(--primary)); }
+    &.border-success { border-left-color: hsl(var(--success)); }
+    &.border-warning { border-left-color: hsl(var(--warning)); }
+    &.border-danger { border-left-color: hsl(var(--danger)); }
+    &.border-info { border-left-color: hsl(var(--info)); }
+    
+    .chart-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--bs-border-color);
+        
+        .chart-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .chart-card-actions {
+            margin-left: auto;
+        }
+    }
+    
+    .chart-card-body {
+        padding: 1.5rem;
+    }
+    
+    // Responsive adjustments
+    @media (max-width: 768px) {
+        border-left-width: 3px;
+        
+        .chart-card-header {
+            padding: 1rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            
+            .chart-card-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1.1rem;
+            }
+            
+            .chart-card-actions {
+                width: 100%;
+                margin-left: 0;
+                
+                .btn-group {
+                    width: 100%;
+                    
+                    .btn {
+                        flex: 1;
+                    }
+                }
+            }
+        }
+        
+        .chart-card-body {
+            padding: 1rem;
+        }
+    }
+}

@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
-import { Card } from 'react-bootstrap';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
-import { LoadingSpinner } from '@/components/ui/LoadingStates';
+import { ChartCard } from '@/components/ui/ChartCard';
 
 interface PerformanceMetricsChartProps {
   data: {
@@ -127,50 +126,54 @@ export const PerformanceMetricsChart: React.FC<PerformanceMetricsChartProps> = (
     },
   ], [data.submitted, data.processed, data.approved]);
 
+  const total = useMemo(() => 
+    data.submitted.reduce((sum, val) => sum + val, 0) +
+    data.processed.reduce((sum, val) => sum + val, 0) +
+    data.approved.reduce((sum, val) => sum + val, 0),
+    [data.submitted, data.processed, data.approved]
+  );
+
+  const timeRangeActions = (
+    <div className="btn-group btn-group-sm" role="group">
+      <button
+        type="button"
+        className={`btn ${timeRange === '7d' ? 'btn-primary' : 'btn-outline-primary'}`}
+        onClick={() => onTimeRangeChange('7d')}
+      >
+        7D
+      </button>
+      <button
+        type="button"
+        className={`btn ${timeRange === '14d' ? 'btn-primary' : 'btn-outline-primary'}`}
+        onClick={() => onTimeRangeChange('14d')}
+      >
+        14D
+      </button>
+      <button
+        type="button"
+        className={`btn ${timeRange === '30d' ? 'btn-primary' : 'btn-outline-primary'}`}
+        onClick={() => onTimeRangeChange('30d')}
+      >
+        30D
+      </button>
+    </div>
+  );
+
   return (
-    <Card>
-      <Card.Header>
-        <div className="d-flex justify-content-between align-items-center">
-          <h6 className="mb-0">Application Trends</h6>
-          <div className="btn-group btn-group-sm" role="group">
-            <button
-              type="button"
-              className={`btn ${timeRange === '7d' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => onTimeRangeChange('7d')}
-            >
-              7D
-            </button>
-            <button
-              type="button"
-              className={`btn ${timeRange === '14d' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => onTimeRangeChange('14d')}
-            >
-              14D
-            </button>
-            <button
-              type="button"
-              className={`btn ${timeRange === '30d' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => onTimeRangeChange('30d')}
-            >
-              30D
-            </button>
-          </div>
-        </div>
-      </Card.Header>
-      <Card.Body>
-        {isLoading ? (
-          <div className="text-center py-5">
-            <LoadingSpinner />
-          </div>
-        ) : (
-          <ReactApexChart
-            options={chartOptions}
-            series={series}
-            type="area"
-            height={280}
-          />
-        )}
-      </Card.Body>
-    </Card>
+    <ChartCard
+      title="Application Trends"
+      subtitle={`${total} total applications`}
+      borderColor="primary"
+      icon="solar:chart-2-broken"
+      actions={timeRangeActions}
+      loading={isLoading}
+    >
+      <ReactApexChart
+        options={chartOptions}
+        series={series}
+        type="area"
+        height={280}
+      />
+    </ChartCard>
   );
 };

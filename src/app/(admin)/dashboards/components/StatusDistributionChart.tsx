@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
-import { Card } from 'react-bootstrap';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
-import { LoadingSpinner } from '@/components/ui/LoadingStates';
+import { ChartCard } from '@/components/ui/ChartCard';
 
 interface StatusDistributionChartProps {
   data: {
@@ -97,28 +96,25 @@ export const StatusDistributionChart: React.FC<StatusDistributionChartProps> = (
   );
 
   return (
-    <Card>
-      <Card.Header>
-        <h6 className="mb-0">Status Distribution</h6>
-      </Card.Header>
-      <Card.Body>
-        {isLoading ? (
-          <div className="text-center py-5">
-            <LoadingSpinner />
-          </div>
-        ) : total === 0 ? (
-          <div className="text-center py-5 text-muted">
-            <p className="mb-0">No applications to display</p>
-          </div>
-        ) : (
-          <ReactApexChart
-            options={chartOptions}
-            series={data.values}
-            type="donut"
-            height={280}
-          />
-        )}
-      </Card.Body>
-    </Card>
+    <ChartCard
+      title="Status Distribution"
+      subtitle={`${total} applications`}
+      borderColor="success"
+      icon="solar:pie-chart-2-broken"
+      loading={isLoading}
+    >
+      {total === 0 ? (
+        <div className="text-center py-5 text-muted">
+          <p className="mb-0">No applications to display</p>
+        </div>
+      ) : (
+        <ReactApexChart
+          options={chartOptions}
+          series={data.values}
+          type="donut"
+          height={280}
+        />
+      )}
+    </ChartCard>
   );
 };
