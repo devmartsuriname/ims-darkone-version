@@ -1,5 +1,6 @@
 import { Controller, Control, FieldValues, FieldPath } from 'react-hook-form';
 import { Form } from 'react-bootstrap';
+import { useState } from 'react';
 
 interface DateFormInputProps<TFieldValues extends FieldValues = FieldValues> {
   name: FieldPath<TFieldValues>;
@@ -86,6 +87,9 @@ const DateFormInput = <TFieldValues extends FieldValues = FieldValues>({
   allowFreeInput = true,
   showFormatHint = true,
 }: DateFormInputProps<TFieldValues>) => {
+  const [localValue, setLocalValue] = useState<string>('');
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  
   const minDateStr = minDate ? formatDateForInput(minDate) : undefined;
   const maxDateStr = maxDate ? formatDateForInput(maxDate) : undefined;
   
@@ -103,7 +107,9 @@ const DateFormInput = <TFieldValues extends FieldValues = FieldValues>({
       control={control}
       render={({ field: { onChange, value }, fieldState: { error } }) => {
         const isDateObject = value && typeof value === 'object' && 'getTime' in value && typeof value.getTime === 'function' && !isNaN(value.getTime());
-        const displayValue = allowFreeInput && isDateObject ? formatDateForDisplay(value as Date) : formatDateForInput(value as Date);
+        const displayValue = isEditing 
+          ? localValue 
+          : (isDateObject ? formatDateForDisplay(value as Date) : '');
         
         return (
           <Form.Group className={containerClassName}>
@@ -121,33 +127,41 @@ const DateFormInput = <TFieldValues extends FieldValues = FieldValues>({
                   className={className}
                   placeholder={placeholder}
                   value={displayValue}
+                  onFocus={() => {
+                    setIsEditing(true);
+                    if (isDateObject) {
+                      setLocalValue(formatDateForDisplay(value as Date));
+                    } else {
+                      setLocalValue('');
+                    }
+                  }}
                   onChange={(e) => {
                     const inputValue = e.target.value;
                     const formatted = formatDateInput(inputValue);
+                    setLocalValue(formatted);
                     
-                    // Try to parse the date when it looks complete
+                    // Only update form when complete and valid
                     if (formatted.length === 10) {
                       const parsedDate = parseDateInput(formatted);
                       if (parsedDate) {
                         onChange(parsedDate);
-                        return;
+                        setIsEditing(false);
                       }
-                    }
-                    
-                    // Keep the formatted string for display
-                    if (formatted.length <= 10) {
-                      onChange(formatted);
                     }
                   }}
                   onBlur={() => {
-                    // On blur, try to parse the date
-                    if (typeof value === 'string') {
-                      const parsedDate = parseDateInput(value);
+                    setIsEditing(false);
+                    if (localValue) {
+                      const parsedDate = parseDateInput(localValue);
                       if (parsedDate) {
                         onChange(parsedDate);
-                      } else if (value) {
-                        onChange(null); // Clear invalid dates
+                      } else {
+                        // Invalid date - clear it
+                        onChange(null);
+                        setLocalValue('');
                       }
+                    } else if (!localValue && !value) {
+                      onChange(null);
                     }
                   }}
                   isInvalid={!!error}
