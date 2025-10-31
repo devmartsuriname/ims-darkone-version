@@ -5,6 +5,75 @@ This changelog tracks the implementation progress of the Internal Management Sys
 
 ---
 
+## [0.15.18] - 2025-11-01 - Fix Control Queue Assignment
+
+### 🎯 Summary
+Fixed **"Failed to assign application"** error in Control Queue and resolved `authHeader` undefined error in workflow-service. The "Assign to Me" button was attempting an invalid `CONTROL_ASSIGN` → `CONTROL_ASSIGN` workflow transition, which is not allowed by the state machine. Solution: Changed to direct database update without state transition.
+
+### 🔧 Changes Made
+
+#### Frontend Logic (Control Queue)
+1. **`src/app/(admin)/control/queue/components/ControlQueueTable.tsx`** (Lines 76-101)
+   - **Before**: Called workflow-service with invalid `CONTROL_ASSIGN` → `CONTROL_ASSIGN` transition
+   - **After**: Direct Supabase update to `applications.assigned_to` field
+   - **Benefit**: Assignment is metadata update, not workflow transition
+   - Added notification creation for assignment event
+   - Success toast: "Application assigned to you successfully"
+
+#### Backend Fix (Workflow Service)
+2. **`supabase/functions/workflow-service/index.ts`**
+   - **Line 187**: Added `authToken: string` parameter to `transitionState` function
+   - **Line 150**: Pass `authHeader` to `transitionState` function call
+   - **Line 269**: Use `authToken` instead of undefined `authHeader` in notifications
+   - **Lines 274-279**: Added proper CORS headers to transition response
+   - **Fix**: Resolved `ReferenceError: authHeader is not defined`
+
+### ✅ Fixed Issues
+- ❌ "Failed to assign application" error → ✅ Direct assignment works
+- ❌ `authHeader` undefined error → ✅ Auth token properly passed through
+- ❌ Invalid state transition attempt → ✅ No transition, just metadata update
+- ❌ Application state changed incorrectly → ✅ State preserved during assignment
+
+### 🧪 Testing Checklist
+**Test User**: `leonie.wijnhard@ims.sr` (Control role)
+
+| Test Case | Expected Result | Status |
+|-----------|-----------------|--------|
+| Click "Assign to Me" | ✅ Success toast + application assigned | To verify |
+| Application state | ✅ Remains in INTAKE_REVIEW or CONTROL_ASSIGN | To verify |
+| Notification created | ✅ "Application Assigned" notification | To verify |
+| "Schedule Visit" still works | ✅ CONTROL_ASSIGN → CONTROL_VISIT_SCHEDULED | To verify |
+| Auth token passed correctly | ✅ No authHeader errors in logs | To verify |
+
+### 📊 Technical Architecture
+**Old Flow (Broken)**:
+```
+User clicks "Assign to Me" 
+→ workflow-service transition 
+→ CONTROL_ASSIGN → CONTROL_ASSIGN (INVALID)
+→ Error: "Transition not allowed"
+```
+
+**New Flow (Fixed)**:
+```
+User clicks "Assign to Me"
+→ Direct Supabase UPDATE on applications table
+→ assigned_to = user.id
+→ Notification created
+→ Success (no state change)
+```
+
+### 🔍 Root Cause Analysis
+1. **Invalid Transition**: `CONTROL_ASSIGN` can only transition to `CONTROL_VISIT_SCHEDULED`, not to itself
+2. **Scope Issue**: `authHeader` defined in outer request scope, not accessible in `transitionState` function
+3. **Design Issue**: Assignment is metadata, not a workflow event
+
+### 📁 Files Modified
+- `src/app/(admin)/control/queue/components/ControlQueueTable.tsx`
+- `supabase/functions/workflow-service/index.ts`
+
+---
+
 ## [0.15.17] - 2025-10-31 - Fix Workflow Action Name Mismatch
 
 ### 🎯 Summary

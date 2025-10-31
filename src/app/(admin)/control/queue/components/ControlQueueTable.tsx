@@ -79,18 +79,34 @@ export const ControlQueueTable = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { error } = await supabase.functions.invoke('workflow-service', {
-        body: {
-          action: 'transition',
+      // Direct database update - no workflow transition needed
+      const { error: updateError } = await supabase
+        .from('applications')
+        .update({ 
+          assigned_to: user.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', applicationId);
+
+      if (updateError) throw updateError;
+
+      // Create a notification for the assignment
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert({
+          recipient_id: user.id,
           application_id: applicationId,
-          target_state: 'CONTROL_ASSIGN',
-          assigned_to: user.id
-        }
-      });
+          title: 'Application Assigned',
+          message: 'You have been assigned to this application for control review.',
+          type: 'INFO',
+          category: 'APPLICATION'
+        });
 
-      if (error) throw error;
+      if (notifError) {
+        console.warn('Failed to create notification:', notifError);
+      }
 
-      toast.success('Application assigned successfully');
+      toast.success('Application assigned to you successfully');
       fetchQueuedApplications();
     } catch (error) {
       console.error('Error assigning application:', error);
