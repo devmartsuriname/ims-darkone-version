@@ -5,6 +5,119 @@ This changelog tracks the implementation progress of the Internal Management Sys
 
 ---
 
+## [0.15.20] - 2025-11-01 - Workflow Monitoring Button Fix ✅
+
+### 🎯 Summary
+Implemented full functionality for three previously non-functional buttons in Workflow Monitoring page: **Clear All Alerts**, **Export Monitoring Report**, and **System Diagnostics**. All buttons now work correctly with proper user feedback via toast notifications and loading states.
+
+### 🔧 Changes Made
+
+#### Frontend Implementation (`src/app/(admin)/workflow/monitoring/page.tsx`)
+
+1. **Clear All Alerts Button** (Lines 145-168)
+   - Calls `workflow-service` edge function with `resolve_all_alerts` action
+   - Updates local state to mark all alerts as resolved
+   - Shows success toast with count: "Successfully cleared X alerts"
+   - Handles empty state with info toast: "No active alerts to clear"
+   - Includes error handling with proper error messages
+
+2. **Export Monitoring Report Button** (Lines 170-216)
+   - Collects comprehensive system data:
+     - System health metrics (database, workflow, notifications, storage)
+     - Performance metrics (average response time, error rate, uptime)
+     - Active alerts with severity and timestamps
+   - Formats data into structured CSV with three sections
+   - Uses `exportToCSV()` utility from `src/utils/export-helpers.ts`
+   - Generates timestamped filename: `IMS-Monitoring-Report-YYYYMMDD-HHMMSS.csv`
+   - Shows success/error toast notifications
+
+3. **System Diagnostics Button** (Lines 218-303)
+   - Runs live health checks on four critical services:
+     - ✅ Database connectivity (SELECT query test)
+     - ✅ Workflow Service (edge function invocation test)
+     - ✅ Notification Service (edge function invocation test)
+     - ✅ Storage buckets (documents & control-photos accessibility)
+   - Displays results in Bootstrap modal with pass/fail badges
+   - Shows loading spinner during diagnostic runs
+   - "Run Again" button for repeated checks
+   - Proper error handling for each service
+
+4. **UI Enhancements**
+   - Connected all three buttons to onClick handlers (Lines 535-543)
+   - Added System Diagnostics Modal JSX (Lines 606-656)
+   - Proper loading states and disabled states during operations
+   - Consistent toast notification patterns across all actions
+
+#### Backend Support (`supabase/functions/workflow-service/index.ts`)
+
+Added three new action handlers:
+- **Line 157-158**: `resolve_alert` - Resolves single alert by ID
+- **Line 159-160**: `resolve_all_alerts` - Resolves all active alerts
+- **Line 161-162**: `get_alerts` - Retrieves active alerts
+
+Placeholder implementations (Lines 503-550):
+- Returns proper response format: `{ success: true, message: '...', data: {...} }`
+- Ready for database integration when `alerts` table is created
+- Proper error handling and CORS headers
+
+### ✅ Fixed Issues
+
+| Issue | Before | After |
+|-------|--------|-------|
+| Clear All Alerts | ❌ Button did nothing | ✅ Functional with edge function call |
+| Export Report | ❌ Button did nothing | ✅ Generates CSV download |
+| System Diagnostics | ❌ Button did nothing | ✅ Runs comprehensive health checks |
+| User Feedback | ❌ No notifications | ✅ Toast notifications for all actions |
+| Loading States | ❌ No feedback | ✅ Spinner shown during diagnostics |
+| Error Handling | ❌ Silent failures | ✅ Descriptive error messages |
+
+### 🧪 Testing Status
+
+| Test Case | Expected Result | Status |
+|-----------|-----------------|--------|
+| Clear All Alerts | Shows "No active alerts to clear" toast | ✅ Verified |
+| Export Monitoring Report | Downloads CSV with system data | ✅ Verified |
+| System Diagnostics | Opens modal with 4 health checks | ✅ Verified |
+| All diagnostics pass | Shows green "Passed" badges | ✅ Verified |
+| Role-based access | Only Staff/Admin/IT can access | ✅ Enforced via route guards |
+| Hard refresh required | Cache invalidation works | ✅ Confirmed |
+
+**Test User**: `charlene.slooten@ims.sr` (Staff role)  
+**Test Date**: 2025-11-01  
+**Result**: All buttons functional after hard refresh
+
+### 📝 Known Limitations
+
+1. **Alert Management**: Currently uses placeholder data
+   - No `alerts` database table exists yet
+   - `get_alerts` returns empty array
+   - `resolve_all_alerts` returns success without database operation
+   - UI handles empty states correctly with appropriate messages
+
+2. **Future Enhancements**:
+   - Create `alerts` table with proper schema
+   - Implement real-time alert subscriptions
+   - Add alert severity filtering in diagnostics
+   - Expand diagnostics to include edge function response times
+
+### 🎓 Cache Management Note
+
+Users may need to perform a **hard refresh** after deployment:
+- **Windows/Linux**: `Ctrl + Shift + R`
+- **Mac**: `Cmd + Shift + R`
+- **Alternative**: Clear browser cache manually
+
+This is expected behavior due to aggressive browser caching. Version bump in `.env` helps manage cache invalidation.
+
+### 📁 Files Modified
+
+- `src/app/(admin)/workflow/monitoring/page.tsx` (Lines 145-303, 535-543, 606-656)
+- `supabase/functions/workflow-service/index.ts` (Lines 157-162, 503-550)
+- `.env` (VITE_BUILD_VERSION → 0.15.20)
+- `docs/Changelog.md` (This entry)
+
+---
+
 ## [0.15.19] - 2025-11-01 - Fix Workflow Service CORS Error
 
 ### 🎯 Summary
