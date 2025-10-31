@@ -60,17 +60,17 @@ export const usePerformanceChartData = (timeRange: '24h' | '7d' | '30d' = '24h')
   };
 
   const processPerformanceReports = (reports: any[]): PerformanceChartData => {
-    const timestamps = reports.map(r => new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    const timestamps = reports.map(r => new Date(r.timestamp).getTime());
     
     return {
       resourceUsage: {
-        timestamps,
+        timestamps: timestamps.map(t => new Date(t).toISOString()),
         cpuUsage: reports.map(r => r.performance_metrics?.cpuUsage || 0),
         memoryUsage: reports.map(r => r.performance_metrics?.memoryUsage || 0),
         diskUsage: reports.map(r => r.performance_metrics?.diskUsage || 0)
       },
       databasePerformance: {
-        timestamps,
+        timestamps: timestamps.map(t => new Date(t).toISOString()),
         simpleQueries: reports.map(r => r.database_metrics?.queryPerformance?.simpleSelect || 0),
         complexQueries: reports.map(r => r.database_metrics?.queryPerformance?.complexQuery || 0),
         insertOperations: reports.map(r => r.database_metrics?.queryPerformance?.insertOperation || 0)
@@ -83,7 +83,7 @@ export const usePerformanceChartData = (timeRange: '24h' | '7d' | '30d' = '24h')
     const timestamps = Array.from({ length: points }, (_, i) => {
       const date = new Date();
       date.setHours(date.getHours() - (points - i));
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return date.toISOString();
     });
 
     return {
