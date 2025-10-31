@@ -128,9 +128,12 @@ export function AuthProvider({ children }: ChildrenType) {
 
   // ✅ Phase 4: Detect editor environment for fast-path loading
   const isEditorPreview = 
-    window.location.hostname.includes('lovableproject.com') ||
-    window.location.hostname.includes('lovable.app') ||
-    window.self !== window.top
+    window.self !== window.top && // Must be in iframe
+    (
+      window.location.hostname.includes('lovableproject.com') ||
+      window.parent?.location?.hostname?.includes('lovable.dev') ||
+      document.referrer.includes('lovable.dev')
+    )
 
   // ✅ Phase 1: Single initialization with race-free loading and 10s timeout guarantee
   useEffect(() => {
