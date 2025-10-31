@@ -81,7 +81,7 @@ export const ControlQueueTable = () => {
 
       const { error } = await supabase.functions.invoke('workflow-service', {
         body: {
-          action: 'transition_state',
+          action: 'transition',
           application_id: applicationId,
           target_state: 'CONTROL_ASSIGN',
           assigned_to: user.id

@@ -124,7 +124,7 @@ const TechnicalReviewPage = () => {
       // Transition application state
       const { error: stateError } = await supabase.functions.invoke('workflow-service', {
         body: {
-          action: 'transition_state',
+          action: 'transition',
           application_id: applicationId,
           target_state: 'TECHNICAL_REVIEW'
         }

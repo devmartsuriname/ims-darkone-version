@@ -158,7 +158,7 @@ const ControlVisitPage = () => {
       // Transition application state
       const { error: workflowError } = await supabase.functions.invoke('workflow-service', {
         body: {
-          action: 'transition_state',
+          action: 'transition',
           application_id: visit?.application.id,
           target_state: 'CONTROL_IN_PROGRESS'
         }

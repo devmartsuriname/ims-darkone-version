@@ -116,7 +116,7 @@ const ScheduleVisitPage = () => {
       // Update application state
       const { error: stateError } = await supabase.functions.invoke('workflow-service', {
         body: {
-          action: 'transition_state',
+          action: 'transition',
           application_id: applicationId,
           target_state: 'CONTROL_VISIT_SCHEDULED',
           assigned_to: user.id

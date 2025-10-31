@@ -5,6 +5,89 @@ This changelog tracks the implementation progress of the Internal Management Sys
 
 ---
 
+## [0.15.17] - 2025-10-31 - Fix Workflow Action Name Mismatch
+
+### 🎯 Summary
+Fixed **"Failed to schedule visit"** error by correcting workflow service action name mismatch. Frontend was calling `action: 'transition_state'` while the workflow service expected `action: 'transition'`. This caused all workflow state transitions in Control and Technical Review modules to fail silently.
+
+### 🔧 Changes Made
+
+#### Frontend API Calls
+Updated 4 components to use correct workflow service action name:
+
+1. **`src/app/(admin)/control/schedule/page.tsx`** (Line 119)
+   - Changed `action: 'transition_state'` → `action: 'transition'`
+   - Fixes: Control visit scheduling workflow
+
+2. **`src/app/(admin)/control/queue/components/ControlQueueTable.tsx`** (Line 84)
+   - Changed `action: 'transition_state'` → `action: 'transition'`
+   - Fixes: Application assignment in Control Queue
+
+3. **`src/app/(admin)/control/visit/page.tsx`** (Line 161)
+   - Changed `action: 'transition_state'` → `action: 'transition'`
+   - Fixes: Visit completion workflow
+
+4. **`src/app/(admin)/reviews/technical/page.tsx`** (Line 127)
+   - Changed `action: 'transition_state'` → `action: 'transition'`
+   - Fixes: Technical report approval workflow
+
+#### Version & Documentation
+- **Version**: Bumped to `0.15.17` in `.env`
+- **Changelog**: Added detailed fix notes
+
+### ✅ Expected Results
+**Test User**: `leonie.wijnhard@ims.sr` (Control role)
+
+| Test Case | Expected | Status |
+|-----------|----------|--------|
+| Schedule visit | ✅ Success toast + state transition | To verify |
+| Application state changes | ✅ CONTROL_ASSIGN → CONTROL_VISIT_SCHEDULED | To verify |
+| Redirects to /control/visits | ✅ Functional | To verify |
+| "Assign to Me" works | ✅ Assignment successful | To verify |
+| "Complete Visit" works | ✅ State transition | To verify |
+| Technical report approval | ✅ State transition | To verify |
+
+### 🔍 Root Cause
+The workflow service edge function (`supabase/functions/workflow-service/index.ts`) defines the transition endpoint as:
+```typescript
+if (path === 'transition' || action === 'transition') {
+  return await transitionState(body, user.id);
+}
+```
+
+Frontend components were calling with `action: 'transition_state'`, which:
+1. ❌ Did not match the expected action name
+2. ❌ Returned 404 "Invalid endpoint" error
+3. ✅ `control_visits` record created successfully (separate operation)
+4. ❌ Workflow state transition failed silently
+5. Result: Application stuck in `CONTROL_ASSIGN` state
+
+### 📋 Impact Analysis
+
+**Affected Functionality** (Now Fixed):
+1. ✅ Control visit scheduling
+2. ✅ Application assignment in Control Queue
+3. ✅ Visit completion workflow
+4. ✅ Technical report approval workflow
+
+**No Impact On**:
+- ❌ Other workflow transitions (if they use correct action name)
+- ❌ Database RLS policies
+- ❌ Authentication or authorization
+- ❌ Other user roles
+
+### 🔒 Security Impact
+- **No security changes**: This is a pure API contract fix
+- **No new permissions granted**: Only corrects existing functionality
+- **Defense in depth maintained**: RLS policies and route guards unchanged
+
+### 📝 Related Issues
+- Fixes: "Failed to schedule visit" error (Control Queue → Schedule Visit)
+- Fixes: Silent workflow transition failures across Control and Technical Review modules
+- Builds on: v0.15.16 (Control Queue RLS Policy Fix)
+
+---
+
 ## [0.15.16] - 2025-10-31 - Control Queue RLS Policy Fix
 
 ### 🎯 Summary
