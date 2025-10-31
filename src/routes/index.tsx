@@ -8,6 +8,11 @@ const InitialSystemSetup = lazy(() => import('@/components/auth/InitialSystemSet
 // Core Pages
 const DashboardPage = lazy(() => import('@/app/(admin)/dashboards/page'))
 
+// Applicant Pages
+const ApplicantDashboardPage = lazy(() => import('@/app/(admin)/applicant/dashboard/page'))
+const ApplicantApplicationsPage = lazy(() => import('@/app/(admin)/applicant/applications/page'))
+const ApplicantSubmitPage = lazy(() => import('@/app/(admin)/applicant/submit/page'))
+
 // IMS Application Pages
 const ApplicationIntakePage = lazy(() => import('@/app/(admin)/applications/intake/page'))
 const ApplicationListPage = lazy(() => import('@/app/(admin)/applications/list/page'))
@@ -123,6 +128,37 @@ const generalRoutes: RoutesProps[] = [
 
 // IMS Core Routes
 const imsRoutes: RoutesProps[] = [
+  // Applicant Routes
+  {
+    path: '/applicant/dashboard',
+    name: 'Applicant Dashboard',
+    element: (
+      <RouteGuard allowedRoles={['applicant']}>
+        <ApplicantDashboardPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/applicant/applications',
+    name: 'My Applications',
+    element: (
+      <RouteGuard allowedRoles={['applicant']}>
+        <ApplicantApplicationsPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
+  {
+    path: '/applicant/submit',
+    name: 'Submit Application',
+    element: (
+      <RouteGuard allowedRoles={['applicant']}>
+        <ApplicantSubmitPage />
+      </RouteGuard>
+    ),
+    exact: true,
+  },
   // Application Management
   {
     path: '/applications/intake',
