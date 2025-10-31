@@ -105,14 +105,14 @@ export const MENU_ITEMS: MenuItemType[] = [
     key: 'reviews',
     label: 'Reviews & Decisions',
     icon: 'mingcute:check-circle-line',
-    allowedRoles: ['admin', 'it', 'staff', 'director', 'minister'],
+    allowedRoles: ['admin', 'it', 'staff', 'control', 'director', 'minister'],
     children: [
       {
         key: 'technical-review',
         label: 'Technical Review',
         url: '/reviews/technical',
         parentKey: 'reviews',
-        allowedRoles: ['admin', 'it', 'staff'],
+        allowedRoles: ['admin', 'it', 'staff', 'control'],
       },
       {
         key: 'social-review',

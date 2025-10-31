@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-toastify';
-import { StaffGuard } from '@/components/auth/RoleGuards';
+import RouteGuard from '@/components/auth/RouteGuard';
 import PageTitle from '@/components/PageTitle';
 
 interface Application {
@@ -167,18 +167,18 @@ const TechnicalReviewPage = () => {
 
   if (loading) {
     return (
-      <StaffGuard>
+      <RouteGuard allowedRoles={['admin', 'it', 'staff', 'control']}>
         <div className="d-flex justify-content-center p-4">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
         </div>
-      </StaffGuard>
+      </RouteGuard>
     );
   }
 
   return (
-    <StaffGuard>
+    <RouteGuard allowedRoles={['admin', 'it', 'staff', 'control']}>
       <div className="container-fluid">
         <PageTitle title="Technical Review" subName="Reviews" />
 
@@ -301,7 +301,7 @@ const TechnicalReviewPage = () => {
           </div>
         </div>
       </div>
-    </StaffGuard>
+    </RouteGuard>
   );
 };
 

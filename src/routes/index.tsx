@@ -236,7 +236,7 @@ const imsRoutes: RoutesProps[] = [
     path: '/reviews/technical',
     name: 'Technical Review',
     element: (
-      <RouteGuard allowedRoles={['admin', 'it', 'staff']}>
+      <RouteGuard allowedRoles={['admin', 'it', 'staff', 'control']}>
         <TechnicalReviewPage />
       </RouteGuard>
     ),
