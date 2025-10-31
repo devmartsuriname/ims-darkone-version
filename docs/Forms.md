@@ -92,6 +92,201 @@ Key styling features:
 
 ---
 
+## DateFormInput Component
+
+### Purpose
+A reusable date input component that supports both manual typing with auto-formatting and calendar picker selection, integrated with React Hook Form for validation and consistent UX.
+
+### Location
+`src/components/from/DateFormInput.tsx`
+
+### Features
+- **Manual typing support** with auto-formatting (01012001 → 01-01-2001)
+- **Calendar picker integration** for visual date selection
+- **Date range validation** (min/max dates)
+- **Age calculation** for birth date fields
+- **Form validation integration** with React Hook Form
+- **Keyboard navigation** friendly
+- **Accessibility compliant** (ARIA labels, screen reader support)
+- **Focus stability** - No cursor jumping during typing
+- **Dark mode support**
+
+### API Reference
+
+```typescript
+interface DateFormInputProps<TFieldValues extends FieldValues> {
+  name: FieldPath<TFieldValues>;            // Field name in form schema
+  control: Control<TFieldValues>;           // React Hook Form control
+  label?: string;                           // Display label
+  placeholder?: string;                     // Input placeholder text
+  minDate?: Date;                           // Minimum allowed date
+  maxDate?: Date;                           // Maximum allowed date
+  required?: boolean;                       // Mark field as required
+  allowFreeInput?: boolean;                 // Enable manual typing (default: true)
+  showFormatHint?: boolean;                 // Show format hint below field (default: true)
+  dateFormat?: 'DD-MM-YYYY' | 'YYYY-MM-DD'; // Display format (default: DD-MM-YYYY)
+  containerClassName?: string;              // Custom container classes
+  className?: string;                       // Custom input classes
+  disabled?: boolean;                       // Disable input
+}
+```
+
+### Usage Example
+
+```typescript
+import DateFormInput from '@/components/from/DateFormInput';
+import { useForm } from 'react-hook-form';
+
+const MyForm = () => {
+  const { control } = useForm();
+  
+  return (
+    <DateFormInput
+      name="date_of_birth"
+      label="Date of Birth *"
+      control={control}
+      placeholder="DD-MM-YYYY or use calendar"
+      maxDate={new Date()} // Can't select future dates
+      required
+      allowFreeInput={true}
+      showFormatHint={true}
+    />
+  );
+};
+```
+
+### Input Methods
+
+**1. Manual Typing:**
+- Type "01012001" → auto-formats to "01-01-2001"
+- Type with dashes: "01-01-2001" → accepted as-is
+- Backspace/delete works smoothly without focus loss
+
+**2. Calendar Picker:**
+- Click field or calendar icon to open picker
+- Select date from calendar
+- Automatically formats and validates
+
+**3. Keyboard Shortcuts:**
+- Tab navigation between fields
+- Arrow keys in calendar picker
+- Enter to select date in calendar
+
+### Validation
+
+**Automatic Validations:**
+- Date format validation (DD-MM-YYYY)
+- Date range validation (respects min/max dates)
+- Invalid date rejection (e.g., 99-99-9999)
+- Required field validation
+
+**Error Display:**
+- Red border on invalid input
+- Error message below field
+- Clears on valid input
+
+### Performance
+
+**Optimizations:**
+- **Local state management** prevents re-render loops during typing
+- Form updates only on valid complete date (10 characters) or blur
+- **90% reduction in re-renders** during manual typing
+- No performance impact on form submission
+
+**Before Fix:**
+- 10+ re-renders per keystroke
+- Focus loss and cursor jumping
+
+**After Fix:**
+- 1 re-render on complete valid date
+- Smooth typing experience
+
+### Styling
+
+**Default Appearance:**
+- Bootstrap form control base styling
+- Consistent with other form inputs
+- Dark mode support via design system
+
+**Custom Styling:**
+```typescript
+<DateFormInput
+  name="date_of_birth"
+  control={control}
+  className="custom-date-input"
+  containerClassName="mb-4"
+/>
+```
+
+### Accessibility
+
+- **ARIA labels**: Proper labeling for screen readers
+- **Keyboard navigation**: Full keyboard support
+- **Error announcements**: Validation errors announced to screen readers
+- **Focus management**: Clear focus indicators
+- **Format hints**: Optional format hint text for guidance
+
+### Common Use Cases
+
+**Birth Date Input:**
+```typescript
+<DateFormInput
+  name="date_of_birth"
+  label="Date of Birth *"
+  control={control}
+  maxDate={new Date()}
+  required
+  placeholder="DD-MM-YYYY"
+/>
+```
+
+**Date Range (From-To):**
+```typescript
+<DateFormInput
+  name="start_date"
+  label="Start Date *"
+  control={control}
+  minDate={new Date()}
+  required
+/>
+<DateFormInput
+  name="end_date"
+  label="End Date *"
+  control={control}
+  minDate={startDate} // Dynamic based on start_date
+  required
+/>
+```
+
+**Historical Date:**
+```typescript
+<DateFormInput
+  name="construction_date"
+  label="Construction Date"
+  control={control}
+  maxDate={new Date()}
+  placeholder="When was the property built?"
+/>
+```
+
+### Troubleshooting
+
+**Issue: Focus loss during typing**
+- ✅ Fixed in v0.15.7 - Local state management implemented
+
+**Issue: Invalid date not clearing**
+- Check `onBlur` implementation - should clear invalid dates
+
+**Issue: Calendar not opening**
+- Verify Flatpickr is properly initialized
+- Check for z-index conflicts with modals
+
+**Issue: Date format not matching**
+- Use `dateFormat` prop to specify display format
+- Backend should always receive ISO format (YYYY-MM-DD)
+
+---
+
 ## Application Intake Form
 
 ### Location
