@@ -53,26 +53,42 @@ const RoleAwareAppMenu = ({ menuItems }: RoleAwareAppMenuProps) => {
 
   // Recursively filter menu items based on role access
   const filterMenuByRole = (items: MenuItemType[]): MenuItemType[] => {
-    return items
-      .map(item => ({
-        ...item,
-        children: item.children ? filterMenuByRole(item.children) : undefined
-      }))
-      .filter(item => {
-        // For title items, show if any children are visible
-        if (item.isTitle) {
-          const nextItems = items.slice(items.indexOf(item) + 1)
-          const nextTitleIndex = nextItems.findIndex(i => i.isTitle)
-          const sectionItems = nextTitleIndex >= 0 
-            ? nextItems.slice(0, nextTitleIndex)
-            : nextItems
-          
-          return sectionItems.some(sectionItem => hasMenuAccess(sectionItem))
-        }
+    const filteredWithChildren = items.map(item => ({
+      ...item,
+      children: item.children ? filterMenuByRole(item.children) : undefined
+    }))
+
+    return filteredWithChildren.filter((item, index) => {
+      // For title items, show if any items in that section are visible
+      if (item.isTitle) {
+        // Find the next title to determine section boundaries
+        const nextTitleIndex = filteredWithChildren
+          .slice(index + 1)
+          .findIndex(i => i.isTitle)
         
-        // For regular items, check access
-        return hasMenuAccess(item)
-      })
+        // Get items between this title and the next title (or end of array)
+        const sectionEnd = nextTitleIndex === -1 
+          ? filteredWithChildren.length 
+          : index + 1 + nextTitleIndex
+        
+        const sectionItems = filteredWithChildren.slice(index + 1, sectionEnd)
+        
+        // Show title only if at least one item in the section is accessible
+        const hasVisibleItems = sectionItems.some(sectionItem => 
+          !sectionItem.isTitle && hasMenuAccess(sectionItem)
+        )
+        
+        console.log(`📂 Section "${item.label}": ${hasVisibleItems ? 'VISIBLE' : 'HIDDEN'} (${sectionItems.length} items)`)
+        return hasVisibleItems
+      }
+      
+      // For regular items, check access
+      const hasAccess = hasMenuAccess(item)
+      if (!hasAccess) {
+        console.log(`❌ Filtering out: "${item.label}"`)
+      }
+      return hasAccess
+    })
   }
 
   const filteredMenuItems = filterMenuByRole(menuItems)
