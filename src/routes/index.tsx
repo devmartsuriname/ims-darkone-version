@@ -132,31 +132,19 @@ const imsRoutes: RoutesProps[] = [
   {
     path: '/applicant/dashboard',
     name: 'Applicant Dashboard',
-    element: (
-      <RouteGuard allowedRoles={['applicant']}>
-        <ApplicantDashboardPage />
-      </RouteGuard>
-    ),
+    element: <ApplicantDashboardPage />,
     exact: true,
   },
   {
     path: '/applicant/applications',
     name: 'My Applications',
-    element: (
-      <RouteGuard allowedRoles={['applicant']}>
-        <ApplicantApplicationsPage />
-      </RouteGuard>
-    ),
+    element: <ApplicantApplicationsPage />,
     exact: true,
   },
   {
     path: '/applicant/submit',
     name: 'Submit Application',
-    element: (
-      <RouteGuard allowedRoles={['applicant']}>
-        <ApplicantSubmitPage />
-      </RouteGuard>
-    ),
+    element: <ApplicantSubmitPage />,
     exact: true,
   },
   // Application Management
