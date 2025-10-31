@@ -172,7 +172,7 @@ const imsRoutes: RoutesProps[] = [
     exact: true,
   },
   {
-    path: '/control/schedule',
+    path: '/control/schedule/:applicationId',
     name: 'Schedule Control Visit',
     element: (
       <RouteGuard allowedRoles={['control', 'admin', 'it']}>
@@ -182,7 +182,7 @@ const imsRoutes: RoutesProps[] = [
     exact: true,
   },
   {
-    path: '/control/visit/:visitId?',
+    path: '/control/visit/:visitId',
     name: 'Control Visit',
     element: (
       <RouteGuard allowedRoles={['control', 'admin', 'it']}>
@@ -236,7 +236,7 @@ const imsRoutes: RoutesProps[] = [
     path: '/reviews/technical',
     name: 'Technical Review',
     element: (
-      <RouteGuard allowedRoles={['control', 'admin', 'it', 'staff']}>
+      <RouteGuard allowedRoles={['admin', 'it', 'staff']}>
         <TechnicalReviewPage />
       </RouteGuard>
     ),

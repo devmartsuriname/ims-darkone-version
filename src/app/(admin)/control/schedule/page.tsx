@@ -43,10 +43,14 @@ const ScheduleVisitPage = () => {
   const scheduledDate = watch('scheduled_date');
 
   useEffect(() => {
-    if (applicationId) {
-      fetchApplication();
+    if (!applicationId) {
+      toast.error('No application selected. Please select an application from the queue.');
+      navigate('/control/queue');
+      return;
     }
-  }, [applicationId]);
+    
+    fetchApplication();
+  }, [applicationId, navigate]);
 
   const fetchApplication = async () => {
     try {

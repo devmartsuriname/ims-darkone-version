@@ -35,11 +35,15 @@ const ControlVisitPage = () => {
   const [accessGranted, setAccessGranted] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (visitId) {
-      fetchVisit();
-      markVisitAsStarted();
+    if (!visitId) {
+      toast.error('No visit selected. Please select a visit from the list.');
+      navigate('/control/visits');
+      return;
     }
-  }, [visitId]);
+    
+    fetchVisit();
+    markVisitAsStarted();
+  }, [visitId, navigate]);
 
   const fetchVisit = async () => {
     try {

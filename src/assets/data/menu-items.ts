@@ -86,23 +86,16 @@ export const MENU_ITEMS: MenuItemType[] = [
         allowedRoles: ['control', 'admin', 'it'],
       },
       {
-        key: 'control-schedule',
-        label: 'Schedule Visits',
-        url: '/control/schedule',
-        parentKey: 'control-department',
-        allowedRoles: ['control', 'admin', 'it'],
-      },
-      {
-        key: 'control-visit',
-        label: 'Control Visit',
-        url: '/control/visit',
-        parentKey: 'control-department',
-        allowedRoles: ['control', 'admin', 'it'],
-      },
-      {
         key: 'control-visits',
-        label: 'Visit History',
+        label: 'My Visits',
         url: '/control/visits',
+        parentKey: 'control-department',
+        allowedRoles: ['control', 'admin', 'it'],
+      },
+      {
+        key: 'control-queue',
+        label: 'Schedule Visits',
+        url: '/control/queue',
         parentKey: 'control-department',
         allowedRoles: ['control', 'admin', 'it'],
       },
@@ -112,14 +105,14 @@ export const MENU_ITEMS: MenuItemType[] = [
     key: 'reviews',
     label: 'Reviews & Decisions',
     icon: 'mingcute:check-circle-line',
-    allowedRoles: ['admin', 'it', 'staff', 'control', 'director', 'minister'],
+    allowedRoles: ['admin', 'it', 'staff', 'director', 'minister'],
     children: [
       {
         key: 'technical-review',
         label: 'Technical Review',
         url: '/reviews/technical',
         parentKey: 'reviews',
-        allowedRoles: ['admin', 'it', 'staff', 'control'],
+        allowedRoles: ['admin', 'it', 'staff'],
       },
       {
         key: 'social-review',
