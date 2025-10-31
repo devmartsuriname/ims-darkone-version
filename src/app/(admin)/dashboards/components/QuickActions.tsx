@@ -50,7 +50,7 @@ const QuickActions = () => {
       icon: 'solar:clipboard-list-broken',
       color: 'warning',
       url: '/reviews/director',
-      roles: ['admin', 'it', 'director', 'staff'],
+      roles: ['admin', 'it', 'staff', 'control', 'director', 'minister'],
       badge: '12'
     },
     {
@@ -84,8 +84,24 @@ const QuickActions = () => {
     userRole && action.roles.includes(userRole)
   )
 
-  const handleActionClick = (url: string) => {
-    navigate(url)
+  const handleActionClick = (action: QuickActionItem) => {
+    // Smart routing for Review Queue based on user role
+    if (action.title === 'Review Queue') {
+      if (userRole === 'staff') {
+        navigate('/reviews/social')
+      } else if (userRole === 'control') {
+        navigate('/reviews/technical')
+      } else if (userRole === 'director') {
+        navigate('/reviews/director')
+      } else if (userRole === 'minister') {
+        navigate('/reviews/minister')
+      } else {
+        // Admin/IT default to director view
+        navigate('/reviews/director')
+      }
+    } else {
+      navigate(action.url)
+    }
   }
 
   return (
@@ -102,7 +118,7 @@ const QuickActions = () => {
               <RoleCheck allowedRoles={action.roles}>
                 <div 
                   className="quick-action-item p-3 border rounded cursor-pointer hover-lift"
-                  onClick={() => handleActionClick(action.url)}
+                  onClick={() => handleActionClick(action)}
                   style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'var(--bs-gray-50)'
