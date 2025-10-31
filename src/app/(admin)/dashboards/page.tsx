@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Col } from 'react-bootstrap';
 import Footer from '@/components/layout/Footer';
 import RoleCheck from '@/components/auth/RoleCheck';
+import { useAuthContext } from '@/context/useAuthContext';
 import { DashboardLayout, DashboardSection, DashboardGrid } from '@/components/dashboard/DashboardLayout';
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics';
 import { ErrorBoundary } from '@/components/dashboard/ErrorBoundary';
@@ -33,6 +35,15 @@ const ComponentErrorFallback: React.FC<{ error: Error; retry: () => void }> = ({
 const page = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { roles } = useAuthContext();
+  const userRoles = roles?.map(r => r.role) || [];
+
+  // Redirect pure applicants to their dedicated dashboard
+  if (userRoles.includes('applicant') && 
+      !userRoles.includes('admin') && 
+      !userRoles.includes('it')) {
+    return <Navigate to="/applicant/dashboard" replace />;
+  }
 
 
   const handleRefresh = useCallback(async () => {
