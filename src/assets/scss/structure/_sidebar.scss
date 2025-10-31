@@ -16,6 +16,15 @@
          display: none;
          height: $logo-sm-height;
      }
+
+     .logo-text {
+         display: none;
+         margin-left: 8px;
+         font-weight: 600;
+         font-size: 14px;
+         color: var(--#{$prefix}body-color);
+         vertical-align: middle;
+     }
  
      .logo-lg {
          height: $logo-lg-height;
@@ -199,12 +208,17 @@
              top: 0;
              z-index: 1020 !important;
              background: $sidebar-bg;
+             text-align: left;
  
              .logo-lg {
                  display: none;
              }
  
              .logo-sm {
+                 display: inline-block;
+             }
+
+             .logo-text {
                  display: inline-block;
              }
          }
@@ -441,11 +455,17 @@
          min-width: $sidebar-width-sm;
  
          .logo-box {
+             text-align: left;
+
              .logo-lg {
                  display: none;
              }
  
              .logo-sm {
+                 display: inline-block;
+             }
+
+             .logo-text {
                  display: inline-block;
              }
          }
