@@ -148,7 +148,8 @@ serve(async (req) => {
     switch (req.method) {
       case 'POST':
         if (path === 'transition' || action === 'transition') {
-          return await transitionState(body, user.id, authHeader);
+          const origin = req.headers.get('Origin') || '*';
+          return await transitionState(body, user.id, authHeader, origin);
         } else if (path === 'create-task' || action === 'create-task') {
           return await createTask(body, user.id);
         } else if (path === 'validate-transition' || action === 'validate-transition') {
@@ -184,7 +185,7 @@ serve(async (req) => {
   }
 });
 
-async function transitionState(data: TransitionRequest, userId: string, authToken: string): Promise<Response> {
+async function transitionState(data: TransitionRequest, userId: string, authToken: string, origin: string): Promise<Response> {
   const { application_id, target_state, notes, assigned_to } = data;
 
   // Get current application state
@@ -271,7 +272,6 @@ async function transitionState(data: TransitionRequest, userId: string, authToke
   // Create audit log
   await logWorkflowEvent(application_id, application.current_state, target_state, userId, notes);
 
-  const origin = req.headers.get('Origin') || '*';
   const responseCorsHeaders = {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',

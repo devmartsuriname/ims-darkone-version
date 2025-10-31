@@ -5,6 +5,65 @@ This changelog tracks the implementation progress of the Internal Management Sys
 
 ---
 
+## [0.15.19] - 2025-11-01 - Fix Workflow Service CORS Error
+
+### 🎯 Summary
+Fixed **`ReferenceError: req is not defined`** in workflow-service `transitionState` function. The error occurred at line 274 when trying to schedule a control visit, where `req.headers.get('Origin')` was called but `req` was out of scope within the nested function.
+
+### 🔧 Changes Made
+
+#### Backend Fix (Workflow Service)
+**File**: `supabase/functions/workflow-service/index.ts`
+
+1. **Line 187**: Updated `transitionState` function signature
+   - **Before**: `async function transitionState(data: TransitionRequest, userId: string, authToken: string)`
+   - **After**: `async function transitionState(data: TransitionRequest, userId: string, authToken: string, origin: string)`
+   - Added `origin` parameter to receive CORS origin from request handler
+
+2. **Lines 150-151**: Updated function call in request handler
+   - **Before**: `return await transitionState(body, user.id, authHeader);`
+   - **After**: 
+     ```typescript
+     const origin = req.headers.get('Origin') || '*';
+     return await transitionState(body, user.id, authHeader, origin);
+     ```
+   - Extract origin from request and pass to function
+
+3. **Line 274**: Removed invalid `req` reference
+   - **Before**: `const origin = req.headers.get('Origin') || '*';`
+   - **After**: Use `origin` parameter directly
+   - Fixed scope issue where `req` was not accessible
+
+### ✅ Fixed Issues
+- ❌ `ReferenceError: req is not defined` at line 274 → ✅ Origin passed as parameter
+- ❌ "Failed to schedule visit" error → ✅ Workflow transitions work correctly
+- ❌ CORS header configuration broken → ✅ Proper CORS headers in responses
+
+### 🔍 Root Cause Analysis
+**Problem**: The `req` object is only available in the outer Deno server handler scope, not within nested async functions like `transitionState`.
+
+**Why it happened**: Line 274 attempted to access `req.headers.get('Origin')` inside `transitionState`, but `req` is a parameter of the outer request handler, not the function.
+
+**Solution**: Pass the `origin` string as a parameter from the outer scope where `req` is available, similar to how `authToken` is already passed.
+
+### 🧪 Testing Checklist
+**Test User**: `leonie.wijnhard@ims.sr` (Control role)
+
+| Test Case | Expected Result | Status |
+|-----------|-----------------|--------|
+| Schedule Visit | ✅ Success toast + redirect to /control/visits | To verify |
+| Application state updated | ✅ CONTROL_ASSIGN → CONTROL_VISIT_SCHEDULED | To verify |
+| Control visit created | ✅ Record in control_visits table | To verify |
+| No ReferenceError in logs | ✅ Clean workflow-service logs | To verify |
+| Notification sent | ✅ Notification created for assignee | To verify |
+| Other workflow transitions | ✅ Technical review, social review work | To verify |
+
+### 📁 Files Modified
+- `supabase/functions/workflow-service/index.ts` (Lines 150-151, 187, 274)
+- `.env` (VITE_BUILD_VERSION → 0.15.19)
+
+---
+
 ## [0.15.18] - 2025-11-01 - Fix Control Queue Assignment
 
 ### 🎯 Summary
