@@ -5,6 +5,68 @@ This changelog tracks the implementation progress of the Internal Management Sys
 
 ---
 
+## [0.15.15-p1] - 2025-10-31 - Critical Fix: Technical Review Access Restoration
+
+### 🎯 Summary
+Restored **Technical Review** access for the **Control** role while maintaining security boundaries for other review sections (Social, Director, Minister). This patch resolves an access control regression introduced during role-based menu visibility enforcement.
+
+### 🔧 Changes Made
+
+#### Menu Configuration (`src/assets/data/menu-items.ts`)
+- **Added** `'control'` to parent menu "Reviews & Decisions" `allowedRoles`
+- **Added** `'control'` to "Technical Review" child menu item `allowedRoles`
+- **Verified** other review sections remain restricted:
+  - Social Review: `['admin', 'it', 'staff']`
+  - Director Review: `['admin', 'it', 'director']`
+  - Minister Decision: `['admin', 'it', 'minister']`
+
+#### Route Guard (`src/routes/index.tsx`)
+- **Updated** `/reviews/technical` route to include `'control'` in `allowedRoles`
+- **Maintained** three-layer protection (menu → route → page)
+
+#### Page Guard (`src/app/(admin)/reviews/technical/page.tsx`)
+- **Replaced** `StaffGuard` with `RouteGuard`
+- **Set** `allowedRoles={['admin', 'it', 'staff', 'control']}`
+- **Aligned** page-level protection with menu and route guards
+
+### ✅ Testing Results
+**Test User**: `leonie.wijnhard@ims.sr` (Control role)
+
+| Test Case | Status | Evidence |
+|-----------|--------|----------|
+| "Reviews & Decisions" visible in sidebar | ✅ PASS | Screenshot confirmed |
+| Only "Technical Review" shown (not Social/Director/Minister) | ✅ PASS | Menu filtering correct |
+| Technical Review page loads successfully | ✅ PASS | `/reviews/technical` renders |
+| Control Queue navigation works | ✅ PASS | `/control/queue` loads |
+| My Visits navigation works | ✅ PASS | `/control/visits` loads |
+| No infinite loading issues | ✅ PASS | All pages render immediately |
+
+### 🔒 Security Impact
+- **No privilege escalation**: Control users can ONLY access Technical Review
+- **Database RLS unchanged**: Row-level security policies remain intact
+- **Three-layer protection verified**: Menu, route, and page guards aligned
+- **Other roles unaffected**: Admin, IT, Staff, Director, Minister access unchanged
+
+### 📋 Root Cause
+During v0.15.9 role-based menu visibility enforcement, the "Reviews & Decisions" parent menu and "Technical Review" child item were restricted to `['admin', 'it', 'staff']`, inadvertently removing Control role access to technical report approval workflows.
+
+### 🎯 Business Impact
+- **Restored workflow continuity**: Control users can now approve technical reports from their field visits
+- **Maintained security posture**: Other review sections remain properly restricted
+- **UAT readiness**: All Control user navigation issues resolved
+
+### 📝 Related Issues
+- Resolves regression from v0.15.9 (Role-Based Menu Visibility Enforcement)
+- Complements v0.15.15 (Control Navigation Infinite Loading Fix)
+
+### 🧪 Validation
+- ✅ Live screenshots from production UAT user
+- ✅ All navigation paths tested and confirmed working
+- ✅ Empty states render correctly (no data edge case)
+- ✅ No console errors or authentication issues
+
+---
+
 ## [0.15.14] - 2025-10-31 - Enhancement: Dashboard Role Segmentation
 
 ### Added
