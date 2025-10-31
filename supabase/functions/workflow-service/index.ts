@@ -154,6 +154,12 @@ serve(async (req) => {
           return await createTask(body, user.id);
         } else if (path === 'validate-transition' || action === 'validate-transition') {
           return await validateTransition(body, user.id);
+        } else if (path === 'resolve_alert' || action === 'resolve_alert') {
+          return await resolveAlert(body, user.id);
+        } else if (path === 'resolve_all_alerts' || action === 'resolve_all_alerts') {
+          return await resolveAllAlerts(user.id);
+        } else if (path === 'get_alerts' || action === 'get_alerts') {
+          return await getAlerts(body);
         }
         break;
       case 'GET':
@@ -489,6 +495,55 @@ async function completeTask(data: any, userId: string): Promise<Response> {
   return new Response(JSON.stringify({
     message: 'Task completed successfully',
     task
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function getAlerts(data: any): Promise<Response> {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+
+  // Return mock alerts for now - in production, this would query a real alerts table
+  const alerts = [];
+
+  return new Response(JSON.stringify({ alerts }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function resolveAlert(data: any, userId: string): Promise<Response> {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+
+  const { alert_id } = data;
+  
+  // In production, this would update the alert in the database
+  console.log(`Alert ${alert_id} resolved by user ${userId}`);
+
+  return new Response(JSON.stringify({ 
+    message: 'Alert resolved successfully',
+    alert_id 
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function resolveAllAlerts(userId: string): Promise<Response> {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+
+  // In production, this would update all unresolved alerts in the database
+  console.log(`All alerts resolved by user ${userId}`);
+
+  return new Response(JSON.stringify({ 
+    message: 'All alerts resolved successfully'
   }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });

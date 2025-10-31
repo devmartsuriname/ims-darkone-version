@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Alert, Badge, Table, Button } from 'react-bootstrap';
+import { Card, Row, Col, Alert, Badge, Table, Button, Modal } from 'react-bootstrap';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-toastify';
 import PageTitle from '@/components/PageTitle';
 import ComponentContainerCard from '@/components/ComponentContainerCard';
+import { exportToCSV } from '@/utils/export-helpers';
 
 interface WorkflowAlert {
   id: string;
@@ -39,6 +40,9 @@ const WorkflowMonitoringPage: React.FC = () => {
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [diagnosticsResults, setDiagnosticsResults] = useState<any>(null);
+  const [diagnosticsLoading, setDiagnosticsLoading] = useState(false);
 
   useEffect(() => {
     loadMonitoringData();
@@ -135,6 +139,166 @@ const WorkflowMonitoringPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to resolve alert:', error);
       toast.error('Failed to resolve alert');
+    }
+  };
+
+  const clearAllAlerts = async () => {
+    const activeAlerts = alerts.filter(a => !a.resolved);
+    
+    if (activeAlerts.length === 0) {
+      toast.info('No active alerts to clear');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.functions.invoke('workflow-service', {
+        body: {
+          action: 'resolve_all_alerts'
+        }
+      });
+
+      if (error) throw error;
+      
+      setAlerts(alerts.map(alert => ({ ...alert, resolved: true })));
+      toast.success(`Successfully cleared ${activeAlerts.length} alert${activeAlerts.length > 1 ? 's' : ''}`);
+    } catch (error) {
+      console.error('Failed to clear all alerts:', error);
+      toast.error('Failed to clear all alerts');
+    }
+  };
+
+  const exportMonitoringReport = () => {
+    try {
+      const reportData = metrics.map(metric => ({
+        'Workflow State': metric.state,
+        'Avg Processing Time (hours)': metric.avgProcessingTime,
+        'Current Load (%)': metric.currentLoad,
+        'SLA Compliance (%)': metric.slaCompliance,
+        'Throughput (per day)': metric.throughput,
+        'Error Rate (%)': metric.errorRate,
+      }));
+
+      const healthData = systemHealth ? [{
+        'Overall Health (%)': systemHealth.overall,
+        'Database Health (%)': systemHealth.database,
+        'Storage Health (%)': systemHealth.storage,
+        'Notifications Health (%)': systemHealth.notifications,
+        'Workflow Health (%)': systemHealth.workflow,
+      }] : [];
+
+      const alertData = alerts.filter(a => !a.resolved).map(alert => ({
+        'Type': alert.type,
+        'Severity': alert.severity,
+        'Message': alert.message,
+        'Application ID': alert.application_id || 'N/A',
+        'State': alert.state || 'N/A',
+        'Created At': new Date(alert.created_at).toLocaleString(),
+      }));
+
+      const combinedData = [
+        { Section: '=== SYSTEM HEALTH ===' },
+        ...healthData,
+        { Section: '' },
+        { Section: '=== PERFORMANCE METRICS ===' },
+        ...reportData,
+        { Section: '' },
+        { Section: '=== ACTIVE ALERTS ===' },
+        ...alertData,
+      ];
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      exportToCSV(combinedData as any, [], `workflow-monitoring-report-${timestamp}`);
+      toast.success('Monitoring report exported successfully');
+    } catch (error) {
+      console.error('Failed to export monitoring report:', error);
+      toast.error('Failed to export monitoring report');
+    }
+  };
+
+  const runSystemDiagnostics = async () => {
+    setDiagnosticsLoading(true);
+    setShowDiagnostics(true);
+
+    try {
+      const results = {
+        timestamp: new Date().toISOString(),
+        checks: [] as any[]
+      };
+
+      // Check database connectivity
+      try {
+        const { error } = await supabase.from('applications').select('count').limit(1);
+        results.checks.push({
+          name: 'Database Connectivity',
+          status: error ? 'failed' : 'passed',
+          message: error ? `Database error: ${error.message}` : 'Database is accessible'
+        });
+      } catch (err: any) {
+        results.checks.push({
+          name: 'Database Connectivity',
+          status: 'failed',
+          message: err.message
+        });
+      }
+
+      // Check workflow service
+      try {
+        const { error } = await supabase.functions.invoke('workflow-service', {
+          body: { action: 'health-check' }
+        });
+        results.checks.push({
+          name: 'Workflow Service',
+          status: error ? 'failed' : 'passed',
+          message: error ? `Workflow service error: ${error.message}` : 'Workflow service is operational'
+        });
+      } catch (err: any) {
+        results.checks.push({
+          name: 'Workflow Service',
+          status: 'failed',
+          message: err.message
+        });
+      }
+
+      // Check notification service
+      try {
+        const { error } = await supabase.functions.invoke('notification-service', {
+          body: { action: 'health-check' }
+        });
+        results.checks.push({
+          name: 'Notification Service',
+          status: error ? 'failed' : 'passed',
+          message: error ? `Notification service error: ${error.message}` : 'Notification service is operational'
+        });
+      } catch (err: any) {
+        results.checks.push({
+          name: 'Notification Service',
+          status: 'failed',
+          message: err.message
+        });
+      }
+
+      // Check storage
+      try {
+        const { data, error } = await supabase.storage.listBuckets();
+        results.checks.push({
+          name: 'Storage Service',
+          status: error ? 'failed' : 'passed',
+          message: error ? `Storage error: ${error.message}` : `Storage is accessible (${data?.length || 0} buckets)`
+        });
+      } catch (err: any) {
+        results.checks.push({
+          name: 'Storage Service',
+          status: 'failed',
+          message: err.message
+        });
+      }
+
+      setDiagnosticsResults(results);
+    } catch (error) {
+      console.error('Failed to run diagnostics:', error);
+      toast.error('Failed to run system diagnostics');
+    } finally {
+      setDiagnosticsLoading(false);
     }
   };
 
@@ -368,13 +532,13 @@ const WorkflowMonitoringPage: React.FC = () => {
                 <Button variant="outline-primary" onClick={loadMonitoringData}>
                   Refresh All Data
                 </Button>
-                <Button variant="outline-warning" onClick={() => {}}>
+                <Button variant="outline-warning" onClick={clearAllAlerts}>
                   Clear All Alerts
                 </Button>
-                <Button variant="outline-info" onClick={() => {}}>
+                <Button variant="outline-info" onClick={exportMonitoringReport}>
                   Export Monitoring Report
                 </Button>
-                <Button variant="outline-secondary" onClick={() => {}}>
+                <Button variant="outline-secondary" onClick={runSystemDiagnostics}>
                   System Diagnostics
                 </Button>
               </div>
@@ -438,6 +602,58 @@ const WorkflowMonitoringPage: React.FC = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* System Diagnostics Modal */}
+      <Modal show={showDiagnostics} onHide={() => setShowDiagnostics(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>System Diagnostics</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {diagnosticsLoading ? (
+            <div className="text-center py-4">
+              <div className="spinner-border text-primary mb-2" role="status">
+                <span className="visually-hidden">Running diagnostics...</span>
+              </div>
+              <p className="text-muted">Running system diagnostics...</p>
+            </div>
+          ) : diagnosticsResults ? (
+            <>
+              <div className="mb-3">
+                <small className="text-muted">
+                  Run at: {new Date(diagnosticsResults.timestamp).toLocaleString()}
+                </small>
+              </div>
+              <div className="space-y-2">
+                {diagnosticsResults.checks.map((check: any, index: number) => (
+                  <Alert 
+                    key={index} 
+                    variant={check.status === 'passed' ? 'success' : 'danger'}
+                    className="mb-2"
+                  >
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div>
+                        <strong>{check.name}</strong>
+                        <div className="small mt-1">{check.message}</div>
+                      </div>
+                      <Badge bg={check.status === 'passed' ? 'success' : 'danger'}>
+                        {check.status === 'passed' ? '✓ PASSED' : '✗ FAILED'}
+                      </Badge>
+                    </div>
+                  </Alert>
+                ))}
+              </div>
+            </>
+          ) : null}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDiagnostics(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={runSystemDiagnostics} disabled={diagnosticsLoading}>
+            Run Again
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
