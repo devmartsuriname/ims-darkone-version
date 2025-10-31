@@ -1152,6 +1152,7 @@ export type Database = {
       can_control_inspect: { Args: never; Returns: boolean }
       can_manage_applications: { Args: never; Returns: boolean }
       can_review_applications: { Args: never; Returns: boolean }
+      can_view_all_applications: { Args: never; Returns: boolean }
       generate_file_path: {
         Args: {
           application_id: string

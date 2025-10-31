@@ -54,6 +54,31 @@ The Internal Management System (IMS) for Public Housing Suriname is built as a m
 - **Monitoring**: Supabase Analytics + Custom metrics
 - **Backups**: Automated daily backups via Supabase
 
+### Dashboard Role Segmentation (v0.15.14+)
+
+The dashboard displays role-scoped metrics to ensure users only see data relevant to their workflow:
+
+**Data Visibility Rules:**
+- **Admin/IT/Staff**: System-wide metrics (all applications)
+- **Front Office**: Only applications they created (`created_by = user_id`)
+- **Control**: Only inspections assigned to them (`assigned_to = user_id` or control states)
+- **Director**: Only applications in `DIRECTOR_REVIEW` state
+- **Minister**: Only applications in `MINISTER_DECISION` state
+- **Applicant**: Redirected to personal dashboard (`/applicant/dashboard`)
+
+**Implementation:**
+- `useRoleBasedApplicationStats` hook applies query filters based on user role
+- RLS policy on `applications` table enforces `created_by` restriction at database level
+- Dynamic metric labels ("My Applications" vs "Total Applications")
+- `RoleCheck` guards hide irrelevant widgets (e.g., SystemMetricsDashboard for Front Office)
+
+**Security:**
+- Database function `can_view_all_applications()` checks for admin/IT/staff roles
+- RLS policies ensure data visibility is enforced server-side
+- Real-time subscriptions respect role-based filters
+
+---
+
 ### Debug Mode Toggle (v0.15.13+)
 
 The `VITE_DEBUG_MODE` environment variable controls whether admin and IT users can see applicant-specific menu items.

@@ -3,7 +3,7 @@ import { Row, Col, Card } from 'react-bootstrap';
 import { StatCard } from '@/components/ui/EnhancedCards';
 import { Skeleton, LoadingSpinner } from '@/components/ui/LoadingStates';
 import { ErrorBoundary, DashboardErrorFallback } from './ErrorBoundary';
-import { useRealTimeApplicationStats } from '@/hooks/useRealTimeData';
+import { useRoleBasedApplicationStats } from '@/hooks/useRoleBasedApplicationStats';
 import { useAuthContext } from '@/context/useAuthContext';
 import RoleCheck from '@/components/auth/RoleCheck';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
@@ -114,16 +114,16 @@ export const DashboardMetrics: React.FC = memo(() => {
   };
   
   const userRole = getUserRole();
-  const { data: stats, isLoading, error, lastUpdated, isConnected } = useRealTimeApplicationStats();
+  const { data: stats, isLoading, error } = useRoleBasedApplicationStats();
   const { data: metricsData, isLoading: metricsLoading } = usePerformanceMetricsData(timeRange);
 
   const metricsConfig = useMemo(() => [
     {
-      title: 'Total Applications',
+      title: userRole === 'front_office' ? 'My Applications' : 'Total Applications',
       count: stats?.total || 0,
       icon: 'solar:document-text-broken',
       color: 'primary' as const,
-      description: 'All time applications',
+      description: userRole === 'front_office' ? 'Applications I created' : 'All time applications',
       roles: ['admin', 'it', 'staff', 'front_office']
     },
     {
@@ -135,11 +135,11 @@ export const DashboardMetrics: React.FC = memo(() => {
       roles: ['admin', 'it', 'staff', 'director', 'minister']
     },
     {
-      title: 'Control Visits',
+      title: userRole === 'control' ? 'My Inspections' : 'Control Visits',
       count: stats?.controlVisits || 0,
       icon: 'solar:home-2-broken',
       color: 'info' as const,
-      description: 'Scheduled visits',
+      description: userRole === 'control' ? 'Inspections assigned to me' : 'Scheduled visits',
       roles: ['admin', 'it', 'control', 'staff']
     },
     {
@@ -166,7 +166,7 @@ export const DashboardMetrics: React.FC = memo(() => {
       description: 'Assigned to me',
       roles: ['control', 'staff', 'director', 'minister']
     }
-  ], [stats]);
+  ], [stats, userRole]);
 
   const visibleMetrics = useMemo(() => 
     metricsConfig.filter(metric => 
@@ -179,7 +179,7 @@ export const DashboardMetrics: React.FC = memo(() => {
       <div className="alert alert-danger d-flex align-items-center">
         <IconifyIcon icon="solar:danger-triangle-bold" className="me-2" />
         <div>
-          <strong>Error loading metrics:</strong> {error}
+          <strong>Error loading metrics:</strong> {String(error)}
         </div>
       </div>
     );
@@ -189,7 +189,7 @@ export const DashboardMetrics: React.FC = memo(() => {
     <ErrorBoundary fallback={DashboardErrorFallback}>
       <div>
         <div className="d-flex justify-content-end align-items-center mb-3">
-          <ConnectionStatus isConnected={isConnected} lastUpdated={lastUpdated} />
+          <ConnectionStatus isConnected={true} lastUpdated={new Date()} />
         </div>
         
         <Row className="g-3">

@@ -5,6 +5,26 @@ This changelog tracks the implementation progress of the Internal Management Sys
 
 ---
 
+## [0.15.14] - 2025-10-31 - Enhancement: Dashboard Role Segmentation
+
+### Added
+- `useRoleBasedApplicationStats` hook for role-scoped dashboard metrics.
+- `can_view_all_applications()` database function for granular access control.
+- Role-specific metric labels ("My Applications" for Front Office, "My Inspections" for Control).
+
+### Changed
+- Dashboard now displays role-scoped data instead of system-wide metrics.
+- Front Office users see only applications they created.
+- Control users see only inspections assigned to them.
+- Director/Minister see only applications awaiting their decision.
+- Admin/IT/Staff continue to see all applications.
+
+### Security
+- Updated RLS policy on `applications` table to enforce `created_by` filtering for Front Office.
+- Database-level security ensures data visibility rules are enforced.
+
+---
+
 ## [0.15.13] - 2025-10-31 - Enhancement: Hybrid Role Filtering
 
 ### Status: Production Ready ✅

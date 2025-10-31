@@ -74,12 +74,14 @@ const page = () => {
         </DashboardSection>
       </ErrorBoundary>
       
-      {/* System Metrics Dashboard */}
-      <ErrorBoundary fallback={ComponentErrorFallback}>
-        <DashboardSection title="System Health" className="mt-4">
-          <SystemMetricsDashboard />
-        </DashboardSection>
-      </ErrorBoundary>
+      {/* System Metrics Dashboard - Admin/IT/Staff only */}
+      <RoleCheck allowedRoles={['admin', 'it', 'staff']}>
+        <ErrorBoundary fallback={ComponentErrorFallback}>
+          <DashboardSection title="System Health" className="mt-4">
+            <SystemMetricsDashboard />
+          </DashboardSection>
+        </ErrorBoundary>
+      </RoleCheck>
       
       {/* Main Content Row */}
       <DashboardGrid spacing={4} className="mt-4">
