@@ -6,7 +6,7 @@
 .logo-box {
      position: sticky;
      overflow: hidden;
-     text-align: center;
+     text-align: left;
      white-space: nowrap;
      transition: all 0.3s ease-in-out;
      line-height: $topbar-height;
@@ -18,7 +18,7 @@
      }
 
      .logo-text {
-         display: none;
+         display: inline-block;
          margin-left: 8px;
          font-weight: 600;
          font-size: 14px;

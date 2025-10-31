@@ -10,7 +10,7 @@ export const MENU_ITEMS: MenuItemType[] = [
     key: 'dashboards',
     label: 'Dashboard',
     isTitle: false,
-    icon: 'Solar:widget-4-bold',
+    icon: 'mdi:view-dashboard-outline',
     url: '/dashboards',
   },
 
