@@ -74,13 +74,21 @@ export class IMSIntegrationTester {
           results.push(await this.testControlAssignment(applicationId));
           results.push(await this.testControlVisit(applicationId));
           
-          // Step 5: Complete technical and social reviews
+          // Step 5: Complete technical and social reviews (must do both before Director Review)
+          console.log(`📋 Starting Technical Review for application ${applicationId}`);
           results.push(await this.testWorkflowTransition(applicationId, 'TECHNICAL_REVIEW'));
           results.push(await this.testReviewProcess(applicationId));
           
-          // Step 6: Test Decision Workflow
+          // Transition to Social Review (required before Director Review)
+          console.log(`📋 Starting Social Review for application ${applicationId}`);
+          results.push(await this.testWorkflowTransition(applicationId, 'SOCIAL_REVIEW'));
+          
+          // Step 6: Test Decision Workflow (Director Review requires both Tech and Social to be completed)
+          console.log(`📋 Starting Director Review for application ${applicationId}`);
           results.push(await this.testWorkflowTransition(applicationId, 'DIRECTOR_REVIEW'));
           results.push(await this.testDirectorDecision(applicationId));
+          
+          console.log(`📋 Starting Minister Decision for application ${applicationId}`);
           results.push(await this.testWorkflowTransition(applicationId, 'MINISTER_DECISION'));
           results.push(await this.testMinisterDecision(applicationId));
           
@@ -176,26 +184,56 @@ export class IMSIntegrationTester {
    */
   static async testDocumentUpload(applicationId: string): Promise<WorkflowTestResult> {
     try {
-      // Create test document record
-      const { data: document, error: docError } = await supabase
-        .from('documents')
-        .insert({
-          application_id: applicationId,
-          document_type: 'NATIONAL_ID',
-          document_name: 'Test National ID',
-          file_path: `test/documents/${applicationId}/test-id.pdf`,
-          file_type: 'application/pdf',
-          verification_status: 'PENDING'
-        })
-        .select()
-        .single();
+      // List of all required document types
+      const requiredDocTypes = [
+        { type: 'NATIONAL_ID', name: 'Test National ID' },
+        { type: 'FAMILY_CERTIFICATE', name: 'Test Family Certificate' },
+        { type: 'PLOT_MAP', name: 'Test Plot Map' },
+        { type: 'OWNERSHIP_DEED', name: 'Test Ownership Deed' },
+        { type: 'PERMISSION_LETTER', name: 'Test Permission Letter' },
+        { type: 'PENSION_STATEMENT', name: 'Test Pension Statement' },
+        { type: 'MORTGAGE_STATEMENT', name: 'Test Mortgage Statement' },
+        { type: 'PAY_SLIP', name: 'Test Pay Slip' },
+        { type: 'EMPLOYER_DECLARATION', name: 'Test Employer Declaration' },
+        { type: 'VILLAGE_DECLARATION', name: 'Test Village Declaration' },
+        { type: 'INCOME_PROOF', name: 'Test Income Proof' },
+        { type: 'HOUSEHOLD_COMPOSITION', name: 'Test Household Composition' }
+      ];
 
-      if (docError) throw docError;
+      // Get current user for verified_by field
+      const { data: { user } } = await supabase.auth.getUser();
+      const verifiedBy = user?.id || null;
+
+      // Create all required documents with VERIFIED status
+      const documentPromises = requiredDocTypes.map(doc =>
+        supabase
+          .from('documents')
+          .insert({
+            application_id: applicationId,
+            document_type: doc.type,
+            document_name: doc.name,
+            file_path: `test/documents/${applicationId}/${doc.type.toLowerCase()}.pdf`,
+            file_type: 'application/pdf',
+            verification_status: 'VERIFIED', // Set to VERIFIED for test purposes
+            verified_at: new Date().toISOString(),
+            verified_by: verifiedBy
+          })
+          .select()
+      );
+
+      const results = await Promise.all(documentPromises);
+      const errors = results.filter(r => r.error);
+      
+      if (errors.length > 0) {
+        throw new Error(`Failed to create ${errors.length} document(s)`);
+      }
+
+      console.log(`✅ Created and verified ${requiredDocTypes.length} required documents for test application ${applicationId}`);
 
       return {
         success: true,
         step: 'Document Upload',
-        data: { documentId: document.id }
+        data: { documentsCreated: requiredDocTypes.length, allVerified: true }
       };
     } catch (error) {
       return {
@@ -211,6 +249,15 @@ export class IMSIntegrationTester {
    */
   static async testWorkflowTransition(applicationId: string, targetState: string): Promise<WorkflowTestResult> {
     try {
+      // Get current state for logging
+      const { data: preApp } = await supabase
+        .from('applications')
+        .select('current_state')
+        .eq('id', applicationId)
+        .single();
+      
+      console.log(`🔄 Attempting transition: ${preApp?.current_state} → ${targetState} for app ${applicationId}`);
+
       // Get auth session for proper authentication
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
@@ -237,6 +284,12 @@ export class IMSIntegrationTester {
       if (fetchError) throw fetchError;
 
       const success = application.current_state === targetState;
+      
+      if (success) {
+        console.log(`✅ Transition successful: ${targetState}`);
+      } else {
+        console.log(`⚠️ Transition attempted but state is: ${application.current_state}`);
+      }
 
       return {
         success,
@@ -244,6 +297,7 @@ export class IMSIntegrationTester {
         data: { currentState: application.current_state }
       };
     } catch (error) {
+      console.error(`❌ Transition to ${targetState} failed:`, error);
       return {
         success: false,
         step: `Workflow Transition to ${targetState}`,
