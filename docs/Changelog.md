@@ -5,6 +5,48 @@ This changelog tracks the implementation progress of the Internal Management Sys
 
 ---
 
+## [0.15.21] - 2025-11-01 - Smart Role-Based Review Routing ✅
+
+### 🎯 Summary
+Fixed "Access Denied" error when Staff users clicked "Review Queue" in Dashboard Quick Actions by implementing intelligent role-based routing that directs each user role to their appropriate review page.
+
+### 🔧 Changes Made
+
+#### Frontend Implementation (`src/app/(admin)/dashboards/components/QuickActions.tsx`)
+
+1. **Updated Review Queue Action Roles** (Line 53)
+   - Expanded from: `['admin', 'it', 'director', 'staff']`
+   - Updated to: `['admin', 'it', 'staff', 'control', 'director', 'minister']`
+   - Now visible to all reviewer roles
+
+2. **Implemented Smart Role-Based Routing** (Lines 87-105)
+   - Added conditional navigation logic in `handleActionClick` function:
+     - **Staff** → `/reviews/social` (Social Assessment Reviews)
+     - **Control** → `/reviews/technical` (Technical Reviews)
+     - **Director** → `/reviews/director` (Director Review Queue)
+     - **Minister** → `/reviews/minister` (Minister Decision Queue)
+     - **Admin/IT** → `/reviews/director` (default view)
+
+3. **Updated onClick Handler** (Line 121)
+   - Changed from: `onClick={() => handleActionClick(action.url)}`
+   - Changed to: `onClick={() => handleActionClick(action)}`
+   - Passes full action object for conditional routing
+
+### ✅ Testing Results
+- ✅ Staff users navigate to Social Review page without errors
+- ✅ Control users navigate to Technical Review page
+- ✅ Director users navigate to Director Review page
+- ✅ Minister users navigate to Minister Decision page
+- ✅ Admin/IT users default to Director Review page
+- ✅ No more "Access Denied" errors for Review Queue
+
+### 📊 Impact
+- **User Experience**: Seamless navigation to role-appropriate review pages
+- **Error Reduction**: Eliminated access denied errors for legitimate review access
+- **Workflow Efficiency**: Each role lands directly on their relevant review queue
+
+---
+
 ## [0.15.20] - 2025-11-01 - Workflow Monitoring Button Fix ✅
 
 ### 🎯 Summary
