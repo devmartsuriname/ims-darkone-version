@@ -176,26 +176,39 @@ export class IMSIntegrationTester {
    */
   static async testDocumentUpload(applicationId: string): Promise<WorkflowTestResult> {
     try {
-      // Create test document record
-      const { data: document, error: docError } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const requiredDocTypes = [
+        'NATIONAL_ID',
+        'FAMILY_REGISTER',
+        'PROPERTY_DEED',
+        'INCOME_VERIFICATION'
+      ];
+
+      const docInserts = requiredDocTypes.map(docType => ({
+        application_id: applicationId,
+        document_type: docType,
+        document_name: `Test ${docType.replace(/_/g, ' ')}`,
+        file_path: `test/documents/${applicationId}/${docType.toLowerCase()}.pdf`,
+        file_type: 'application/pdf',
+        verification_status: 'VERIFIED' as const,
+        verified_by: user.id,
+        verified_at: new Date().toISOString(),
+        is_required: true
+      }));
+
+      const { data: documents, error: docError } = await supabase
         .from('documents')
-        .insert({
-          application_id: applicationId,
-          document_type: 'NATIONAL_ID',
-          document_name: 'Test National ID',
-          file_path: `test/documents/${applicationId}/test-id.pdf`,
-          file_type: 'application/pdf',
-          verification_status: 'PENDING'
-        })
-        .select()
-        .single();
+        .insert(docInserts)
+        .select();
 
       if (docError) throw docError;
 
       return {
         success: true,
         step: 'Document Upload',
-        data: { documentId: document.id }
+        data: { documentCount: documents.length }
       };
     } catch (error) {
       return {
@@ -352,28 +365,40 @@ export class IMSIntegrationTester {
 
       if (visitError) throw visitError;
 
-      // Test photo upload simulation
-      const { data: photo, error: photoError } = await supabase
+      // Upload 8 photos covering all required categories
+      const photoCategories = [
+        'EXTERIOR_FRONT',
+        'EXTERIOR_REAR',
+        'INTERIOR_MAIN',
+        'INTERIOR_KITCHEN',
+        'STRUCTURAL_ISSUES',
+        'UTILITIES',
+        'FOUNDATION',
+        'ROOF'
+      ];
+
+      const photoInserts = photoCategories.map((category, index) => ({
+        application_id: applicationId,
+        control_visit_id: visit.id,
+        photo_category: category,
+        file_path: `test/photos/${applicationId}/${category.toLowerCase()}.jpg`,
+        photo_description: `Test ${category.replace(/_/g, ' ')} photo`,
+        file_size: 1024000 + (index * 100),
+        gps_latitude: 5.8520,
+        gps_longitude: -55.2038
+      }));
+
+      const { data: photos, error: photoError } = await supabase
         .from('control_photos')
-        .insert({
-          application_id: applicationId,
-          control_visit_id: visit.id,
-          photo_category: 'FOUNDATION',
-          file_path: `test/photos/${applicationId}/foundation-test.jpg`,
-          photo_description: 'Test foundation photo',
-          file_size: 1024000,
-          gps_latitude: 5.8520,
-          gps_longitude: -55.2038
-        })
-        .select()
-        .single();
+        .insert(photoInserts)
+        .select();
 
       if (photoError) throw photoError;
 
       return {
         success: true,
         step: 'Control Visit',
-        data: { visitId: visit.id, photoId: photo.id },
+        data: { visitId: visit.id, photoCount: photos.length },
         category: 'workflow'
       };
     } catch (error) {
