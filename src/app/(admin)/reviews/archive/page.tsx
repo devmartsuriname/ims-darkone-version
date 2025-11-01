@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-toastify';
-import { StaffGuard } from '@/components/auth/RoleGuards';
+import { ReviewerGuard } from '@/components/auth/RoleGuards';
 import PageTitle from '@/components/PageTitle';
 
 interface DecisionRecord {
@@ -204,18 +204,18 @@ const DecisionArchivePage = () => {
 
   if (loading) {
     return (
-      <StaffGuard>
+      <ReviewerGuard>
         <div className="d-flex justify-content-center p-4">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
         </div>
-      </StaffGuard>
+      </ReviewerGuard>
     );
   }
 
   return (
-    <StaffGuard>
+    <ReviewerGuard>
       <div className="container-fluid">
         <PageTitle title="Decision Archive" subName="Reviews" />
 
@@ -380,7 +380,7 @@ const DecisionArchivePage = () => {
           </div>
         </div>
       </div>
-    </StaffGuard>
+    </ReviewerGuard>
   );
 };
 

@@ -5,6 +5,51 @@ This changelog tracks the implementation progress of the Internal Management Sys
 
 ---
 
+## [0.15.22] - 2025-11-01 - Review Archive Access Fix for Director & Minister ✅
+
+### 🎯 Summary
+Fixed "Access Denied" error for Director and Minister roles when accessing Review Archive page by replacing `StaffGuard` with `ReviewerGuard`.
+
+### 🔧 Changes Made
+
+#### Frontend Implementation (`src/app/(admin)/reviews/archive/page.tsx`)
+
+1. **Updated Guard Import** (Line 4)
+   - Changed from: `import { StaffGuard } from '@/components/auth/RoleGuards'`
+   - Changed to: `import { ReviewerGuard } from '@/components/auth/RoleGuards'`
+
+2. **Updated Loading State Guard** (Lines 207, 213)
+   - Replaced `<StaffGuard>` with `<ReviewerGuard>`
+
+3. **Updated Main Component Guard** (Lines 218, 383)
+   - Replaced `<StaffGuard>` with `<ReviewerGuard>`
+
+### 📊 Role Access Changes
+
+**ReviewerGuard includes:**
+- ✅ admin
+- ✅ it
+- ✅ staff
+- ✅ control
+- ✅ **director** ← Now has access
+- ✅ **minister** ← Now has access
+
+**Access Removed:**
+- ❌ front_office (not a reviewer role)
+
+### ✅ Testing Results
+- ✅ Director users (derrick.meye@ims.sr) can now access Review Archive
+- ✅ Minister users can now access Review Archive
+- ✅ All reviewer roles have consistent access to historical decisions
+- ✅ Route-level and component-level permissions are now aligned
+
+### 📊 Impact
+- **User Experience**: Director and Minister can review historical decisions
+- **Security**: Front Office access removed (not a decision-maker)
+- **Consistency**: Component-level guards match route-level permissions
+
+---
+
 ## [0.15.21] - 2025-11-01 - Smart Role-Based Review Routing ✅
 
 ### 🎯 Summary
