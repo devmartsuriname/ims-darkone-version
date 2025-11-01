@@ -63,6 +63,8 @@ export class IMSIntegrationTester {
         if (applicationId) {
           // Step 2: Test Document Upload
           results.push(await this.testDocumentUpload(applicationId));
+          // Ensure documents are committed before workflow transitions
+          await new Promise(resolve => setTimeout(resolve, 750));
           
           // Step 3: Test Workflow Transitions (following valid workflow path)
           results.push(await this.testWorkflowTransition(applicationId, 'INTAKE_REVIEW'));
@@ -73,18 +75,49 @@ export class IMSIntegrationTester {
           // Step 4: Test Control Process
           results.push(await this.testControlAssignment(applicationId));
           results.push(await this.testControlVisit(applicationId));
+          // Ensure photos are committed before technical review
+          await new Promise(resolve => setTimeout(resolve, 750));
           
           // Step 5: Complete technical and social reviews
           results.push(await this.testWorkflowTransition(applicationId, 'TECHNICAL_REVIEW'));
           results.push(await this.testReviewProcess(applicationId));
+          // Ensure reports are committed before director review
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
-          // Debug: Verify reports exist before DIRECTOR_REVIEW
-          console.log('🔍 [DEBUG] Verifying reports before DIRECTOR_REVIEW transition...');
-          const reportsCheck = await this.verifyReportsExist(applicationId);
-          console.log('🔍 [DEBUG] Reports verification result:', reportsCheck);
-          
-          // Step 6: Test Decision Workflow
-          results.push(await this.testWorkflowTransition(applicationId, 'DIRECTOR_REVIEW'));
+          // Step 6: Test Decision Workflow with retry logic
+          let directorReviewSuccess = false;
+          let retryCount = 0;
+          const maxRetries = 3;
+
+          while (!directorReviewSuccess && retryCount < maxRetries) {
+            const verificationResult = await this.verifyReportsExist(applicationId);
+            console.log(`🔍 [DEBUG] Verification attempt ${retryCount + 1}:`, verificationResult);
+            
+            if (verificationResult.technical && verificationResult.social && 
+                verificationResult.documents.verified >= 4 && 
+                verificationResult.photos.total >= 8 && 
+                verificationResult.photos.hasRequired) {
+              
+              // All data is ready, proceed with transition
+              results.push(await this.testWorkflowTransition(applicationId, 'DIRECTOR_REVIEW'));
+              directorReviewSuccess = results[results.length - 1].success;
+              break;
+            } else {
+              // Wait longer and retry
+              console.log(`🔍 [DEBUG] Data not ready, waiting 1 second before retry...`);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              retryCount++;
+            }
+          }
+
+          if (!directorReviewSuccess && retryCount >= maxRetries) {
+            results.push({
+              success: false,
+              step: 'Workflow Transition to DIRECTOR_REVIEW',
+              error: 'Failed after 3 retries - data consistency issue',
+              category: 'workflow'
+            });
+          }
           results.push(await this.testDirectorDecision(applicationId));
           results.push(await this.testWorkflowTransition(applicationId, 'MINISTER_DECISION'));
           results.push(await this.testMinisterDecision(applicationId));
@@ -310,26 +343,55 @@ export class IMSIntegrationTester {
     technical: boolean;
     social: boolean;
     details: any;
+    documents: any;
+    photos: any;
   }> {
+    // Check documents
+    const { data: documents } = await supabase
+      .from('documents')
+      .select('id, document_type, verification_status')
+      .eq('application_id', applicationId)
+      .eq('is_required', true);
+
+    // Check photos  
+    const { data: photos } = await supabase
+      .from('control_photos')
+      .select('id, photo_category')
+      .eq('application_id', applicationId);
+
+    // Check technical report
     const { data: techReport } = await supabase
       .from('technical_reports')
       .select('id, technical_conclusion, recommendations')
       .eq('application_id', applicationId)
       .maybeSingle();
 
+    // Check social report
     const { data: socialReport } = await supabase
       .from('social_reports')
       .select('id, social_conclusion, recommendations')
       .eq('application_id', applicationId)
       .maybeSingle();
 
+    console.log('🔍 [DEBUG] Documents found:', documents?.length || 0, documents);
+    console.log('🔍 [DEBUG] Photos found:', photos?.length || 0, photos);
     console.log('🔍 [DEBUG] Technical report:', techReport);
     console.log('🔍 [DEBUG] Social report:', socialReport);
+
+    const verifiedDocs = documents?.filter(d => d.verification_status === 'VERIFIED') || [];
+    const requiredPhotoCategories = ['EXTERIOR_FRONT', 'INTERIOR_MAIN', 'STRUCTURAL_ISSUES', 'UTILITIES'];
+    const photoCategories = photos?.map(p => p.photo_category) || [];
+    const hasRequiredPhotos = requiredPhotoCategories.every(cat => photoCategories.includes(cat));
+
+    console.log('🔍 [DEBUG] Verified documents:', verifiedDocs.length);
+    console.log('🔍 [DEBUG] Required photo categories present:', hasRequiredPhotos);
 
     return {
       technical: !!(techReport?.technical_conclusion && techReport?.recommendations),
       social: !!(socialReport?.social_conclusion && socialReport?.recommendations),
-      details: { techReport, socialReport }
+      details: { techReport, socialReport },
+      documents: { total: documents?.length || 0, verified: verifiedDocs.length },
+      photos: { total: photos?.length || 0, categories: photoCategories, hasRequired: hasRequiredPhotos }
     };
   }
 
