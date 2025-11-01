@@ -29,11 +29,11 @@ const WORKFLOW_STATES = {
     roles: ['admin', 'it', 'control']
   },
   TECHNICAL_REVIEW: {
-    next: ['SOCIAL_REVIEW', 'DIRECTOR_REVIEW', 'NEEDS_MORE_INFO'],
+    next: ['DIRECTOR_REVIEW', 'NEEDS_MORE_INFO'],
     roles: ['admin', 'it', 'staff', 'control']
   },
   SOCIAL_REVIEW: {
-    next: ['TECHNICAL_REVIEW', 'DIRECTOR_REVIEW', 'NEEDS_MORE_INFO'],
+    next: ['DIRECTOR_REVIEW', 'NEEDS_MORE_INFO'],
     roles: ['admin', 'it', 'staff']
   },
   DIRECTOR_REVIEW: {
@@ -580,25 +580,6 @@ async function validateStateTransition(currentState: string, targetState: string
 
 async function performPreTransitionValidations(applicationId: string, targetState: string): Promise<{valid: boolean, reason: string}> {
   if (targetState === 'DIRECTOR_REVIEW') {
-    // Check if both technical and social reviews are completed
-    const { data: techReviewStep, error: techError } = await supabase
-      .from('application_steps')
-      .select('completed_at')
-      .eq('application_id', applicationId)
-      .eq('step_name', 'TECHNICAL_REVIEW')
-      .maybeSingle();
-
-    const { data: socialReviewStep, error: socialError } = await supabase
-      .from('application_steps')
-      .select('completed_at')
-      .eq('application_id', applicationId)
-      .eq('step_name', 'SOCIAL_REVIEW')
-      .maybeSingle();
-
-    if (!techReviewStep?.completed_at || !socialReviewStep?.completed_at) {
-      return { valid: false, reason: 'Both Technical Review and Social Review must be completed before Director Review' };
-    }
-
     const { data: documents, error: docError } = await supabase
       .from('documents')
       .select('verification_status, document_type, document_name')
