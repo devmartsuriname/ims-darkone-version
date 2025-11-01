@@ -310,7 +310,8 @@ export class IMSIntegrationTester {
           application_id: applicationId,
           foundation_condition: 'GOOD',
           roof_condition: 'NEEDS_REPAIR',
-          technical_conclusion: 'Property requires minor repairs',
+          technical_conclusion: 'Property requires minor repairs to roof and foundation',
+          recommendations: 'Recommend approval of subsidy for roof repairs and foundation reinforcement',
           estimated_cost: 25000,
           urgency_level: 2
         })
@@ -326,7 +327,8 @@ export class IMSIntegrationTester {
           application_id: applicationId,
           household_situation: 'STABLE',
           living_conditions_assessment: 'Adequate but could be improved',
-          social_conclusion: 'Applicant qualifies for assistance',
+          social_conclusion: 'Applicant qualifies for assistance based on household needs',
+          recommendations: 'Recommend full approval - applicant meets all social criteria',
           social_priority_level: 2
         })
         .select()
