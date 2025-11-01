@@ -78,6 +78,11 @@ export class IMSIntegrationTester {
           results.push(await this.testWorkflowTransition(applicationId, 'TECHNICAL_REVIEW'));
           results.push(await this.testReviewProcess(applicationId));
           
+          // Debug: Verify reports exist before DIRECTOR_REVIEW
+          console.log('🔍 [DEBUG] Verifying reports before DIRECTOR_REVIEW transition...');
+          const reportsCheck = await this.verifyReportsExist(applicationId);
+          console.log('🔍 [DEBUG] Reports verification result:', reportsCheck);
+          
           // Step 6: Test Decision Workflow
           results.push(await this.testWorkflowTransition(applicationId, 'DIRECTOR_REVIEW'));
           results.push(await this.testDirectorDecision(applicationId));
@@ -296,6 +301,36 @@ export class IMSIntegrationTester {
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
+  }
+
+  /**
+   * Verify that technical and social reports exist with required fields
+   */
+  static async verifyReportsExist(applicationId: string): Promise<{
+    technical: boolean;
+    social: boolean;
+    details: any;
+  }> {
+    const { data: techReport } = await supabase
+      .from('technical_reports')
+      .select('id, technical_conclusion, recommendations')
+      .eq('application_id', applicationId)
+      .maybeSingle();
+
+    const { data: socialReport } = await supabase
+      .from('social_reports')
+      .select('id, social_conclusion, recommendations')
+      .eq('application_id', applicationId)
+      .maybeSingle();
+
+    console.log('🔍 [DEBUG] Technical report:', techReport);
+    console.log('🔍 [DEBUG] Social report:', socialReport);
+
+    return {
+      technical: !!(techReport?.technical_conclusion && techReport?.recommendations),
+      social: !!(socialReport?.social_conclusion && socialReport?.recommendations),
+      details: { techReport, socialReport }
+    };
   }
 
   /**
