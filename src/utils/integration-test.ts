@@ -494,10 +494,22 @@ export class IMSIntegrationTester {
 
       if (photoError) throw photoError;
 
+      // Mark the control visit as COMPLETED
+      const { error: updateError } = await supabase
+        .from('control_visits')
+        .update({
+          visit_status: 'COMPLETED',
+          actual_date: new Date().toISOString(),
+          location_notes: 'Test control visit completed successfully - all photos captured'
+        })
+        .eq('id', visit.id);
+
+      if (updateError) throw updateError;
+
       return {
         success: true,
         step: 'Control Visit',
-        data: { visitId: visit.id, photoCount: photos.length },
+        data: { visitId: visit.id, photoCount: photos.length, status: 'COMPLETED' },
         category: 'workflow'
       };
     } catch (error) {
