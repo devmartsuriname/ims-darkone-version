@@ -41,9 +41,10 @@ export function AuthProvider({ children }: ChildrenType) {
   const [roles, setRoles] = useState<UserRole[]>([])
   const [loading, setLoading] = useState(true)
   const [initialized, setInitialized] = useState(false)
+  const [userDataFetched, setUserDataFetched] = useState(false) // ✅ Phase 1: Deduplication guard
 
-  // ✅ Phase 1: Timeout protection for fetchUserData (8 seconds max)
-  const fetchWithTimeout = <T,>(promise: Promise<T>, timeout: number = 8000): Promise<T> => {
+  // ✅ Phase 2: Timeout protection for fetchUserData (4 seconds max)
+  const fetchWithTimeout = <T,>(promise: Promise<T>, timeout: number = 4000): Promise<T> => {
     return Promise.race([
       promise,
       new Promise<T>((_, reject) => 
@@ -71,10 +72,11 @@ export function AuthProvider({ children }: ChildrenType) {
             } else {
               console.error('❌ Error fetching profile:', profileError)
               
-              // ✅ Retry on failure
+              // ✅ Phase 3: Retry on failure with exponential backoff
               if (retries > 0) {
                 log.auth.warn(`Retrying profile fetch (${retries} attempts left)`)
-                await new Promise(resolve => setTimeout(resolve, 1000))
+                const retryDelay = Math.min(250 * Math.pow(2, 3 - retries), 2000)
+                await new Promise(resolve => setTimeout(resolve, retryDelay))
                 return fetchUserData(userId, retries - 1)
               }
               return false
@@ -93,10 +95,11 @@ export function AuthProvider({ children }: ChildrenType) {
           if (rolesError) {
             log.auth.error('Error fetching roles', rolesError)
             
-            // ✅ Retry on failure
+            // ✅ Phase 3: Retry on failure with exponential backoff
             if (retries > 0) {
               log.auth.warn(`Retrying roles fetch (${retries} attempts left)`)
-              await new Promise(resolve => setTimeout(resolve, 1000))
+              const retryDelay = Math.min(250 * Math.pow(2, 3 - retries), 2000)
+              await new Promise(resolve => setTimeout(resolve, retryDelay))
               return fetchUserData(userId, retries - 1)
             }
             return false
@@ -106,20 +109,21 @@ export function AuthProvider({ children }: ChildrenType) {
           
           return true
         })(),
-        8000
+        4000 // ✅ Phase 2: Reduced from 8s to 4s
       )
     } catch (error) {
       if (error instanceof Error && error.message === 'Timeout') {
-        log.auth.error('fetchUserData timeout after 8 seconds')
+        log.auth.error('fetchUserData timeout after 4 seconds') // ✅ Phase 2: Updated message
         return false
       }
       
       log.auth.error('Critical error fetching user data', error)
       
-      // ✅ Retry on exception
+      // ✅ Phase 3: Retry on exception with exponential backoff
       if (retries > 0) {
         console.warn(`🔄 Retrying after exception (${retries} attempts left)`)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        const retryDelay = Math.min(250 * Math.pow(2, 3 - retries), 2000)
+        await new Promise(resolve => setTimeout(resolve, retryDelay))
         return fetchUserData(userId, retries - 1)
       }
       return false
@@ -193,11 +197,15 @@ export function AuthProvider({ children }: ChildrenType) {
               is_active: true 
             }])
           } else {
-            const success = await fetchUserData(session.user.id)
-            if (!success) {
-              log.auth.error('Failed to fetch user data after retries')
-            } else {
-              log.auth.info('User data loaded successfully')
+            // ✅ Phase 1: Prevent duplicate fetchUserData calls
+            if (!userDataFetched) {
+              const success = await fetchUserData(session.user.id)
+              if (!success) {
+                log.auth.error('Failed to fetch user data after retries')
+              } else {
+                setUserDataFetched(true) // ✅ Phase 1: Mark as fetched
+                log.auth.info('User data loaded successfully')
+              }
             }
           }
         } else {
@@ -267,11 +275,15 @@ export function AuthProvider({ children }: ChildrenType) {
               is_active: true 
             }])
           } else {
-            const success = await fetchUserData(session.user.id)
-            if (!success) {
-              log.auth.error('Failed to fetch user data on initialization')
-            } else {
-              log.auth.info('Initial user data loaded')
+            // ✅ Phase 1: Prevent duplicate fetchUserData calls
+            if (!userDataFetched) {
+              const success = await fetchUserData(session.user.id)
+              if (!success) {
+                log.auth.error('Failed to fetch user data on initialization')
+              } else {
+                setUserDataFetched(true) // ✅ Phase 1: Mark as fetched
+                log.auth.info('Initial user data loaded')
+              }
             }
           }
         }
@@ -322,6 +334,9 @@ export function AuthProvider({ children }: ChildrenType) {
     
     // ✅ v0.15.2: Explicitly clear Supabase session from localStorage
     localStorage.removeItem('sb-shwfzxpypygdxoqxutae-auth-token')
+    
+    // ✅ Phase 4: Reset deduplication guard for immediate re-login
+    setUserDataFetched(false)
     
     // Let Supabase handle the signout and trigger SIGNED_OUT event
     await supabase.auth.signOut()
