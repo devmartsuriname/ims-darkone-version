@@ -53,6 +53,8 @@ The Internal Management System (IMS) for Public Housing Suriname is built as a m
 - **CDN**: Supabase CDN for static assets
 - **Monitoring**: Supabase Analytics + Custom metrics
 - **Backups**: Automated daily backups via Supabase
+- **Version Control**: Git with tagged restore points
+- **Current Stable Build**: `ims-v1.3.7-stable` (RP-700: restorepoint_pre-uat_v1.3.7)
 
 ### Dashboard Role Segmentation (v0.15.14+)
 
