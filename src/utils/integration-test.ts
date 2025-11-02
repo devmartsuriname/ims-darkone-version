@@ -527,6 +527,21 @@ export class IMSIntegrationTester {
    */
   static async testDirectorDecision(applicationId: string): Promise<WorkflowTestResult> {
     try {
+      // Create/update the application step with director's recommendation
+      const { error: stepError } = await supabase
+        .from('application_steps')
+        .upsert({
+          application_id: applicationId,
+          step_name: 'DIRECTOR_REVIEW',
+          status: 'COMPLETED',
+          notes: 'Director recommends approval - all requirements met for subsidy allocation',
+          completed_at: new Date().toISOString()
+        }, {
+          onConflict: 'application_id,step_name'
+        });
+
+      if (stepError) throw stepError;
+
       // Simulate director decision
       const { error } = await supabase.functions.invoke('notification-service', {
         body: {
@@ -545,7 +560,7 @@ export class IMSIntegrationTester {
       return {
         success: true,
         step: 'Director Decision',
-        data: { decision: 'APPROVED', applicationId },
+        data: { decision: 'APPROVED', applicationId, recommendationRecorded: true },
         category: 'workflow'
       };
     } catch (error) {
