@@ -1,413 +1,235 @@
-import React, { useState } from 'react';
-import { Card, Row, Col, Button, Form, Alert, Badge, Table } from 'react-bootstrap';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'react-toastify';
+import React from 'react';
+import { Card, Row, Col, Button, Alert, Container, Badge } from 'react-bootstrap';
+import { IMSIntegrationTester, WorkflowTestResult } from '@/utils/integration-test';
+import IconifyIcon from '@/components/wrapper/IconifyIcon';
 import PageTitle from '@/components/PageTitle';
-import ComponentContainerCard from '@/components/ComponentContainerCard';
-
-interface TestScenario {
-  id: string;
-  name: string;
-  description: string;
-  status: 'pending' | 'running' | 'passed' | 'failed';
-  duration?: number;
-  results?: any;
-}
-
-interface TestSuite {
-  name: string;
-  scenarios: TestScenario[];
-  totalTests: number;
-  passedTests: number;
-  failedTests: number;
-}
 
 const WorkflowTestingPage: React.FC = () => {
-  const [testSuites, setTestSuites] = useState<TestSuite[]>([
-    {
-      name: 'Basic Workflow Tests',
-      scenarios: [
-        {
-          id: 'test-1',
-          name: 'Application Creation',
-          description: 'Test creating a new application with valid data',
-          status: 'pending'
-        },
-        {
-          id: 'test-2',
-          name: 'State Transitions',
-          description: 'Test all valid state transitions in sequence',
-          status: 'pending'
-        },
-        {
-          id: 'test-3',
-          name: 'Document Upload',
-          description: 'Test document upload and verification process',
-          status: 'pending'
-        },
-        {
-          id: 'test-4',
-          name: 'Control Visit Scheduling',
-          description: 'Test scheduling and completing control visits',
-          status: 'pending'
-        }
-      ],
-      totalTests: 4,
-      passedTests: 0,
-      failedTests: 0
-    },
-    {
-      name: 'Permission & Security Tests',
-      scenarios: [
-        {
-          id: 'security-1',
-          name: 'Role-Based Access',
-          description: 'Test role-based access controls for each workflow state',
-          status: 'pending'
-        },
-        {
-          id: 'security-2',
-          name: 'Data Isolation',
-          description: 'Verify users can only access their authorized data',
-          status: 'pending'
-        },
-        {
-          id: 'security-3',
-          name: 'Invalid State Transitions',
-          description: 'Test prevention of invalid state transitions',
-          status: 'pending'
-        }
-      ],
-      totalTests: 3,
-      passedTests: 0,
-      failedTests: 0
-    },
-    {
-      name: 'Performance & Load Tests',
-      scenarios: [
-        {
-          id: 'perf-1',
-          name: 'Concurrent Applications',
-          description: 'Test handling multiple applications simultaneously',
-          status: 'pending'
-        },
-        {
-          id: 'perf-2',
-          name: 'Large File Uploads',
-          description: 'Test uploading large documents and photos',
-          status: 'pending'
-        },
-        {
-          id: 'perf-3',
-          name: 'Database Query Performance',
-          description: 'Test complex queries under load',
-          status: 'pending'
-        }
-      ],
-      totalTests: 3,
-      passedTests: 0,
-      failedTests: 0
-    }
-  ]);
+  const [isRunning, setIsRunning] = React.useState(false);
+  const [results, setResults] = React.useState<WorkflowTestResult[]>([]);
 
-  const [selectedSuite, setSelectedSuite] = useState<string>('');
-  const [testRunning, setTestRunning] = useState(false);
-  const [generateTestData, setGenerateTestData] = useState(false);
-
-  const runTestSuite = async (suiteName: string) => {
-    setTestRunning(true);
-    setSelectedSuite(suiteName);
+  const runWorkflowTest = async () => {
+    setIsRunning(true);
+    setResults([]);
 
     try {
-      const suite = testSuites.find(s => s.name === suiteName);
-      if (!suite) return;
-
-      // Update all scenarios to running
-      const updatedSuites = testSuites.map(s => 
-        s.name === suiteName 
-          ? {
-              ...s,
-              scenarios: s.scenarios.map(scenario => ({
-                ...scenario,
-                status: 'running' as const
-              }))
-            }
-          : s
-      );
-      setTestSuites(updatedSuites);
-
-      // Run tests via edge function
-      const { data, error } = await supabase.functions.invoke('workflow-service', {
-        body: {
-          action: 'run_tests',
-          suite: suiteName,
-          scenarios: suite.scenarios.map(s => s.id),
-          options: {
-            generateTestData,
-            cleanup: true
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      // Update results
-      const finalSuites = testSuites.map(s => 
-        s.name === suiteName 
-          ? {
-              ...s,
-              scenarios: s.scenarios.map(scenario => {
-                const result = data.results?.find((r: any) => r.id === scenario.id);
-                return {
-                  ...scenario,
-                  status: result?.status || 'failed',
-                  duration: result?.duration,
-                  results: result?.details
-                };
-              }),
-              passedTests: data.results?.filter((r: any) => r.status === 'passed').length || 0,
-              failedTests: data.results?.filter((r: any) => r.status === 'failed').length || 0
-            }
-          : s
-      );
-      setTestSuites(finalSuites);
-
-      toast.success(`Test suite "${suiteName}" completed`);
+      const workflowResults = await IMSIntegrationTester.testCompleteWorkflow();
+      setResults(workflowResults);
     } catch (error) {
-      console.error('Test execution failed:', error);
-      toast.error('Test execution failed');
-      
-      // Mark all tests as failed
-      const failedSuites = testSuites.map(s => 
-        s.name === suiteName 
-          ? {
-              ...s,
-              scenarios: s.scenarios.map(scenario => ({
-                ...scenario,
-                status: 'failed' as const
-              })),
-              failedTests: s.scenarios.length
-            }
-          : s
-      );
-      setTestSuites(failedSuites);
+      setResults([{
+        success: false,
+        step: 'Workflow Test',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        category: 'workflow'
+      }]);
     } finally {
-      setTestRunning(false);
-      setSelectedSuite('');
+      setIsRunning(false);
     }
   };
 
-  const runAllTests = async () => {
-    for (const suite of testSuites) {
-      await runTestSuite(suite.name);
-      // Small delay between suites
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
+  const getTestIcon = (success: boolean) => {
+    return success ? 
+      <IconifyIcon icon="solar:check-circle-bold" className="text-success fs-5" /> :
+      <IconifyIcon icon="solar:close-circle-bold" className="text-danger fs-5" />;
   };
 
-  const generateSampleData = async () => {
-    try {
-      const { error } = await supabase.functions.invoke('workflow-service', {
-        body: {
-          action: 'generate_test_data',
-          types: [
-            'applications',
-            'applicants', 
-            'documents',
-            'control_visits'
-          ],
-          count: 10
-        }
-      });
-
-      if (error) throw error;
-      toast.success('Test data generated successfully');
-    } catch (error) {
-      console.error('Failed to generate test data:', error);
-      toast.error('Failed to generate test data');
-    }
+  const getTestVariant = (success: boolean) => {
+    return success ? 'success' : 'danger';
   };
 
-  const getStatusBadge = (status: TestScenario['status']) => {
-    const variants = {
-      pending: 'secondary',
-      running: 'warning', 
-      passed: 'success',
-      failed: 'danger'
-    };
-    return <Badge bg={variants[status]}>{status.toUpperCase()}</Badge>;
-  };
-
-  const getSuiteHealthColor = (suite: TestSuite) => {
-    if (suite.passedTests === suite.totalTests) return 'success';
-    if (suite.failedTests > 0) return 'danger';
-    return 'warning';
-  };
+  const successCount = results.filter(r => r.success).length;
+  const failureCount = results.filter(r => !r.success).length;
+  const successRate = results.length > 0 ? Math.round((successCount / results.length) * 100) : 0;
 
   return (
-    <div className="container-fluid">
+    <Container fluid>
       <PageTitle 
         title="Workflow Testing" 
-        subName="Automated Testing & Quality Assurance"
+        subName="Complete Application Lifecycle Validation"
       />
 
-      {/* Test Controls */}
       <Row className="mb-4">
         <Col>
-          <ComponentContainerCard id="test-controls" title="Test Controls">
-            <Row className="align-items-end">
-              <Col md={3}>
-                <Form.Group className="mb-3">
-                  <Form.Check
-                    type="switch"
-                    id="generate-data"
-                    label="Generate Test Data"
-                    checked={generateTestData}
-                    onChange={(e) => setGenerateTestData(e.target.checked)}
-                  />
-                  <Form.Text className="text-muted">
-                    Generate sample data before running tests
-                  </Form.Text>
-                </Form.Group>
-              </Col>
-              <Col md={3}>
-                <Button 
-                  variant="outline-secondary"
-                  onClick={generateSampleData}
-                  className="mb-3"
-                  disabled={testRunning}
-                >
-                  Generate Sample Data
-                </Button>
-              </Col>
-              <Col md={6} className="text-end">
-                <Button 
-                  variant="primary" 
-                  onClick={runAllTests}
-                  disabled={testRunning}
-                  className="me-2 mb-3"
-                >
-                  {testRunning ? 'Running Tests...' : 'Run All Test Suites'}
-                </Button>
-                <Button 
-                  variant="outline-primary"
-                  onClick={() => {/* Export results */}}
-                  disabled={testRunning}
-                  className="mb-3"
-                >
-                  Export Results
-                </Button>
-              </Col>
-            </Row>
-          </ComponentContainerCard>
+          <Card>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <div>
+                <h5 className="mb-0">
+                  <IconifyIcon icon="solar:rocket-outline" className="me-2" />
+                  Complete Workflow Test
+                </h5>
+                <small className="text-muted">
+                  Tests the entire application lifecycle: Draft → Intake → Control → Reviews → Director → Minister → Closure
+                </small>
+              </div>
+              <Button 
+                variant="primary" 
+                onClick={runWorkflowTest}
+                disabled={isRunning}
+              >
+                {isRunning ? (
+                  <>
+                    <IconifyIcon icon="solar:restart-bold" className="me-2 spin" />
+                    Running Test...
+                  </>
+                ) : (
+                  <>
+                    <IconifyIcon icon="solar:play-bold" className="me-2" />
+                    Run Workflow Test
+                  </>
+                )}
+              </Button>
+            </Card.Header>
+
+            {results.length > 0 && (
+              <Card.Body>
+                <Alert variant={successRate === 100 ? "success" : successRate >= 70 ? "warning" : "danger"}>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <span>
+                      <IconifyIcon icon="solar:chart-square-bold" className="me-2" />
+                      Test Results: {successCount}/{results.length} passed
+                    </span>
+                    <Badge bg={successRate === 100 ? "success" : successRate >= 70 ? "warning" : "danger"}>
+                      {successRate}% Success Rate
+                    </Badge>
+                  </div>
+                </Alert>
+              </Card.Body>
+            )}
+          </Card>
         </Col>
       </Row>
 
-      {/* Test Suites */}
-      <Row>
-        {testSuites.map((suite, index) => (
-          <Col lg={4} key={index} className="mb-4">
-            <Card className="h-100">
-              <Card.Header className="d-flex justify-content-between align-items-center">
-                <h6 className="mb-0">{suite.name}</h6>
-                <Badge bg={getSuiteHealthColor(suite)}>
-                  {suite.passedTests}/{suite.totalTests}
-                </Badge>
+      {results.length > 0 && (
+        <Row>
+          <Col md={3}>
+            <Card className="text-center mb-4">
+              <Card.Body>
+                <h3 className="text-primary mb-1">{results.length}</h3>
+                <p className="text-muted mb-0">Total Tests</p>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card className="text-center mb-4">
+              <Card.Body>
+                <h3 className="text-success mb-1">{successCount}</h3>
+                <p className="text-muted mb-0">Passed</p>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card className="text-center mb-4">
+              <Card.Body>
+                <h3 className="text-danger mb-1">{failureCount}</h3>
+                <p className="text-muted mb-0">Failed</p>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card className="text-center mb-4">
+              <Card.Body>
+                <h3 className={`mb-1 ${successRate >= 90 ? 'text-success' : successRate >= 70 ? 'text-warning' : 'text-danger'}`}>
+                  {successRate}%
+                </h3>
+                <p className="text-muted mb-0">Success Rate</p>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      {results.length > 0 && (
+        <Row>
+          <Col>
+            <Card>
+              <Card.Header>
+                <h6 className="mb-0">Test Results Detail</h6>
               </Card.Header>
               <Card.Body>
-                <div className="mb-3">
-                  <small className="text-success">✓ {suite.passedTests} Passed</small>
-                  {suite.failedTests > 0 && (
-                    <span className="ms-2">
-                      <small className="text-danger">✗ {suite.failedTests} Failed</small>
-                    </span>
-                  )}
-                </div>
-
-                <div className="mb-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {suite.scenarios.map((scenario, i) => (
-                    <div key={i} className="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
-                      <div>
-                        <div className="fw-medium">{scenario.name}</div>
-                        <small className="text-muted">{scenario.description}</small>
-                        {scenario.duration && (
+                <div className="test-results">
+                  {results.map((result, index) => (
+                    <div 
+                      key={index}
+                      className={`d-flex align-items-start p-3 border-start border-4 border-${getTestVariant(result.success)} mb-3 bg-light rounded`}
+                    >
+                      <div className="me-3">
+                        {getTestIcon(result.success)}
+                      </div>
+                      <div className="flex-grow-1">
+                        <div className="d-flex justify-content-between align-items-start">
                           <div>
-                            <small className="text-info">Duration: {scenario.duration}ms</small>
+                            <h6 className="mb-1">{result.step}</h6>
+                            <Badge bg="secondary" className="me-2">
+                              {result.category?.toUpperCase() || 'WORKFLOW'}
+                            </Badge>
+                            {result.duration && (
+                              <Badge bg="info">
+                                {result.duration}ms
+                              </Badge>
+                            )}
+                          </div>
+                          <Badge bg={getTestVariant(result.success)}>
+                            {result.success ? 'PASS' : 'FAIL'}
+                          </Badge>
+                        </div>
+                        
+                        {result.error && (
+                          <Alert variant="danger" className="mt-2 py-2 mb-0">
+                            <small>{result.error}</small>
+                          </Alert>
+                        )}
+                        
+                        {result.data && (
+                          <div className="mt-2">
+                            <details className="small text-muted">
+                              <summary className="cursor-pointer">View Test Data</summary>
+                              <pre className="mt-2 p-2 bg-white border rounded small">
+                                {JSON.stringify(result.data, null, 2)}
+                              </pre>
+                            </details>
                           </div>
                         )}
-                      </div>
-                      <div>
-                        {getStatusBadge(scenario.status)}
                       </div>
                     </div>
                   ))}
                 </div>
-
-                <Button 
-                  variant="outline-primary" 
-                  size="sm"
-                  onClick={() => runTestSuite(suite.name)}
-                  disabled={testRunning || selectedSuite === suite.name}
-                  className="w-100"
-                >
-                  {selectedSuite === suite.name ? 'Running...' : 'Run Test Suite'}
-                </Button>
               </Card.Body>
             </Card>
           </Col>
-        ))}
-      </Row>
+        </Row>
+      )}
 
-      {/* Recent Test Results */}
-      <Row>
-        <Col>
-          <ComponentContainerCard id="test-results" title="Recent Test Results">
-            <Alert variant="info">
-              <strong>Test Summary:</strong> Run test suites to view detailed results and recommendations.
-            </Alert>
-            
-            <Table responsive>
-              <thead>
-                <tr>
-                  <th>Test Suite</th>
-                  <th>Status</th>
-                  <th>Passed</th>
-                  <th>Failed</th>
-                  <th>Last Run</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {testSuites.map((suite, index) => (
-                  <tr key={index}>
-                    <td>{suite.name}</td>
-                    <td>
-                      <Badge bg={getSuiteHealthColor(suite)}>
-                        {suite.passedTests === suite.totalTests ? 'All Passed' : 
-                         suite.failedTests > 0 ? 'Some Failed' : 'Not Run'}
-                      </Badge>
-                    </td>
-                    <td className="text-success">{suite.passedTests}</td>
-                    <td className="text-danger">{suite.failedTests}</td>
-                    <td className="text-muted">-</td>
-                    <td>
-                      <Button 
-                        size="sm" 
-                        variant="outline-primary"
-                        onClick={() => runTestSuite(suite.name)}
-                        disabled={testRunning}
-                      >
-                        Run
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </ComponentContainerCard>
-        </Col>
-      </Row>
-    </div>
+      {!isRunning && results.length === 0 && (
+        <Row>
+          <Col>
+            <Card>
+              <Card.Body className="text-center py-5">
+                <IconifyIcon icon="solar:test-tube-outline" className="display-1 text-muted mb-3" />
+                <h5 className="text-muted">Workflow Test Ready</h5>
+                <p className="text-muted mb-4">
+                  Click "Run Workflow Test" to validate the complete application workflow.
+                  This test will create a sample application and process it through all workflow states.
+                </p>
+                <Alert variant="info">
+                  <h6>Test Coverage Includes:</h6>
+                  <ul className="text-start mt-2 mb-0">
+                    <li>Application Creation & Data Persistence</li>
+                    <li>Document Upload & Management</li>
+                    <li>Workflow State Transitions</li>
+                    <li>Control Department Assignment & Visits</li>
+                    <li>Technical & Social Reviews</li>
+                    <li>Director & Minister Decision Process</li>
+                    <li>Notification System Integration</li>
+                    <li>Audit Logging & SLA Monitoring</li>
+                    <li>Data Integrity & Cleanup</li>
+                  </ul>
+                </Alert>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      )}
+    </Container>
   );
 };
 
