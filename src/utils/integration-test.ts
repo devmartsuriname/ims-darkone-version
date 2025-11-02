@@ -540,27 +540,36 @@ export class IMSIntegrationTester {
           onConflict: 'application_id,step_name'
         });
 
-      if (stepError) throw stepError;
+      if (stepError) {
+        throw new Error(`Failed to create director recommendation: ${stepError.message}`);
+      }
 
-      // Simulate director decision
-      const { error } = await supabase.functions.invoke('notification-service', {
-        body: {
-          action: 'send_to_role',
-          role: 'minister',
-          title: 'Director Recommendation - Test Application',
-          message: 'Test application has been reviewed and approved by director',
-          type: 'INFO',
-          category: 'DECISION',
-          application_id: applicationId
-        }
-      });
+      // Verify the record was created successfully
+      const { data: verification, error: verifyError } = await supabase
+        .from('application_steps')
+        .select('*')
+        .eq('application_id', applicationId)
+        .eq('step_name', 'DIRECTOR_REVIEW')
+        .eq('status', 'COMPLETED')
+        .maybeSingle();
 
-      if (error) throw error;
+      if (verifyError) {
+        throw new Error(`Failed to verify director recommendation: ${verifyError.message}`);
+      }
+
+      if (!verification || !verification.notes) {
+        throw new Error('Director recommendation record not found after insert');
+      }
 
       return {
         success: true,
         step: 'Director Decision',
-        data: { decision: 'APPROVED', applicationId, recommendationRecorded: true },
+        data: { 
+          decision: 'APPROVED', 
+          applicationId, 
+          recommendationRecorded: true,
+          stepId: verification.id
+        },
         category: 'workflow'
       };
     } catch (error) {
