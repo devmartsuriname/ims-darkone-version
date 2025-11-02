@@ -2,6 +2,7 @@ import AnimationStar from '@/components/AnimationStar'
 import Footer from '@/components/layout/Footer'
 import WorkflowNotificationIntegration from '@/components/notifications/WorkflowNotificationIntegration'
 import { ChildrenType } from '@/types/component-props'
+import { useResponsiveLayout } from '@/components/ui/ResponsiveUtils'
 import { lazy, Suspense } from 'react'
 import { Container } from 'react-bootstrap'
 
@@ -10,6 +11,9 @@ const VerticalNavigationBar = lazy(() => import('@/components/layout/VerticalNav
 
 const AdminLayout = ({ children }: ChildrenType) => {
   console.info('🎨 [LAYOUT][Admin] Rendering AdminLayout')
+  
+  // Enable automatic responsive sidebar behavior
+  useResponsiveLayout()
   
   return (
     <div className="wrapper">
