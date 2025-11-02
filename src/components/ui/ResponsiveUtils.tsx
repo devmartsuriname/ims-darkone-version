@@ -229,7 +229,7 @@ export const useResponsiveLayout = () => {
       changeMenu.size('hidden')
     } else if (width >= 768 && width < 1200 && menu.size === 'hidden') {
       changeMenu.size('condensed')
-    } else if (width >= 1200 && menu.size === 'condensed') {
+    } else if (width >= 1200 && (menu.size === 'hidden' || menu.size === 'condensed')) {
       changeMenu.size('default')
     }
   }, [width, menu.size, changeMenu])

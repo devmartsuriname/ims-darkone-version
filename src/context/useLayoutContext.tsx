@@ -39,6 +39,17 @@ const LayoutProvider = ({ children }: ChildrenType) => {
     showBackdrop: false,
   })
 
+  // Migration: Fix legacy "hidden" state for desktop users
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const width = window.innerWidth
+      if (width >= 1200 && settings.menu.size === 'hidden') {
+        console.info('📦 [LAYOUT] Migrating sidebar from hidden to default for desktop')
+        setSettings({ ...settings, menu: { ...settings.menu, size: 'default' } })
+      }
+    }
+  }, []) // Run once on mount
+
   // update settings
   const updateSettings = (_newSettings: Partial<LayoutState>) => setSettings({ ...settings, ..._newSettings })
 
