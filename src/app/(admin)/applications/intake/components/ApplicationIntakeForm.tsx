@@ -15,11 +15,11 @@ import { groupErrorsByStep } from '@/utils/form-helpers';
 
 // Validation schemas for each step
 const applicantSchema = z.object({
-  first_name: z.string().min(2, 'First name must be at least 2 characters'),
-  last_name: z.string().min(2, 'Last name must be at least 2 characters'),
-  national_id: z.string().min(6, 'National ID is required'),
-  email: z.string().email('Valid email is required').optional().or(z.literal('')),
-  phone: z.string().min(7, 'Phone number is required'),
+  first_name: z.string().min(1, 'First name is required').min(2, 'First name must be at least 2 characters'),
+  last_name: z.string().min(1, 'Last name is required').min(2, 'Last name must be at least 2 characters'),
+  national_id: z.string().min(1, 'National ID is required').min(6, 'National ID must be at least 6 characters'),
+  email: z.union([z.string().email('Invalid email format'), z.literal('')]).optional(),
+  phone: z.string().min(1, 'Phone number is required').min(7, 'Phone must be at least 7 digits'),
   date_of_birth: z.date({
     message: 'Date of birth is required',
   })
@@ -37,28 +37,28 @@ const applicantSchema = z.object({
       message: 'Applicant must be at least 18 years old',
     }),
   marital_status: z.string().min(1, 'Please select marital status'),
-  nationality: z.string().default('Surinamese'),
-  address: z.string().min(10, 'Complete address is required'),
+  nationality: z.string().min(1, 'Nationality is required').default('Surinamese'),
+  address: z.string().min(1, 'Address is required').min(10, 'Address must be at least 10 characters'),
   district: z.string().min(1, 'Please select district'),
   household_size: z.number().min(1, 'Household size must be at least 1'),
   children_count: z.number().min(0, 'Children count cannot be negative'),
   monthly_income: z.number().min(0, 'Monthly income must be positive'),
   employment_status: z.string().min(1, 'Please select employment status'),
-  employer_name: z.string().optional(),
-  spouse_name: z.string().optional(),
-  spouse_income: z.number().optional(),
+  employer_name: z.union([z.string().min(1), z.literal('')]).optional(),
+  spouse_name: z.union([z.string().min(1), z.literal('')]).optional(),
+  spouse_income: z.number().min(0).optional(),
 });
 
 const propertySchema = z.object({
-  property_address: z.string().min(10, 'Property address is required'),
+  property_address: z.string().min(1, 'Property address is required').min(10, 'Property address must be at least 10 characters'),
   property_district: z.string().min(1, 'Please select property district'),
   property_type: z.string().min(1, 'Please select property type'),
   property_surface_area: z.number().min(1, 'Surface area must be positive'),
   title_type: z.string().min(1, 'Please select title type'),
   ownership_status: z.string().min(1, 'Please select ownership status'),
   requested_amount: z.number().min(100, 'Requested amount must be at least 100'),
-  reason_for_request: z.string().min(20, 'Please provide detailed reason (minimum 20 characters)'),
-  special_circumstances: z.string().optional(),
+  reason_for_request: z.string().min(1, 'Reason for request is required').min(20, 'Reason must be at least 20 characters'),
+  special_circumstances: z.union([z.string().min(1), z.literal('')]).optional(),
 });
 
 const documentsSchema = z.object({
