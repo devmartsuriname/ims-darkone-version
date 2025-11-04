@@ -142,7 +142,7 @@ const ApplicationIntakeForm: React.FC = () => {
           'first_name', 'last_name', 'national_id', 'email', 'phone',
           'date_of_birth', 'marital_status', 'nationality',
           'address', 'district', 'household_size', 'children_count', 
-          'monthly_income', 'employment_status'
+          'monthly_income', 'employment_status', 'employer_name', 'spouse_name', 'spouse_income'
         ]);
         break;
       case 2:
