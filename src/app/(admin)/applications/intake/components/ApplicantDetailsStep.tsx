@@ -1,10 +1,11 @@
 import React from 'react';
-import { Row, Col, Card } from 'react-bootstrap';
+import { Row, Col, Card, Alert } from 'react-bootstrap';
 import { useFormContext } from 'react-hook-form';
 import TextFormInput from '@/components/from/TextFormInput';
 import SelectFormInput from '@/components/from/SelectFormInput';
 import DateFormInput from '@/components/from/DateFormInput';
 import { HelpIcon } from '@/components/ui/EnhancedTooltip';
+import IconifyIcon from '@/components/wrapper/IconifyIcon';
 
 const ApplicantDetailsStep: React.FC = () => {
   const { control, watch } = useFormContext();
@@ -42,10 +43,30 @@ const ApplicantDetailsStep: React.FC = () => {
 
   return (
     <div>
+      <Alert variant="info" className="mb-4 border-0 shadow-sm">
+        <div className="d-flex align-items-start">
+          <IconifyIcon icon="bx:info-circle" className="fs-4 me-3 mt-1" />
+          <div>
+            <h6 className="alert-heading mb-2">Step 1: Applicant Information</h6>
+            <p className="mb-2 small">
+              Please fill out all required fields marked with <span className="text-danger fw-semibold">*</span> before proceeding to the next step.
+            </p>
+            <ul className="mb-0 small">
+              <li>Applicant must be <strong>at least 18 years old</strong></li>
+              <li>Use the <strong>DD-MM-YYYY</strong> format for dates or click the calendar icon</li>
+              <li>All information will be verified during the review process</li>
+            </ul>
+          </div>
+        </div>
+      </Alert>
+
       <Card className="border-0 shadow-none">
         <Card.Header className="bg-light border-0">
           <h5 className="mb-0">Personal Information</h5>
-          <p className="text-muted mb-0 small">Please provide accurate personal details</p>
+          <p className="text-muted mb-0 small">
+            Please provide accurate personal details
+            <span className="text-danger ms-2 fw-semibold">* Required fields</span>
+          </p>
         </Card.Header>
         <Card.Body>
           <Row>
@@ -166,6 +187,10 @@ const ApplicantDetailsStep: React.FC = () => {
       <Card className="border-0 shadow-none mt-4">
         <Card.Header className="bg-light border-0">
           <h5 className="mb-0">Address & Contact Information</h5>
+          <p className="text-muted mb-0 small">
+            Provide your current residential address
+            <span className="text-danger ms-2 fw-semibold">* Required fields</span>
+          </p>
         </Card.Header>
         <Card.Body>
           <Row>
@@ -193,6 +218,10 @@ const ApplicantDetailsStep: React.FC = () => {
       <Card className="border-0 shadow-none mt-4">
         <Card.Header className="bg-light border-0">
           <h5 className="mb-0">Household & Income Information</h5>
+          <p className="text-muted mb-0 small">
+            Provide household composition and income details for eligibility assessment
+            <span className="text-danger ms-2 fw-semibold">* Required fields</span>
+          </p>
         </Card.Header>
         <Card.Body>
           <Row>
