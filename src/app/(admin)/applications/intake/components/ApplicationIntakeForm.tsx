@@ -82,28 +82,46 @@ const ApplicationIntakeForm: React.FC = () => {
 
   const methods = useForm<ApplicationFormData>({
     resolver: zodResolver(fullApplicationSchema),
-    mode: 'onSubmit', // ✅ FIX #2: Only validate when Next/Submit is clicked
-    reValidateMode: 'onChange', // ✅ Re-validate on change after first submit attempt
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: {
+      // ========== Step 1: Applicant Details ==========
+      // Personal Information
+      first_name: '',
+      last_name: '',
+      national_id: '',
+      date_of_birth: undefined,
+      phone: '',
+      email: '',
+      marital_status: '',
       nationality: 'Surinamese',
+      spouse_name: '',
+      
+      // Address & Contact
+      address: '',
+      district: '',
+      
+      // Household & Income
       household_size: 1,
       children_count: 0,
+      employment_status: '',
       monthly_income: 0,
       spouse_income: 0,
-      property_surface_area: 0,
-      requested_amount: 0,
-      uploaded_documents: [],
-      marital_status: '',
-      district: '',
-      employment_status: '',
+      employer_name: '',
+      
+      // ========== Step 2: Property Details ==========
+      property_address: '',
       property_district: '',
       property_type: '',
+      property_surface_area: 0,
       title_type: '',
       ownership_status: '',
-      property_address: '',
       reason_for_request: '',
+      requested_amount: 0,
       special_circumstances: '',
-      date_of_birth: undefined, // ✅ FIX #4: Explicitly set to undefined
+      
+      // ========== Step 3: Documents ==========
+      uploaded_documents: [],
     },
   });
 
@@ -122,8 +140,9 @@ const ApplicationIntakeForm: React.FC = () => {
       case 1:
         isValid = await trigger([
           'first_name', 'last_name', 'national_id', 'email', 'phone',
-          'date_of_birth', 'marital_status', 'address', 'district',
-          'household_size', 'children_count', 'monthly_income', 'employment_status'
+          'date_of_birth', 'marital_status', 'nationality',
+          'address', 'district', 'household_size', 'children_count', 
+          'monthly_income', 'employment_status'
         ]);
         break;
       case 2:
@@ -145,7 +164,22 @@ const ApplicationIntakeForm: React.FC = () => {
 
   const nextStep = async () => {
     console.log('🔍 [VALIDATION] Starting Step', currentStep, 'validation');
-    console.log('📋 [VALIDATION] Current form values:', methods.getValues());
+    const formValues = methods.getValues();
+    console.log('📋 [VALIDATION] Current form values:', formValues);
+    
+    // Log field types for Step 1 debugging
+    if (currentStep === 1) {
+      console.log('🔍 [FIELD TYPES]', {
+        first_name: `"${formValues.first_name}" (${typeof formValues.first_name})`,
+        last_name: `"${formValues.last_name}" (${typeof formValues.last_name})`,
+        national_id: `"${formValues.national_id}" (${typeof formValues.national_id})`,
+        phone: `"${formValues.phone}" (${typeof formValues.phone})`,
+        email: `"${formValues.email}" (${typeof formValues.email})`,
+        nationality: `"${formValues.nationality}" (${typeof formValues.nationality})`,
+        address: `"${formValues.address}" (${typeof formValues.address})`,
+        date_of_birth: `${formValues.date_of_birth} (${typeof formValues.date_of_birth})`,
+      });
+    }
     
     const isValid = await validateCurrentStep();
     
