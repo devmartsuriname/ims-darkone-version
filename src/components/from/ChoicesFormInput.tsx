@@ -5,6 +5,7 @@ export type ChoiceProps = HTMLAttributes<HTMLInputElement> &
   HTMLAttributes<HTMLSelectElement> & {
     multiple?: boolean
     className?: string
+    value?: string | string[]
     options?: Partial<ChoiceOption>
     onChange?: (text: string) => void
   } & (
@@ -15,7 +16,7 @@ export type ChoiceProps = HTMLAttributes<HTMLInputElement> &
     | { allowInput?: true }
   )
 
-const ChoicesFormInput = ({ children, multiple, className, onChange, allowInput, options, ...props }: ChoiceProps) => {
+const ChoicesFormInput = ({ children, multiple, className, onChange, allowInput, value, options, ...props }: ChoiceProps) => {
   const choicesRef = useRef<any>(null)
 
   useEffect(() => {
@@ -28,6 +29,11 @@ const ChoicesFormInput = ({ children, multiple, className, onChange, allowInput,
       })
       
       choicesRef.current.choicesInstance = choices
+      
+      // Set initial value if provided
+      if (value) {
+        choices.setChoiceByValue(value)
+      }
       
       choices.passedElement.element.addEventListener('change', (e: Event) => {
         if (!(e.target instanceof HTMLSelectElement)) return
@@ -45,10 +51,17 @@ const ChoicesFormInput = ({ children, multiple, className, onChange, allowInput,
     }
   }, [])
 
+  // Update Choices.js when value changes externally
+  useEffect(() => {
+    if (choicesRef.current?.choicesInstance && value !== undefined) {
+      choicesRef.current.choicesInstance.setChoiceByValue(value)
+    }
+  }, [value])
+
   return allowInput ? (
-    <input ref={choicesRef} multiple={multiple} className={className} {...props} />
+    <input ref={choicesRef} multiple={multiple} className={className} value={value} {...props} />
   ) : (
-    <select ref={choicesRef} multiple={multiple} className={className} {...props}>
+    <select ref={choicesRef} multiple={multiple} className={className} value={value} {...props}>
       {children}
     </select>
   )

@@ -39,11 +39,12 @@ const SelectFormInput = <TFieldValues extends FieldValues>({
           <ChoicesFormInput
             className={`form-control ${fieldState.error ? 'is-invalid' : ''}`}
             multiple={multiple}
+            value={field.value}
             onChange={(value) => field.onChange(value)}
           >
             <option value="" disabled>{placeholder}</option>
             {options.map((option) => (
-              <option key={option.value} value={option.value} selected={field.value === option.value}>
+              <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}

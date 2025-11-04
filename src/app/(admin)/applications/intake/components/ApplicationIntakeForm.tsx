@@ -144,15 +144,23 @@ const ApplicationIntakeForm: React.FC = () => {
   };
 
   const nextStep = async () => {
+    console.log('🔍 [VALIDATION] Starting Step', currentStep, 'validation');
+    console.log('📋 [VALIDATION] Current form values:', methods.getValues());
+    
     const isValid = await validateCurrentStep();
+    
+    console.log('✅ [VALIDATION] Step', currentStep, 'valid?', isValid);
     
     if (!isValid) {
       // Collect and display validation errors grouped by step
       const errors = methods.formState.errors;
+      console.error('❌ [VALIDATION] Errors detected:', errors);
+      
       const groupedErrors = groupErrorsByStep(errors);
       const errorMessages: string[] = [];
       
-      Object.entries(groupedErrors).forEach(([, messages]) => {
+      Object.entries(groupedErrors).forEach(([step, messages]) => {
+        console.log(`📌 [VALIDATION] ${step}:`, messages);
         if (messages.length > 0) {
           errorMessages.push(...messages);
         }
@@ -322,10 +330,14 @@ const ApplicationIntakeForm: React.FC = () => {
                 {/* Validation Errors Display */}
                 {validationErrors.length > 0 && (
                   <Alert variant="danger" className="mb-3" dismissible onClose={() => setValidationErrors([])}>
-                    <Alert.Heading>Please fix the following errors:</Alert.Heading>
+                    <Alert.Heading>
+                      <i className="bx bx-error-circle me-2"></i>
+                      ⚠️ Cannot proceed - {validationErrors.length} error{validationErrors.length > 1 ? 's' : ''} found
+                    </Alert.Heading>
+                    <p className="mb-2">Please correct the following fields before continuing to the next step:</p>
                     <ul className="mb-0">
                       {validationErrors.map((error, index) => (
-                        <li key={index}>{error}</li>
+                        <li key={index}><strong>{error}</strong></li>
                       ))}
                     </ul>
                   </Alert>
