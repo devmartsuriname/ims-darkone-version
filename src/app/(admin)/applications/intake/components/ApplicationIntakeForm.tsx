@@ -11,7 +11,6 @@ import DocumentUploadStep from './DocumentUploadStep';
 import ReviewSubmitStep from './ReviewSubmitStep';
 import { applicationService } from '@/services/edgeFunctionServices';
 import IconifyIcon from '@/components/wrapper/IconifyIcon';
-import { groupErrorsByStep } from '@/utils/form-helpers';
 
 // Validation schemas for each step
 const applicantSchema = z.object({
@@ -178,6 +177,9 @@ const ApplicationIntakeForm: React.FC = () => {
         nationality: `"${formValues.nationality}" (${typeof formValues.nationality})`,
         address: `"${formValues.address}" (${typeof formValues.address})`,
         date_of_birth: `${formValues.date_of_birth} (${typeof formValues.date_of_birth})`,
+        marital_status: `"${formValues.marital_status}" (${typeof formValues.marital_status})`,
+        district: `"${formValues.district}" (${typeof formValues.district})`,
+        employment_status: `"${formValues.employment_status}" (${typeof formValues.employment_status})`,
       });
     }
     
@@ -186,26 +188,71 @@ const ApplicationIntakeForm: React.FC = () => {
     console.log('✅ [VALIDATION] Step', currentStep, 'valid?', isValid);
     
     if (!isValid) {
-      // Collect and display validation errors grouped by step
+      // Collect and display validation errors with humanized field names
       const errors = methods.formState.errors;
       console.error('❌ [VALIDATION] Errors detected:', errors);
       
-      const groupedErrors = groupErrorsByStep(errors);
+      const humanizeFieldName = (field: string): string => {
+        const fieldMap: Record<string, string> = {
+          first_name: 'First Name',
+          last_name: 'Last Name',
+          national_id: 'National ID',
+          date_of_birth: 'Date of Birth',
+          marital_status: 'Marital Status',
+          household_size: 'Household Size',
+          children_count: 'Number of Children',
+          monthly_income: 'Monthly Income',
+          employment_status: 'Employment Status',
+          employer_name: 'Employer Name',
+          spouse_name: 'Spouse Name',
+          spouse_income: 'Spouse Income',
+          property_address: 'Property Address',
+          property_district: 'Property District',
+          property_type: 'Property Type',
+          property_surface_area: 'Surface Area',
+          title_type: 'Title Type',
+          ownership_status: 'Ownership Status',
+          requested_amount: 'Requested Amount',
+          reason_for_request: 'Reason for Request',
+          special_circumstances: 'Special Circumstances',
+          uploaded_documents: 'Uploaded Documents',
+        };
+        return fieldMap[field] || field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      };
+      
       const errorMessages: string[] = [];
       
-      Object.entries(groupedErrors).forEach(([step, messages]) => {
-        console.log(`📌 [VALIDATION] ${step}:`, messages);
-        if (messages.length > 0) {
-          errorMessages.push(...messages);
+      Object.entries(errors).forEach(([field, error]: [string, any]) => {
+        if (error?.message) {
+          const humanField = humanizeFieldName(field);
+          errorMessages.push(`${humanField}: ${error.message}`);
+          console.log(`📌 [ERROR] ${humanField}: ${error.message}`);
         }
       });
       
       setValidationErrors(errorMessages);
       
-      // Scroll to first error field
-      const firstErrorField = document.querySelector('.is-invalid');
+      // Scroll to first error field with better targeting
+      const firstErrorField = Object.keys(errors)[0];
       if (firstErrorField) {
-        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Try multiple selectors to find the error field
+        const selectors = [
+          `[name="${firstErrorField}"]`,
+          `#${firstErrorField}`,
+          `.is-invalid`,
+        ];
+        
+        for (const selector of selectors) {
+          const element = document.querySelector(selector);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add focus for better UX
+            if (element instanceof HTMLElement) {
+              setTimeout(() => element.focus(), 300);
+            }
+            break;
+          }
+        }
       }
       
       toast.error(`Please correct ${errorMessages.length} error${errorMessages.length > 1 ? 's' : ''} before proceeding`, {
