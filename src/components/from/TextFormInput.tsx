@@ -39,8 +39,10 @@ const TextFormInput = <TFieldValues extends FieldValues = FieldValues, TName ext
               const value = e.target.value;
               // Transform to number if type is "number"
               if (other.type === 'number') {
-                field.onChange(value === '' ? undefined : Number(value));
+                // Convert empty string to 0 instead of undefined to prevent validation issues
+                field.onChange(value === '' ? 0 : Number(value));
               } else {
+                // For text inputs, keep as string (including empty strings)
                 field.onChange(value);
               }
             }}
